@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vik — Insurance Pipeline</title>
+<style>
+  :root{
+    --ink:#152238;
+    --ink-2:#1F3352;
+    --paper:#F6F4EF;
+    --paper-2:#FFFFFF;
+    --brass:#A9762F;
+    --brass-2:#C69350;
+    --slate:#5B6472;
+    --line:#E2DED4;
+    --good:#3C6E47;
+    --warn:#B4762E;
+    --danger:#A23B34;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; }
+  .app{ display:flex; min-height:100vh; }
+  .sidebar{ width:220px; background:var(--ink); color:#EDE8DD; padding:28px 20px; flex-shrink:0; }
+  @media (max-width: 820px){
+    .app{ flex-direction:column; }
+    .sidebar{ width:100%; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; }
+    .sidebar .navlist{ display:none; }
+  }
+  .brand{ font-family:var(--serif); font-size:22px; letter-spacing:0.2px; color:#fff; }
+  .brand small{ display:block; font-family:var(--sans); font-size:11px; color:var(--brass-2); margin-top:4px; font-weight:600; }
+  .navlist{ margin-top:36px; display:flex; flex-direction:column; gap:4px; }
+  .navlist a{ all:unset; cursor:pointer; padding:10px 12px; border-radius:6px; font-size:14px; color:#C9D0DC; display:block; }
+  .navlist a.active{ background:rgba(255,255,255,0.08); color:#fff; }
+  .navlist a:hover{ background:rgba(255,255,255,0.06); }
+
+  .main{ flex:1; padding:32px 36px 80px; max-width:1180px; }
+  @media (max-width: 640px){ .main{ padding:20px 16px 60px; } }
+
+  h1{ font-family:var(--serif); font-size:28px; margin:0 0 4px; font-weight:600; }
+  .sub{ color:var(--slate); font-size:14px; margin:0 0 28px; }
+
+  .stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:28px; }
+  .stat{ background:var(--paper-2); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+  .stat .num{ font-family:var(--serif); font-size:26px; color:var(--ink); }
+  .stat .lbl{ font-size:12px; color:var(--slate); margin-top:2px; }
+
+  .toolbar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; }
+  input, select, textarea{ font-family:var(--sans); font-size:14px; border:1px solid var(--line); background:var(--paper-2); border-radius:6px; padding:9px 11px; color:var(--ink); }
+  input:focus, select:focus, textarea:focus{ outline:2px solid var(--brass-2); outline-offset:1px; }
+  #search{ flex:1; min-width:180px; }
+  .btn{ all:unset; cursor:pointer; font-size:14px; font-weight:600; padding:9px 16px; border-radius:6px; background:var(--ink); color:#fff; }
+  .btn:hover{ background:var(--ink-2); }
+  .btn.ghost{ background:transparent; border:1px solid var(--line); color:var(--ink); }
+  .btn.ghost:hover{ background:#FBFAF6; }
+  .btn.small{ padding:6px 12px; font-size:12px; }
+
+  .card{ background:var(--paper-2); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:12px; }
+  .card .top{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:flex-start; }
+  .card .name{ font-family:var(--serif); font-size:18px; font-weight:600; }
+  .card .meta{ font-size:12px; color:var(--slate); margin-top:2px; }
+  .badge{ font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap; }
+  .badge.insurance{ background:#DCE6EE; color:#2E5B7C; }
+  .badge.investment{ background:#F0E1C8; color:var(--warn); }
+  .badge.both{ background:#E4DCF5; color:#5B3E9E; }
+  .badge.neo{ background:#F5DEDB; color:var(--danger); }
+  .badge.nikki{ background:#DCE9DC; color:var(--good); }
+
+  .grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+  @media (max-width:700px){ .grid3{ grid-template-columns:1fr; } }
+  .field label{ display:block; font-size:11px; color:var(--slate); margin-bottom:4px; font-weight:600; }
+  .field select, .field input{ width:100%; }
+
+  .notes{ margin-top:12px; border-top:1px solid var(--line); padding-top:10px; }
+  .notes .n{ font-size:13px; padding:6px 0; border-bottom:1px dashed var(--line); }
+  .research-heading{ font-size:13px; font-weight:700; margin:8px 0 4px; }
+  .research-heading:first-child{ margin-top:0; }
+  .research-list{ margin:0 0 6px 18px; padding:0; }
+  .research-list li{ margin-bottom:3px; }
+  .research-para{ margin:0 0 6px; line-height:1.45; }
+  .notes .n:last-child{ border-bottom:none; }
+  .notes .n .ts{ font-size:11px; color:var(--slate); margin-left:6px; }
+  .sasha-chat{ display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding:4px 2px; }
+  .sasha-msg{ max-width:82%; padding:8px 12px; border-radius:12px; font-size:13px; white-space:pre-wrap; }
+  .sasha-msg.vik{ align-self:flex-end; background:var(--brass, #b48c3c); color:#fff; border-bottom-right-radius:3px; }
+  .sasha-msg.sasha{ align-self:flex-start; background:#F1EAFB; color:var(--ink, #222); border-bottom-left-radius:3px; }
+  .sasha-msg .item-meta{ opacity:0.75; font-size:11px; margin-bottom:2px; }
+  .sasha-voice-btn{ font-size:16px; padding:6px 10px; border-radius:50%; background:#F1EAFB; border:1px solid var(--brass, #b48c3c); cursor:pointer; line-height:1; }
+  .sasha-voice-btn.listening{ background:var(--brass, #b48c3c); animation:sashaPulse 1s infinite; }
+  @keyframes sashaPulse{ 0%{ box-shadow:0 0 0 0 rgba(180,140,60,0.5); } 70%{ box-shadow:0 0 0 10px rgba(180,140,60,0); } 100%{ box-shadow:0 0 0 0 rgba(180,140,60,0); } }
+  .sasha-voice-hint{ font-size:11px; opacity:0.7; margin-top:4px; }
+  .addnote{ display:flex; gap:8px; margin-top:8px; }
+  .addnote textarea{ flex:1; min-height:36px; resize:vertical; }
+
+  .empty{ text-align:center; padding:60px 20px; color:var(--slate); }
+
+  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; padding:10px 18px; border-radius:8px; font-size:13px; opacity:0; pointer-events:none; transition:all .25s; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .rcard{ background:var(--paper-2); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:14px; }
+  .rtop{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+  .rname{ font-family:var(--serif); font-size:18px; }
+  .rmeta{ font-size:12px; color:var(--slate); margin-top:2px; }
+  .risk-badge{ font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; }
+  .risk-badge.ok{ background:#E4EFE6; color:var(--good); }
+  .risk-badge.flag{ background:#F6E4DF; color:var(--danger); }
+  .rgrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-top:14px; }
+  .rfield label{ display:block; font-size:11px; color:var(--slate); margin-bottom:4px; text-transform:uppercase; letter-spacing:.3px; }
+  .exam-list{ display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+  .exam-row{ display:flex; align-items:center; justify-content:space-between; font-size:13px; background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:6px 10px; }
+  .exam-row select{ padding:4px 8px; font-size:12px; }
+  .events-row{ display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; }
+  .events-row label{ font-size:13px; display:flex; align-items:center; gap:6px; }
+  .satpct{ font-family:var(--serif); font-size:20px; }
+  .rsection-title{ font-size:12px; color:var(--slate); text-transform:uppercase; letter-spacing:.4px; margin:14px 0 4px; font-weight:700; }
+
+  /* ---- Pipeline table + detail modal (mirrors the mortgage dashboard's layout) ---- */
+  table{ width:100%; border-collapse:collapse; background:var(--paper-2); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  thead th{ text-align:left; font-size:12px; color:var(--slate); font-weight:600; padding:10px 12px; border-bottom:1px solid var(--line); background:#FBFAF6; }
+  tbody td{ padding:12px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:#FBFAF6; cursor:pointer; }
+  .name-cell{ font-weight:600; }
+  .name-cell .meta{ font-weight:400; color:var(--slate); font-size:12px; margin-top:2px; }
+  .code-tag{ font-size:11px; color:var(--brass); font-weight:600; }
+
+  .row-cards{ display:none; }
+  @media (max-width: 720px){
+    table{ display:none; }
+    .row-cards{ display:flex; flex-direction:column; gap:10px; }
+    .row-card{ background:var(--paper-2); border:1px solid var(--line); border-radius:8px; padding:14px; cursor:pointer; }
+    .row-card .row1{ display:flex; justify-content:space-between; align-items:start; gap:8px; }
+  }
+
+  .overlay{ position:fixed; inset:0; background:rgba(21,34,56,0.45); display:none; align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; z-index:50; }
+  .overlay.show{ display:flex; }
+  .panel{ background:var(--paper-2); border-radius:10px; width:100%; max-width:640px; padding:28px; margin-bottom:40px; }
+  .panel h2{ font-family:var(--serif); font-size:20px; margin:0 0 4px; }
+  .panel-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:22px; }
+
+  .drawer-overlay{ position:fixed; inset:0; background:rgba(21,34,56,0.35); display:none; z-index:55; }
+  .drawer-overlay.show{ display:block; }
+  .drawer{ position:fixed; top:0; right:0; height:100%; width:320px; max-width:90vw; background:var(--paper-2); box-shadow:-6px 0 24px rgba(21,34,56,0.18); padding:22px; overflow-y:auto; }
+  .drawer h2{ font-family:var(--serif); font-size:18px; margin:0 0 16px; }
+  .drawer .rfield{ margin-bottom:14px; }
+  .drawer .rfield label{ display:block; font-size:12px; color:var(--slate); margin-bottom:4px; }
+  .drawer .rfield input, .drawer .rfield select{ width:100%; }
+
+  .detail dt{ font-size:12px; color:var(--slate); margin-top:12px; }
+  .detail dd{ margin:2px 0 0; font-size:15px; }
+  .detail .sechead{ font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--brass); font-weight:700; margin:20px 0 4px; border-top:1px solid var(--line); padding-top:14px; }
+  .detail .sechead:first-of-type{ border-top:none; padding-top:0; margin-top:14px; }
+
+  .call-icon-btn{ all:unset; cursor:pointer; width:30px; height:30px; border-radius:50%; background:#EAF4EC; color:#2E7D32; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; text-decoration:none; }
+  .call-icon-btn:hover{ background:#D7EBDA; }
+
+  /* ---- Notes & history layers (mirrors the mortgage dashboard's detail panel) ---- */
+  .top-summary-box{ background:#FFF8E6; border:1px solid #E8D9A6; border-radius:8px; padding:10px 12px; margin-top:6px; }
+  .top-summary-box textarea{ width:100%; border:none; background:transparent; resize:vertical; font-size:13px; font-family:inherit; }
+  .layer-tabs{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .layer-tab{ all:unset; cursor:pointer; font-size:12px; font-weight:600; padding:6px 12px; border-radius:16px; background:#F1EFE8; color:var(--slate); }
+  .layer-tab.active{ background:var(--brass); color:#fff; }
+  .layer-pane{ display:none; margin-top:10px; }
+  .layer-pane.active{ display:block; }
+  .note-item{ background:#FBFAF6; border:1px solid var(--line); border-radius:6px; padding:8px 10px; margin-bottom:8px; }
+  .note-empty{ font-size:13px; color:var(--slate); }
+  .comm-item{ background:#F5F8FC; border:1px solid #DCE6F2; border-radius:6px; padding:8px 10px; margin-bottom:8px; }
+  .agent-item{ background:#F8F5FC; border:1px solid #E5DCF2; border-radius:6px; padding:8px 10px; margin-bottom:8px; }
+  .research-item{ background:#F5FCF7; border:1px solid #D9EFE0; border-radius:6px; padding:8px 10px; margin-bottom:8px; }
+  .item-meta{ font-size:11px; color:var(--slate); margin-bottom:3px; }
+  .item-text{ font-size:13px; color:var(--ink); white-space:pre-wrap; }
+  .doc-item{ display:flex; }
+  .sat-year-label{ font-family:var(--serif); font-size:15px; font-weight:600; margin:16px 0 8px; }
+  .sat-year-label:first-child{ margin-top:0; }
+  .sat-modal-list{ max-height:50vh; overflow-y:auto; padding-right:4px; }
+  .sat-row{ display:flex; align-items:center; gap:8px; padding:5px 2px; font-size:13px; }
+  .sat-row input{ width:auto; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">Vik<small>INSURANCE PIPELINE</small></div>
+    <div class="navlist">
+      <a class="active" id="navPipeline" onclick="showView('pipeline')">Pipeline</a>
+      <a href="vik-mortgage-dashboard.html">Mortgage Pipeline</a>
+      <a id="navRecruits" onclick="showView('recruits')">Recruits (Guru)</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="view-pipeline">
+      <h1>Insurance &amp; Investment Pipeline</h1>
+      <p class="sub">Leads from Nikki directly, plus cross-referrals from Neo when a mortgage client has no insurance or no retirement plan.</p>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="toolbar">
+        <input id="search" placeholder="Search by name, phone, email...">
+        <button class="btn secondary" id="archiveViewToggle" onclick="toggleArchivedView()">📁 View archived</button>
+        <select id="filterCategory"><option value="">All categories</option><option>Insurance</option><option>Investment</option><option>Both</option></select>
+        <select id="filterInsurance"><option value="">Insurance: any</option></select>
+        <select id="filterRetirement"><option value="">Retirement: any</option></select>
+        <select id="filterAgeBand"><option value="">Age band: any</option></select>
+        <button class="btn" id="addBtn">+ Add lead</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Deal</th>
+            <th>Category</th>
+            <th>Source</th>
+            <th>Insurance</th>
+            <th>Retirement</th>
+            <th>Stage</th>
+            <th>Call</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="row-cards" id="rowCards"></div>
+      <div class="empty" id="emptyState" style="display:none;">
+        <div class="big">No leads yet</div>
+        <div>Tap "+ Add lead" to start building your pipeline.</div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay">
+      <div class="panel" id="panel"></div>
+    </div>
+
+    <div class="overlay" id="callOverlay">
+      <div class="panel" id="callPanel" style="max-width:420px;"></div>
+    </div>
+
+    <div class="overlay" id="satOverlay">
+      <div class="panel" id="satPanel" style="max-width:480px;"></div>
+    </div>
+
+    <div class="overlay" id="addProspectOverlay">
+      <div class="panel" id="addProspectPanel" style="max-width:420px;">
+        <h2>Add prospect</h2>
+        <div class="rgrid" style="margin-top:14px;">
+          <div class="rfield"><label>First name</label><input id="newProspectFirst" autocomplete="off"></div>
+          <div class="rfield"><label>Last name</label><input id="newProspectLast" autocomplete="off"></div>
+          <div class="rfield"><label>City</label><input id="newProspectCity" autocomplete="off"></div>
+          <div class="rfield"><label>Phone</label><input id="newProspectPhone" autocomplete="off"></div>
+          <div class="rfield" style="grid-column:1/-1;"><label>Email</label><input id="newProspectEmail" autocomplete="off"></div>
+          <div class="rfield" style="grid-column:1/-1;"><label>List</label>
+            <select id="newProspectTier"><option>Top 25</option><option>Top 50</option><option>Top 100</option></select>
+          </div>
+        </div>
+        <div class="panel-actions">
+          <button class="btn ghost" id="cancelAddProspect">Cancel</button>
+          <button class="btn" id="confirmAddProspect">Add prospect</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="addChildOverlay">
+      <div class="panel" id="addChildPanel" style="max-width:400px;">
+        <h2>Add child</h2>
+        <div class="rgrid" style="margin-top:14px;">
+          <div class="rfield" style="grid-column:1/-1;"><label>Name</label><input id="newChildName" autocomplete="off"></div>
+          <div class="rfield"><label>Age</label><input id="newChildAge" type="number" min="0"></div>
+          <div class="rfield"><label>Date of birth</label><input id="newChildDob" type="date"></div>
+        </div>
+        <div class="panel-actions">
+          <button class="btn ghost" id="cancelAddChild">Cancel</button>
+          <button class="btn" id="confirmAddChild">Add child</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-overlay" id="recruitFilterOverlay">
+      <div class="drawer" id="recruitFilterDrawer">
+        <h2>More filters</h2>
+        <div class="rfield"><label>Profession</label><input id="filterProfession" placeholder="e.g. teacher, nurse..."></div>
+        <div class="rfield"><label>Age band</label>
+          <select id="filterAgeBandRecruit">
+            <option value="">Any age</option>
+            <option value="25-30">25–30</option>
+            <option value="30-35">30–35</option>
+            <option value="36-40">36–40</option>
+            <option value="41-45">41–45</option>
+            <option value="46-50">46–50</option>
+            <option value="51-55">51–55</option>
+            <option value="56-60">56–60</option>
+            <option value="61-65">61–65</option>
+            <option value="65-999">65+</option>
+          </select>
+        </div>
+        <div class="rfield"><label>Hobbies</label><input id="filterHobbies" placeholder="e.g. cricket, golf..."></div>
+        <div class="rfield"><label>Marital status</label>
+          <select id="filterMaritalStatus"><option value="">Any</option><option value="married">Married / partnered</option><option value="single">Single</option></select>
+        </div>
+        <div class="rfield"><label>Kids</label>
+          <select id="filterHasKids"><option value="">Any</option><option value="yes">Has kids</option><option value="no">No kids</option></select>
+        </div>
+        <div class="panel-actions">
+          <button class="btn ghost small" id="clearRecruitFiltersBtn" type="button">Clear</button>
+          <button class="btn small" id="closeRecruitFiltersBtn" type="button">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-recruits" style="display:none;">
+      <h1>Recruits — Guru's Training Dashboard</h1>
+      <p class="sub">Licensing progress, Super Saturday attendance, qualifying events, and coaching signals for every recruit. Guru owns training and attendance; Sasha owns the rest of the tracking.</p>
+
+      <div class="stats" id="recruitStats"></div>
+
+      <div class="toolbar">
+        <input id="recruitSearch" placeholder="Search recruits by name...">
+        <select id="filterCoachability"><option value="">Coaching level: any</option><option>Level 1 — On track</option><option>Level 2 — Average/below average</option><option>Level 3 — Needs attention</option><option>Elite</option></select>
+        <select id="filterRisk"><option value="">Risk: any</option><option>At risk</option><option>On track</option></select>
+        <button class="btn ghost small" id="openRecruitFiltersBtn" type="button">🔍 More filters<span id="recruitFilterBadge" style="display:none;"></span></button>
+        <label style="font-size:13px; color:var(--slate); display:flex; align-items:center; gap:6px;">My current level:
+          <input id="myLevel" placeholder="e.g. SGA" style="width:110px;" onchange="saveMyLevel(this.value)">
+        </label>
+        <button class="btn" id="addRecruitBtn">+ Add recruit</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Profession</th>
+            <th>Program day</th>
+            <th>Coaching level</th>
+            <th>Attendance</th>
+            <th>Licensing</th>
+            <th>Risk</th>
+          </tr>
+        </thead>
+        <tbody id="recruitTbody"></tbody>
+      </table>
+      <div class="row-cards" id="recruitRowCards"></div>
+      <div id="recruitEmpty" style="display:none;" class="empty">No recruits match right now.</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ENDPOINT = 'https://fincop-backend.onrender.com/app-data/insurance-clients';
+const RECRUIT_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/insurance-recruits';
+const STATUS_OPTIONS = ["No","Yes — Sufficient","Yes — Insufficient"];
+const AGE_BANDS = ["Under 40","40-45","46-50","51-55","56-60","61-65","65+"];
+const STAGE_OPTIONS = ["Lead","Contacted","FNA Sent","FNA Completed","Application","Approved","Declined","Not Interested"];
+const CERT_EXAMS = ["Ethics","Accident & Sickness","Life","Segregated Funds"];
+const PROV_EXAMS = ["Ethics (Provincial)","Accident & Sickness (Provincial)","Life (Provincial)","Segregated Funds (Provincial)"];
+const TIER_OPTIONS = ["Level 1 — On track","Level 2 — Average/below average","Level 3 — Needs attention","Elite"];
+const TRAINER_OPTIONS = ["Not yet","In progress","Eligible"];
+const NAME_LIST_TIERS = ["Top 25","Top 50","Top 75","Top 100"];
+const CURRICULUM_OPTIONS = ["1-1-7","3-3-30"];
+const EMPLOYMENT_OPTIONS = ["Homemaker","Self-employed","Part-time employed","Full-time employed"];
+const PT_FT_OPTIONS = ["Part-time","Full-time"];
+const LEG_OPTIONS = ["First leg","Second leg","Third leg"];
+const YES_NO_OPTIONS = ["Yes","No"];
+const PARTNER_RELATION_OPTIONS = ["Spouse","Partner","Other family member"];
+const PROSPECT_TIERS = ["Top 25","Top 50","Top 100"];
+
+let clients = [];
+let recruits = [];
+let openRecruitId = null;
+let viewArchived = false;
+
+function saturdaysInYear(year){
+  let count = 0;
+  const d = new Date(year,0,1);
+  while(d.getFullYear()===year){
+    if(d.getDay()===6) count++;
+    d.setDate(d.getDate()+1);
+  }
+  return count;
+}
+
+function attendancePct(r){
+  const year = new Date().getFullYear();
+  const total = saturdaysInYear(year);
+  const attended = (r.superSaturdays||[]).filter(s=> typeof s==='string' && s.startsWith(year+'-')).length;
+  if(total===0) return 0;
+  return Math.round((attended/total)*100);
+}
+
+function isAtRisk(r){
+  const pct = attendancePct(r);
+  if(pct < 60) return true;
+  if(r.coachingLevel === 'Level 3 — Needs attention') return true;
+  if(r.studyLevel === 'Level 3 — Needs attention') return true;
+  if(r.learningLevel === 'Level 3 — Needs attention') return true;
+  return false;
+}
+
+function defaultExamStages(){
+  return [...CERT_EXAMS.map(name=>({ name, status:'Pending' })), ...PROV_EXAMS.map(name=>({ name, status:'Pending' }))];
+}
+
+async function loadRecruits(){
+  try{
+    const res = await fetch(RECRUIT_ENDPOINT);
+    const data = await res.json();
+    recruits = data && data.value ? JSON.parse(data.value) : [];
+    recruits.forEach(r=>{
+      if(!Array.isArray(r.examStages) || r.examStages.length < 8) r.examStages = defaultExamStages();
+      if(!Array.isArray(r.superSaturdays)) r.superSaturdays = [];
+      r.superSaturdays = r.superSaturdays.map(s=> typeof s==='string' ? s : ((s.attended||s.longWeekend) ? s.date : null)).filter(Boolean);
+      r.superSaturdays = [...new Set(r.superSaturdays)];
+      if(!r.events) r.events = { blueMountain:false, mexico:false, lasVegas:false, hawaii:false };
+      if(!r.coachingLevel) r.coachingLevel = '';
+      if(!r.studyLevel) r.studyLevel = '';
+      if(!r.learningLevel) r.learningLevel = '';
+      if(!r.personalGrowthLevel) r.personalGrowthLevel = '';
+      if(!r.eligibleTrainer) r.eligibleTrainer = 'Not yet';
+      // profile
+      if(!r.firstName) r.firstName = r.name ? r.name.split(' ')[0] : '';
+      if(!r.lastName) r.lastName = r.name ? r.name.split(' ').slice(1).join(' ') : '';
+      if(!r.dateRecruited) r.dateRecruited = '';
+      if(!r.dob) r.dob = '';
+      if(!r.prospects) r.prospects = [];
+      if(!r.professionCategory) r.professionCategory = '';
+      if(!r.jobTitle) r.jobTitle = '';
+      if(!r.hobbies) r.hobbies = '';
+      if(!r.pastEducation) r.pastEducation = '';
+      if(!r.priorWorkField) r.priorWorkField = '';
+      if(!r.ptFtStatus) r.ptFtStatus = '';
+      // family
+      if(!r.spouseName) r.spouseName = '';
+      if(!r.spouseProfession) r.spouseProfession = '';
+      if(!r.spouseDob) r.spouseDob = '';
+      if(!r.spouseEmployment) r.spouseEmployment = '';
+      if(!r.spouseEducation) r.spouseEducation = '';
+      if(!r.spouseAnniversary) r.spouseAnniversary = '';
+      if(!r.spouseRecruited) r.spouseRecruited = '';
+      if(!r.partnerRelation) r.partnerRelation = r.spouseName ? 'Spouse' : '';
+      if(r.curriculum === 'WFG 1-1-7') r.curriculum = '1-1-7';
+      if(r.curriculum === "Vik's 3-3 formula") r.curriculum = '3-3-30';
+      if(!Array.isArray(r.children)) r.children = [];
+      // personal insight
+      if(!r.ownInsuranceStatus) r.ownInsuranceStatus = '';
+      if(!r.dreams) r.dreams = '';
+      if(!r.fears) r.fears = '';
+      if(!r.painPoints) r.painPoints = '';
+      // 90-day program
+      if(!r.nameListTier) r.nameListTier = '';
+      if(!Array.isArray(r.nameList)) r.nameList = [];
+      if(!r.curriculum) r.curriculum = '';
+      if(!r.recruitingLeg) r.recruitingLeg = '';
+      if(typeof r.peopleRecruited !== 'number') r.peopleRecruited = 0;
+      if(typeof r.salesMade !== 'number') r.salesMade = 0;
+      if(!r.programDay) r.programDay = 1;
+    });
+  }catch(e){ recruits = []; }
+  renderRecruits();
+}
+
+// Guru's training-advice suggestion, mirrored from Vikram's research pattern.
+// Backend endpoint (/guru-training-advice) isn't live yet — this fails
+// gracefully with a placeholder message until it's built.
+const guruSuggestionInFlight = new Set();
+async function askGuruForAdvice(id){
+  const r = recruits.find(x=>x.id===id);
+  if(!r) return;
+  if(guruSuggestionInFlight.has(id)) return;
+  const gaps = [
+    { key:'coachingLevel', label:'coaching', bucket:'WFG philosophy/mindset' },
+    { key:'studyLevel', label:'study', bucket:'Licensing prep' },
+    { key:'learningLevel', label:'learning', bucket:'Product knowledge' },
+    { key:'personalGrowthLevel', label:'personal growth', bucket:'Presentation skills' }
+  ].filter(g=> r[g.key]==='Level 3 — Needs attention');
+  guruSuggestionInFlight.add(id);
+  renderRecruits();
+  try{
+    const res = await fetch('https://fincop-backend.onrender.com/guru-training-advice', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ recruitId: id, name: r.name, gaps: gaps.map(g=>({label:g.label, bucket:g.bucket})) })
+    });
+    if(!res.ok) throw new Error('no guru endpoint yet');
+    const data = await res.json();
+    r.guruSuggestion = (data && data.suggestion) ? data.suggestion : 'Guru returned no suggestion.';
+  }catch(e){
+    r.guruSuggestion = 'Guru\'s training-advice endpoint isn\'t connected yet — this button is wired and ready, it just needs the backend to go live.';
+  }
+  guruSuggestionInFlight.delete(id);
+  await saveRecruits();
+  renderRecruits();
+}
+
+async function saveRecruits(){
+  try{
+    await fetch(RECRUIT_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ value: JSON.stringify(recruits) }) });
+  }catch(e){ showToast('Could not save recruit data — try again'); }
+}
+
+function saveMyLevel(val){
+  localStorage.setItem('vik_current_level', val);
+  showToast('Level saved');
+}
+
+function showView(view){
+  document.getElementById('view-pipeline').style.display = view==='pipeline' ? '' : 'none';
+  document.getElementById('view-recruits').style.display = view==='recruits' ? '' : 'none';
+  document.getElementById('navPipeline').classList.toggle('active', view==='pipeline');
+  document.getElementById('navRecruits').classList.toggle('active', view==='recruits');
+  if(view==='recruits') renderRecruits();
+}
+
+function ageBandFor(age){
+  if(age===null || age===undefined || age==='') return '';
+  const a = Number(age);
+  if(isNaN(a)) return '';
+  if(a<40) return 'Under 40';
+  if(a<=45) return '40-45';
+  if(a<=50) return '46-50';
+  if(a<=55) return '51-55';
+  if(a<=60) return '56-60';
+  if(a<=65) return '61-65';
+  return '65+';
+}
+
+async function loadClients(){
+  try{
+    const res = await fetch(ENDPOINT);
+    const data = await res.json();
+    clients = data && data.value ? JSON.parse(data.value) : [];
+    clients.forEach(c=>{
+      if(!Array.isArray(c.notesList)) c.notesList = [];
+      if(!Array.isArray(c.sashaChat)) c.sashaChat = [];
+      if(typeof c.sashaAutoSend !== 'boolean') c.sashaAutoSend = false;
+    });
+  }catch(e){ clients = []; }
+  render();
+}
+
+async function saveClients(){
+  try{
+    await fetch(ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ value: JSON.stringify(clients) }) });
+  }catch(e){ showToast('Could not save — try again'); }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function populateFilters(){
+  const insSel = document.getElementById('filterInsurance');
+  const retSel = document.getElementById('filterRetirement');
+  STATUS_OPTIONS.forEach(s=>{
+    insSel.appendChild(new Option(s,s));
+    retSel.appendChild(new Option(s,s));
+  });
+  const ageSel = document.getElementById('filterAgeBand');
+  AGE_BANDS.forEach(b=> ageSel.appendChild(new Option(b,b)));
+}
+
+function renderStats(){
+  const activeClients = clients.filter(c=>!c.archived);
+  const total = activeClients.length;
+  const insuranceGaps = activeClients.filter(c=> c.insuranceStatus==='No' || c.insuranceStatus==='Yes — Insufficient').length;
+  const retirementGaps = activeClients.filter(c=> c.retirementStatus==='No' || c.retirementStatus==='Yes — Insufficient').length;
+  const crossReferred = activeClients.filter(c=> (c.sourceAgent||'').indexOf('Neo') !== -1).length;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="num">${total}</div><div class="lbl">Total leads</div></div>
+    <div class="stat"><div class="num">${insuranceGaps}</div><div class="lbl">Insurance gaps</div></div>
+    <div class="stat"><div class="num">${retirementGaps}</div><div class="lbl">Retirement gaps</div></div>
+    <div class="stat"><div class="num">${crossReferred}</div><div class="lbl">Cross-referred from Neo</div></div>
+  `;
+}
+
+function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function renderSashaChat(c){
+  const items = (c.sashaChat||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
+  if(items.length===0) return `<div class="n" style="color:var(--slate);">No conversation with Sasha yet on this lead — ask her something below.</div>`;
+  return items.map(m=>`
+    <div class="sasha-msg ${m.from==='Vik'?'vik':'sasha'}">
+      <div class="item-meta">${m.from==='Vik'?'You':'Sasha'} · ${new Date(m.ts).toLocaleString()}</div>
+      <div>${escapeHtml(m.text)}</div>
+    </div>`).join('');
+}
+
+// Lightly formats Vikram's research text into structured HTML (headers,
+// bullets, bold) instead of a dense run-on paragraph. Mirrors the mortgage
+// dashboard's formatter. Escapes first so no raw HTML can leak through.
+function formatResearchText(raw){
+  const esc = escapeHtml(raw||'');
+  const lines = esc.split('\n');
+  let html = '';
+  let inList = false;
+  for(let line of lines){
+    const trimmed = line.trim();
+    if(!trimmed){ if(inList){ html += '</ul>'; inList = false; } continue; }
+    const heading = trimmed.match(/^#{1,4}\s*(.+)/);
+    const bullet = trimmed.match(/^[-*]\s+(.+)/);
+    if(heading){
+      if(inList){ html += '</ul>'; inList = false; }
+      html += `<h4 class="research-heading">${heading[1]}</h4>`;
+    } else if(bullet){
+      if(!inList){ html += '<ul class="research-list">'; inList = true; }
+      html += `<li>${bullet[1]}</li>`;
+    } else {
+      if(inList){ html += '</ul>'; inList = false; }
+      html += `<p class="research-para">${trimmed}</p>`;
+    }
+  }
+  if(inList) html += '</ul>';
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  return html;
+}
+
+function matchesFilters(c){
+  if(!!c.archived !== viewArchived) return false;
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const cat = document.getElementById('filterCategory').value;
+  const ins = document.getElementById('filterInsurance').value;
+  const ret = document.getElementById('filterRetirement').value;
+  const band = document.getElementById('filterAgeBand').value;
+  if(q){
+    const hay = `${c.name||''} ${c.phone||''} ${c.email||''}`.toLowerCase();
+    if(hay.indexOf(q)===-1) return false;
+  }
+  if(cat && c.leadCategory !== cat) return false;
+  if(ins && (c.insuranceStatus||'') !== ins) return false;
+  if(ret && (c.retirementStatus||'') !== ret) return false;
+  if(band && (c.ageBand || ageBandFor(c.age)) !== band) return false;
+  return true;
+}
+
+function formatNoteTs(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleString('en-CA', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function renderNotesList(c){
+  const notes = (c.notesList||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(notes.length===0) return `<div class="note-empty">No notes yet. Add the first one below.</div>`;
+  return notes.map(n=>`
+    <div class="note-item">
+      <div class="item-meta">${escapeHtml(formatNoteTs(n.ts))}${n.author?' · '+escapeHtml(n.author):''}</div>
+      <div class="item-text">${escapeHtml(n.text)}</div>
+    </div>`).join('');
+}
+
+function renderResearchNotes(c){
+  const items = (c.researchNotes||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(items.length===0) return `<div class="note-empty">No research yet.</div>`;
+  return items.map(n=>`
+    <div class="research-item">
+      <div class="item-meta">${escapeHtml(formatNoteTs(n.ts))}${n.author?' · '+escapeHtml(n.author):''}</div>
+      <div class="item-text">${formatResearchText(n.text)}</div>
+    </div>`).join('');
+}
+
+function renderCommHistory(c){
+  const items = (c.commHistory||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(items.length===0) return `<div class="note-empty">No calls or messages logged yet. Use the 📞 icon on the lead's row to log one.</div>`;
+  return items.map(n=>`
+    <div class="comm-item">
+      <div class="item-meta">${escapeHtml(formatNoteTs(n.ts))}${n.direction?' · '+escapeHtml(n.direction):''}${n.author?' · '+escapeHtml(n.author):''}</div>
+      <div class="item-text">${escapeHtml(n.text)}</div>
+    </div>`).join('');
+}
+
+function renderAgentNotes(c){
+  const items = (c.agentNotes||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(items.length===0) return `<div class="note-empty">No agent observations yet.</div>`;
+  return items.map(n=>`
+    <div class="agent-item">
+      <div class="item-meta">${escapeHtml(formatNoteTs(n.ts))}${n.author?' · '+escapeHtml(n.author):''}</div>
+      <div class="item-text">${escapeHtml(n.text)}</div>
+    </div>`).join('');
+}
+
+const FNA_BASE_URL = 'https://kaaligma-jpg.github.io/vik-widgets/dream-home-plus-life-fna.html';
+function fnaLinkFor(id){ return FNA_BASE_URL + '?client=' + encodeURIComponent(id); }
+
+function renderFnaSummary(fna){
+  const rows = [
+    ['Marital status', fna.maritalStatus],
+    ['Dependents', (fna.dependents||[]).join(', ')],
+    ['Life insurance', fna.hasLifeInsurance],
+    ['Mortgage', fna.hasMortgage + (fna.mortgageRenewal ? ' — renews ' + fna.mortgageRenewal : '')],
+    ['Retirement plan', fna.retirePlan],
+    ['Will', fna.hasWill],
+    ['Emergency fund', fna.emergencyFund],
+    ['Priorities', (fna.priorities||[]).join(', ')],
+    ['Investment knowledge', (fna.investKnowledge||[]).join(', ')],
+    ['Risk comfort', (fna.riskComfort||[]).join(', ')]
+  ].filter(r=>r[1]);
+  return '<div class="notes-list">' + rows.map(r=>`<div class="note-item"><b>${escapeHtml(r[0])}:</b> ${escapeHtml(String(r[1]))}</div>`).join('') + '</div>';
+}
+
+function copyFnaLink(id){
+  const link = fnaLinkFor(id);
+  navigator.clipboard.writeText(link).then(()=> showToast('FNA link copied')).catch(()=> showToast(link));
+}
+
+function sendFnaViaSasha(id){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  const link = fnaLinkFor(id);
+  const input = document.getElementById('sashaInput');
+  if(input){
+    input.value = `Please send ${c.name||'the client'} their Dream Home Plus Life FNA link: ${link}`;
+    document.getElementById('sashaSendBtn').click();
+  }
+}
+
+const docReadInFlight = new Set();
+function renderDocuments(c){
+  const docs = (c.documents||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(docs.length===0) return `<div class="note-empty">No documents uploaded yet.</div>`;
+  return docs.map(d=>{
+    const flightKey = c.id+'_'+d.ts;
+    const reading = docReadInFlight.has(flightKey);
+    const statusLabel = reading ? 'FinCop is reading this…' : (d.readStatus||'not yet read');
+    return `
+    <div class="doc-item" style="flex-direction:column; align-items:stretch; gap:6px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+        <div>
+          <div style="font-weight:600;">${escapeHtml(d.filename)}</div>
+          <div class="item-meta">${escapeHtml(formatNoteTs(d.ts))} · ${escapeHtml(statusLabel)}</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <a href="${d.dataUrl}" download="${escapeHtml(d.filename)}">Download</a>
+          <button class="btn small" ${reading?'disabled':''} onclick="askFincopToRead('${c.id}', ${d.ts})">${reading?'Reading…':(d.summary?'Re-read':'Ask FinCop to read')}</button>
+        </div>
+      </div>
+      ${d.summary ? `<div class="note-empty" style="white-space:pre-wrap; background:#FBFAF6; border:1px solid var(--line); border-radius:6px; padding:8px 10px;">${escapeHtml(d.summary)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function askFincopToRead(clientId, docTs){
+  const c = clients.find(x=>x.id===clientId);
+  if(!c) return;
+  const doc = (c.documents||[]).find(d=>d.ts===docTs);
+  if(!doc) return;
+  const flightKey = clientId+'_'+docTs;
+  if(docReadInFlight.has(flightKey)) return;
+  docReadInFlight.add(flightKey);
+  document.getElementById('docsWrap') && (document.getElementById('docsWrap').innerHTML = renderDocuments(c));
+  try{
+    const mimeMatch = /^data:([^;]+);base64,/.exec(doc.dataUrl||'');
+    const mimeType = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+    const res = await fetch('https://fincop-backend.onrender.com/fincop-read-document', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ dealCode: c.dealCode, leadName: c.name, filename: doc.filename, mimeType, documentBase64: doc.dataUrl })
+    });
+    if(!res.ok) throw new Error('read failed');
+    const data = await res.json();
+    doc.summary = (data && data.summary) ? data.summary : 'FinCop returned no summary.';
+    doc.readStatus = 'read';
+  }catch(e){
+    doc.summary = 'FinCop could not read this document — try again in a moment.';
+    doc.readStatus = 'read failed';
+  }
+  docReadInFlight.delete(flightKey);
+  await saveClients();
+  if(document.getElementById('docsWrap')) document.getElementById('docsWrap').innerHTML = renderDocuments(c);
+}
+
+function uploadDocument(id){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  const fileInput = document.getElementById('docUploadInput');
+  const file = fileInput.files[0];
+  if(!file){ showToast('Choose a file first'); return; }
+  if(file.size > 4*1024*1024){ showToast('File too large — keep uploads under 4MB for now'); return; }
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    if(!Array.isArray(c.documents)) c.documents = [];
+    c.documents.push({ filename: file.name, dataUrl: e.target.result, ts: Date.now(), readStatus: 'not yet read' });
+    await saveClients();
+    openDetail(id);
+    switchLayerTab('docs');
+    showToast('Document uploaded');
+  };
+  reader.readAsDataURL(file);
+}
+
+function switchLayerTab(layer){
+  document.querySelectorAll('.layer-tab').forEach(b=> b.classList.toggle('active', b.dataset.layer===layer));
+  document.querySelectorAll('.layer-pane').forEach(p=> p.classList.toggle('active', p.id === 'pane-'+layer));
+}
+
+async function saveTopSummary(id){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  c.topSummary = document.getElementById('topSummaryInput').value.trim();
+  await saveClients();
+  showToast('Summary saved');
+}
+
+async function addAgentNote(id){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  const input = document.getElementById('newAgentNoteInput');
+  const text = input.value.trim();
+  if(!text) return;
+  if(!Array.isArray(c.agentNotes)) c.agentNotes = [];
+  c.agentNotes.push({ text, ts: Date.now(), author: 'Agent' });
+  await saveClients();
+  openDetail(id);
+  switchLayerTab('agent');
+  showToast('Agent note added');
+}
+
+// Deal-tagged calling, mirrored from the mortgage dashboard — the 📞 icon on
+// a table row opens this modal already scoped to that lead, so the logged
+// call auto-saves into that lead's communication-history layer.
+let callLogClientId = null;
+function openLogCall(id){
+  callLogClientId = id;
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  const panel = document.getElementById('callPanel');
+  panel.innerHTML = `
+    <h2>Log call — ${escapeHtml(c.name)} <span class="code-tag">${escapeHtml(c.dealCode||'')}</span></h2>
+    <div class="field"><label>Direction</label>
+      <select id="call_direction">
+        <option value="Outbound call">Outbound call</option>
+        <option value="Inbound call">Inbound call</option>
+        <option value="Missed call">Missed call</option>
+        <option value="Voicemail">Voicemail</option>
+      </select>
+    </div>
+    <div class="field"><label>What was discussed / outcome</label>
+      <textarea id="call_notes" rows="4" placeholder="Quick summary of the call…"></textarea>
+    </div>
+    <div class="panel-actions">
+      <button class="btn ghost" onclick="closeCallOverlay()">Cancel</button>
+      <button class="btn" onclick="submitLogCall()">Save call</button>
+    </div>
+  `;
+  document.getElementById('callOverlay').classList.add('show');
+}
+function closeCallOverlay(){
+  document.getElementById('callOverlay').classList.remove('show');
+  callLogClientId = null;
+}
+async function submitLogCall(){
+  const c = clients.find(x=>x.id===callLogClientId);
+  if(!c) return;
+  const direction = document.getElementById('call_direction').value;
+  const text = document.getElementById('call_notes').value.trim();
+  if(!Array.isArray(c.commHistory)) c.commHistory = [];
+  c.commHistory.push({ text: text || '(no notes entered)', direction, ts: Date.now(), author: 'Vik' });
+  await saveClients();
+  closeCallOverlay();
+  render();
+  showToast('Call logged to ' + (c.dealCode||c.name));
+}
+
+function sourceBadgeFor(c){
+  return (c.sourceAgent||'').indexOf('Neo') !== -1
+    ? `<span class="badge neo">Neo</span>`
+    : `<span class="badge nikki">Nikki</span>`;
+}
+function categoryBadgeClass(c){
+  return c.leadCategory==='Both' ? 'both' : (c.leadCategory==='Investment' ? 'investment' : 'insurance');
+}
+
+function render(){
+  renderStats();
+  const tbody = document.getElementById('tbody');
+  const rowCards = document.getElementById('rowCards');
+  const emptyState = document.getElementById('emptyState');
+  const filtered = clients.filter(matchesFilters).sort((a,b)=> (b.createdAt||0)-(a.createdAt||0));
+
+  if(!clients.length){
+    tbody.innerHTML = ''; rowCards.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+  emptyState.style.display = 'none';
+
+  if(!filtered.length){
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--slate);padding:30px;">${viewArchived ? 'No archived leads.' : 'No leads match right now.'}</td></tr>`;
+    rowCards.innerHTML = '';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(c=>{
+    const band = c.ageBand || ageBandFor(c.age) || '—';
+    return `
+    <tr onclick="openDetail('${c.id}')">
+      <td class="name-cell">${escapeHtml(c.name)||'—'}<div class="meta">${escapeHtml(c.phone)||'—'} <span class="code-tag">${escapeHtml(c.dealCode||'')}</span></div></td>
+      <td>${escapeHtml(c.dealCode||'—')}<div class="meta">Age band: ${band}</div></td>
+      <td><span class="badge ${categoryBadgeClass(c)}">${c.leadCategory||'Insurance'}</span></td>
+      <td>${sourceBadgeFor(c)}</td>
+      <td>${escapeHtml(c.insuranceStatus)||'—'}</td>
+      <td>${escapeHtml(c.retirementStatus)||'—'}</td>
+      <td>${escapeHtml(c.stage)||'—'}</td>
+      <td>${c.phone ? `<button class="call-icon-btn" title="Log a call for this lead" onclick="event.stopPropagation(); openLogCall('${c.id}')">📞</button>` : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  rowCards.innerHTML = filtered.map(c=>`
+    <div class="row-card" onclick="openDetail('${c.id}')">
+      <div class="row1">
+        <div>
+          <div class="name-cell">${escapeHtml(c.name)||'—'}</div>
+          <div class="meta">${escapeHtml(c.phone)||'—'} · <span class="code-tag">${escapeHtml(c.dealCode||'')}</span></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <span class="badge ${categoryBadgeClass(c)}">${c.leadCategory||'Insurance'}</span>
+          ${sourceBadgeFor(c)}
+          ${c.archived ? '<button class="btn small secondary" title="Restore to active pipeline" onclick="event.stopPropagation(); restoreLead(\''+c.id+'\')">Restore</button>' : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// Detail modal — opened by clicking a row/card. Holds everything that used
+// to live permanently open on the flat card (research, notes, Sasha) so the
+// pipeline list itself stays scannable, matching the mortgage dashboard.
+function openDetail(id){
+  openRecruitId = null;
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  const panel = document.getElementById('panel');
+  const band = c.ageBand || ageBandFor(c.age) || '—';
+  panel.innerHTML = `
+    <h2>${escapeHtml(c.name)||'—'} <span class="code-tag">${escapeHtml(c.dealCode||'')}</span> <button class="btn small ghost" onclick="editLead('${c.id}')" style="margin-left:8px;">✎ Edit</button></h2>
+    <dl class="detail" id="detailFieldsView">
+      <dt>Phone</dt><dd>${escapeHtml(c.phone)||'—'}</dd>
+      <dt>Email</dt><dd>${escapeHtml(c.email)||'—'}</dd>
+      <dt>Age band</dt><dd>${band}</dd>
+      <dt>Category</dt><dd><span class="badge ${categoryBadgeClass(c)}">${c.leadCategory||'Insurance'}</span></dd>
+      <dt>Source</dt><dd>${sourceBadgeFor(c)}</dd>
+      ${c.linkedMortgageDealCode ? `<dt>Linked mortgage deal</dt><dd>${escapeHtml(c.linkedMortgageDealCode)}</dd>` : ''}
+      ${c.sourceNotes ? `<dt>Source note</dt><dd>${escapeHtml(c.sourceNotes)}</dd>` : ''}
+
+      <div class="sechead">Status</div>
+      <dt>Stage</dt><dd><select id="detailStage">${STAGE_OPTIONS.map(s=>`<option ${c.stage===s?'selected':''}>${s}</option>`).join('')}</select></dd>
+      <dt>Insurance status</dt><dd><select id="detailInsurance"><option value="">—</option>${STATUS_OPTIONS.map(s=>`<option ${c.insuranceStatus===s?'selected':''}>${s}</option>`).join('')}</select></dd>
+      <dt>Retirement plan status</dt><dd><select id="detailRetirement"><option value="">—</option>${STATUS_OPTIONS.map(s=>`<option ${c.retirementStatus===s?'selected':''}>${s}</option>`).join('')}</select></dd>
+
+      <div class="sechead">Overall summary <span style="font-weight:400;text-transform:none;letter-spacing:0;">(top-line conclusion across all layers below)</span></div>
+      <div class="top-summary-box">
+        <textarea id="topSummaryInput" rows="2" placeholder="One-line rolling conclusion on this lead…">${escapeHtml(c.topSummary||'')}</textarea>
+        <div style="text-align:right;margin-top:4px;"><button class="btn small ghost" onclick="saveTopSummary('${c.id}')">Save summary</button></div>
+      </div>
+
+      <div class="sechead">FNA — Financial Needs Analysis</div>
+      <div class="top-summary-box">
+        ${c.fna ? `<div class="item-meta" style="margin-bottom:6px;">Submitted ${escapeHtml(formatNoteTs(c.fnaSubmittedAt))}</div>${renderFnaSummary(c.fna)}` : `<div class="item-meta">Not submitted yet.</div>`}
+        <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+          <button class="btn small ghost" onclick="copyFnaLink('${c.id}')">Copy FNA link</button>
+          <button class="btn small" onclick="sendFnaViaSasha('${c.id}')">Send FNA via Sasha</button>
+        </div>
+        <div class="item-meta" style="margin-top:6px;">Sasha's email sending isn't fully wired yet — this drops the link into her chat below so you can confirm/copy it out for now.</div>
+      </div>
+
+      <div class="sechead">Notes &amp; history</div>
+      <div class="layer-tabs">
+        <button class="layer-tab active" data-layer="research" onclick="switchLayerTab('research')">Vikram research</button>
+        <button class="layer-tab" data-layer="comm" onclick="switchLayerTab('comm')">Communication history</button>
+        <button class="layer-tab" data-layer="manual" onclick="switchLayerTab('manual')">Manual notes</button>
+        <button class="layer-tab" data-layer="agent" onclick="switchLayerTab('agent')">Agent observations</button>
+        <button class="layer-tab" data-layer="sasha" onclick="switchLayerTab('sasha')">Sasha</button>
+        <button class="layer-tab" data-layer="docs" onclick="switchLayerTab('docs')">Documents</button>
+      </div>
+
+      <div class="layer-pane active" id="pane-research">
+        <div class="item-meta" style="margin:6px 0;">Status: ${c.researchStatus==='done'?'researched':'pending'}. <button class="btn small ghost" id="runResearchBtn" ${researchInFlight.has(c.id)?'disabled':''}>${researchInFlight.has(c.id)?'Running…':'Run research'}</button></div>
+        ${renderResearchNotes(c)}
+      </div>
+      <div class="layer-pane" id="pane-comm">
+        <div class="item-meta" style="margin:6px 0;">Use the 📞 icon on this lead's row to log a call — it lands here automatically.</div>
+        ${renderCommHistory(c)}
+      </div>
+      <div class="layer-pane" id="pane-manual">
+        ${renderNotesList(c)}
+        <div class="addnote">
+          <textarea id="noteInput" rows="2" placeholder="Type a new note…"></textarea>
+          <button class="btn small" id="addNoteBtn">Add</button>
+        </div>
+      </div>
+      <div class="layer-pane" id="pane-agent">
+        ${renderAgentNotes(c)}
+        <div class="addnote">
+          <textarea id="newAgentNoteInput" rows="2" placeholder="What did an agent notice on this lead?"></textarea>
+          <button class="btn small" onclick="addAgentNote('${c.id}')">Add</button>
+        </div>
+      </div>
+      <div class="layer-pane" id="pane-sasha">
+        <label style="font-weight:400; font-size:12px; display:block; margin:4px 0;">
+          <input type="checkbox" id="sashaAutoSend" ${c.sashaAutoSend?'checked':''}> let Sasha send without asking me first
+        </label>
+        <div id="sashaChatWrap">${renderSashaChat(c)}</div>
+        <div class="addnote">
+          <textarea placeholder="Ask Sasha something about this lead…" id="sashaInput" rows="2"></textarea>
+          <button class="sasha-voice-btn" id="sashaVoiceBtn" title="Talk to Sasha by voice">🎙️</button>
+          <button class="btn small" id="sashaSendBtn">Send</button>
+        </div>
+        <div class="sasha-voice-hint" id="sashaVoiceHint"></div>
+      </div>
+      <div class="layer-pane" id="pane-docs">
+        <div class="item-meta" style="margin:6px 0;">Upload a document for this lead — Vikram, FinCop, and Sasha can all read from what's stored here.</div>
+        <div id="docsWrap">${renderDocuments(c)}</div>
+        <div class="addnote" style="align-items:center;">
+          <input type="file" id="docUploadInput" accept="image/*,.pdf,.doc,.docx" style="flex:1;">
+          <button class="btn small" onclick="uploadDocument('${c.id}')">Upload</button>
+        </div>
+      </div>
+    </dl>
+    <div class="panel-actions">
+      <div>${c.archived
+        ? '<button class="btn secondary" onclick="restoreLead(\''+c.id+'\')">Restore</button>'
+        : '<button class="btn danger" onclick="archiveLead(\''+c.id+'\')">Archive</button>'}</div>
+      <div class="right"><button class="btn ghost" onclick="closeOverlay()">Close</button></div>
+    </div>
+  `;
+  openOverlay();
+
+  document.getElementById('detailStage').addEventListener('change', e=>{ c.stage = e.target.value; saveClients(); render(); });
+  document.getElementById('detailInsurance').addEventListener('change', e=>{ c.insuranceStatus = e.target.value; saveClients(); render(); });
+  document.getElementById('detailRetirement').addEventListener('change', e=>{ c.retirementStatus = e.target.value; saveClients(); render(); });
+  document.getElementById('runResearchBtn').addEventListener('click', ()=> triggerVikramResearch(id));
+  document.getElementById('addNoteBtn').addEventListener('click', ()=>{
+    const val = document.getElementById('noteInput').value.trim();
+    if(!val) return;
+    c.notesList = c.notesList || [];
+    c.notesList.push({ text: val, ts: Date.now(), author: 'Vik' });
+    saveClients();
+    openDetail(id);
+    switchLayerTab('manual');
+  });
+  document.getElementById('sashaAutoSend').addEventListener('change', e=>{
+    c.sashaAutoSend = e.target.checked;
+    saveClients();
+    showToast(e.target.checked ? 'Sasha will now send on this lead without asking first' : 'Sasha will hold messages for your review on this lead');
+  });
+  document.getElementById('sashaSendBtn').addEventListener('click', ()=> sendSashaMessage(id, false));
+  document.getElementById('sashaVoiceBtn').addEventListener('click', ()=> toggleSashaVoice(id));
+}
+
+// Editing a lead's core fields (name, phone, email, deal code, age, category,
+// source note, linked mortgage deal). Swaps just the top field block in the
+// open detail panel into an inline form; everything below (notes, Sasha,
+// docs) is left untouched and re-rendered on save via openDetail(id).
+function editLead(id){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  const wrap = document.getElementById('detailFieldsView');
+  if(!wrap) return;
+  wrap.outerHTML = `
+    <dl class="detail" id="detailFieldsView">
+      <dt>Name</dt><dd><input type="text" id="editName" value="${escapeHtml(c.name||'')}"></dd>
+      <dt>Phone</dt><dd><input type="tel" id="editPhone" value="${escapeHtml(c.phone||'')}" placeholder="e.g. 4161234567"></dd>
+      <dt>Email</dt><dd><input type="email" id="editEmail" value="${escapeHtml(c.email||'')}"></dd>
+      <dt>Deal code</dt><dd><input type="text" id="editDealCode" value="${escapeHtml(c.dealCode||'')}"></dd>
+      <dt>Age</dt><dd><input type="number" id="editAge" value="${c.age!=null?c.age:''}" placeholder="Age in years"></dd>
+      <dt>Category</dt><dd><select id="editCategory">${['Insurance','Investment','Both'].map(o=>`<option ${c.leadCategory===o?'selected':''}>${o}</option>`).join('')}</select></dd>
+      <dt>Linked mortgage deal</dt><dd><input type="text" id="editLinkedDeal" value="${escapeHtml(c.linkedMortgageDealCode||'')}" placeholder="e.g. vmtz10010"></dd>
+      <dt>Source note</dt><dd><input type="text" id="editSourceNotes" value="${escapeHtml(c.sourceNotes||'')}"></dd>
+      <div style="text-align:right; margin-top:4px;">
+        <button class="btn small ghost" onclick="openDetail('${c.id}')">Cancel</button>
+        <button class="btn small" onclick="saveLeadEdit('${c.id}')">Save</button>
+      </div>
+    </dl>
+  `;
+}
+
+async function saveLeadEdit(id){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  c.name = document.getElementById('editName').value.trim();
+  c.phone = document.getElementById('editPhone').value.trim();
+  c.email = document.getElementById('editEmail').value.trim();
+  c.dealCode = document.getElementById('editDealCode').value.trim();
+  const ageVal = document.getElementById('editAge').value.trim();
+  c.age = ageVal ? Number(ageVal) : null;
+  c.ageBand = ageBandFor(c.age) || '';
+  c.leadCategory = document.getElementById('editCategory').value;
+  c.linkedMortgageDealCode = document.getElementById('editLinkedDeal').value.trim();
+  c.sourceNotes = document.getElementById('editSourceNotes').value.trim();
+  await saveClients();
+  render();
+  openDetail(id);
+  showToast('Lead updated');
+}
+
+function toggleArchivedView(){
+  viewArchived = !viewArchived;
+  const btn = document.getElementById('archiveViewToggle');
+  if(btn) btn.textContent = viewArchived ? '📋 View active' : '📁 View archived';
+  render();
+}
+
+async function archiveLead(id){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  if(!confirm('Archive this lead? It\'ll be moved out of the active pipeline but nothing is deleted — you can restore it anytime from "View archived".')) return;
+  c.archived = true;
+  c.archivedAt = Date.now();
+  await saveClients();
+  closeOverlay();
+  render();
+  showToast('Lead archived');
+}
+
+async function restoreLead(id){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  c.archived = false;
+  c.archivedAt = null;
+  await saveClients();
+  closeOverlay();
+  render();
+  showToast('Lead restored to active pipeline');
+}
+
+function openOverlay(){ document.getElementById('overlay').classList.add('show'); }
+function closeOverlay(){ document.getElementById('overlay').classList.remove('show'); openRecruitId = null; }
+document.getElementById('overlay').addEventListener('click', (e)=>{ if(e.target.id==='overlay') closeOverlay(); });
+document.getElementById('callOverlay').addEventListener('click', (e)=>{ if(e.target.id==='callOverlay') closeCallOverlay(); });
+
+document.getElementById('search').addEventListener('input', render);
+document.getElementById('filterCategory').addEventListener('change', render);
+document.getElementById('filterInsurance').addEventListener('change', render);
+document.getElementById('filterRetirement').addEventListener('change', render);
+document.getElementById('filterAgeBand').addEventListener('change', render);
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  const name = prompt('Client name?');
+  if(!name) return;
+  const dealCode = 'vins1' + String(clients.length + 1).padStart(4,'0');
+  const newId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  clients.push({
+    id: newId,
+    createdAt: Date.now(), dealCode, notesList: [],
+    name, phone:'', email:'', age:null, ageBand:'',
+    leadCategory:'Insurance', stage:'Lead',
+    insuranceStatus:'', retirementStatus:'',
+    sourceAgent:'Vik (manual)', sourceNotes:'', linkedMortgageDealCode:'',
+    researchNotes: [], researchStatus: 'pending',
+    sashaChat: [], sashaAutoSend: false
+  });
+  saveClients();
+  render();
+  showToast('Lead added');
+  triggerVikramResearch(newId);
+});
+
+// Vikram's auto lead-research, mirrored from the mortgage dashboard. Fires once
+// per new lead (and can be re-run manually). Splits the single "name" field
+// into firstName/lastName since that's what the backend endpoint expects.
+const researchInFlight = new Set();
+async function triggerVikramResearch(id){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  if(researchInFlight.has(id)) return;
+  researchInFlight.add(id);
+  try{
+    const nameParts = (c.name||'').trim().split(/\s+/);
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    const res = await fetch('https://fincop-backend.onrender.com/vikram-research', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ firstName, lastName, phone:c.phone, email:c.email })
+    });
+    if(!res.ok) throw new Error('no research endpoint yet');
+    const data = await res.json();
+    const summary = (data && data.summary) ? data.summary : 'Research returned no summary.';
+    c.researchNotes = c.researchNotes || [];
+    c.researchNotes.push({ text: summary, ts: Date.now(), author: 'Vikram' });
+    c.researchStatus = 'done';
+  }catch(e){
+    c.researchNotes = c.researchNotes || [];
+    c.researchNotes.push({ text: 'Auto-research pending — Vikram\'s research API isn\'t connected yet. Add findings manually below for now, or tap "Run research" once the backend endpoint is live.', ts: Date.now(), author: 'Vikram' });
+    c.researchStatus = 'pending';
+  }
+  researchInFlight.delete(id);
+  await saveClients();
+  render();
+  if(document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('research'); }
+}
+
+// ---- Sasha: per-lead communication agent (mirrored from the mortgage
+// dashboard, adapted to this dashboard's flat-card layout instead of a
+// tabbed detail modal) ----
+async function sendSashaMessage(id, isVoice){
+  const c = clients.find(x=>x.id===id);
+  if(!c) return;
+  const cardInput = document.getElementById('sashaInput');
+  if(!cardInput) return;
+  const text = cardInput.value.trim();
+  if(!text) return;
+  if(!Array.isArray(c.sashaChat)) c.sashaChat = [];
+  c.sashaChat.push({ from:'Vik', text, ts: Date.now() });
+  await saveClients();
+  if(document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('sasha'); }
+  // Sasha's replies are backend-powered (drafting/sending logic + this
+  // lead's research/comm context). Until that endpoint is live, she
+  // acknowledges and logs the ask rather than inventing a fake response.
+  let replyText;
+  try{
+    const res = await fetch('https://fincop-backend.onrender.com/sasha-chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ dealCode:c.dealCode, name:c.name, email:c.email, phone:c.phone, message:text, autoSend:c.sashaAutoSend, researchNotes:c.researchNotes, history:c.sashaChat })
+    });
+    if(!res.ok) throw new Error('sasha backend not live yet');
+    const data = await res.json();
+    replyText = (data && data.reply) || 'Got it.';
+    if(data && data.sent) replyText += '\n\n(Sent via ' + (data.channel||'email').toLowerCase() + ' to ' + (data.to || 'the client') + ')';
+    else if(data && data.sendError) replyText += '\n\n(Not sent — ' + data.sendError + ')';
+    c.sashaChat.push({ from:'Sasha', text: replyText, ts: Date.now() });
+  }catch(e){
+    replyText = "Noted — I can't draft or send yet since my backend isn't connected. Once Vik wires up my endpoint, I'll reply here and " + (c.sashaAutoSend ? "send this on my own." : "hold it for your approval first.");
+    c.sashaChat.push({ from:'Sasha', text: replyText, ts: Date.now() });
+  }
+  await saveClients();
+  if(document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('sasha'); }
+  if(isVoice) speakSashaReply(replyText);
+}
+
+// ---- Sasha voice: browser speech-to-text (mic) + text-to-speech (reply read aloud) ----
+let sashaRecognition = null;
+let sashaListeningDealId = null;
+
+function speakSashaReply(text){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 1;
+  utter.pitch = 1;
+  window.speechSynthesis.speak(utter);
+}
+
+function toggleSashaVoice(id){
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = document.getElementById('sashaVoiceBtn');
+  const hint = document.getElementById('sashaVoiceHint');
+  if(!SpeechRecognitionAPI){
+    showToast('Voice chat needs Chrome or Edge — this browser doesn\'t support it yet.');
+    return;
+  }
+  if(sashaRecognition && sashaListeningDealId === id){
+    sashaRecognition.stop();
+    return;
+  }
+  if(sashaRecognition){ sashaRecognition.stop(); }
+
+  sashaRecognition = new SpeechRecognitionAPI();
+  sashaRecognition.lang = 'en-US';
+  sashaRecognition.continuous = false;
+  sashaRecognition.interimResults = false;
+  sashaListeningDealId = id;
+
+  sashaRecognition.onstart = () => {
+    if(btn) btn.classList.add('listening');
+    if(hint) hint.textContent = 'Listening… speak now.';
+  };
+  sashaRecognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    const cardInput = document.getElementById('sashaInput');
+    if(cardInput) cardInput.value = transcript;
+    if(hint) hint.textContent = '';
+    sendSashaMessage(id, true);
+  };
+  sashaRecognition.onerror = (event) => {
+    if(hint) hint.textContent = event.error === 'not-allowed'
+      ? 'Microphone access was blocked — allow it in the browser to talk to Sasha.'
+      : 'Didn\'t catch that — tap the mic and try again.';
+  };
+  sashaRecognition.onend = () => {
+    if(btn) btn.classList.remove('listening');
+    sashaRecognition = null;
+    sashaListeningDealId = null;
+  };
+  sashaRecognition.start();
+}
+
+function renderRecruitStats(){
+  const total = recruits.length;
+  const atRisk = recruits.filter(isAtRisk).length;
+  const avgAttendance = total ? Math.round(recruits.reduce((s,r)=>s+attendancePct(r),0)/total) : 0;
+  const fullyLicensed = recruits.filter(r=> (r.examStages||[]).every(e=>e.status==='Complete')).length;
+  document.getElementById('recruitStats').innerHTML = `
+    <div class="stat"><div class="num">${total}</div><div class="lbl">Total recruits</div></div>
+    <div class="stat"><div class="num">${atRisk}</div><div class="lbl">At risk this week</div></div>
+    <div class="stat"><div class="num">${avgAttendance}%</div><div class="lbl">Avg Super Saturday attendance</div></div>
+    <div class="stat"><div class="num">${fullyLicensed}</div><div class="lbl">Fully licensed</div></div>
+  `;
+}
+
+function recruitAge(r){
+  if(!r.dob) return null;
+  const d = new Date(r.dob);
+  if(isNaN(d.getTime())) return null;
+  const diff = Date.now() - d.getTime();
+  return Math.floor(diff / (365.25*86400000));
+}
+
+function matchesRecruitFilters(r){
+  const q = (document.getElementById('recruitSearch').value||'').trim().toLowerCase();
+  const coach = document.getElementById('filterCoachability').value;
+  const risk = document.getElementById('filterRisk').value;
+  const profession = (document.getElementById('filterProfession').value||'').trim().toLowerCase();
+  const ageBand = document.getElementById('filterAgeBandRecruit').value;
+  const hobbies = (document.getElementById('filterHobbies').value||'').trim().toLowerCase();
+  const marital = document.getElementById('filterMaritalStatus').value;
+  const hasKids = document.getElementById('filterHasKids').value;
+
+  if(q && (r.name||'').toLowerCase().indexOf(q)===-1) return false;
+  if(coach && r.coachingLevel !== coach) return false;
+  if(risk==='At risk' && !isAtRisk(r)) return false;
+  if(risk==='On track' && isAtRisk(r)) return false;
+  if(profession && (r.professionCategory||'').toLowerCase().indexOf(profession)===-1) return false;
+  if(hobbies && (r.hobbies||'').toLowerCase().indexOf(hobbies)===-1) return false;
+  if(ageBand){
+    const age = recruitAge(r);
+    if(age===null) return false;
+    const [lo,hi] = ageBand.split('-').map(Number);
+    if(age < lo || age > hi) return false;
+  }
+  if(marital==='married' && (!r.partnerRelation || r.partnerRelation==='None')) return false;
+  if(marital==='single' && r.partnerRelation && r.partnerRelation!=='None') return false;
+  if(hasKids==='yes' && !(r.children && r.children.length>0)) return false;
+  if(hasKids==='no' && (r.children && r.children.length>0)) return false;
+  return true;
+}
+
+function updateRecruitFilterBadge(){
+  const ids = ['filterProfession','filterAgeBandRecruit','filterHobbies','filterMaritalStatus','filterHasKids'];
+  const active = ids.filter(id=> (document.getElementById(id).value||'').trim()).length;
+  const badge = document.getElementById('recruitFilterBadge');
+  if(active>0){ badge.style.display='inline-block'; badge.textContent = ' (' + active + ')'; }
+  else { badge.style.display='none'; badge.textContent=''; }
+}
+
+function recruitRiskBadge(r){
+  const risk = isAtRisk(r);
+  return `<span class="risk-badge ${risk?'flag':'ok'}">${risk?'At risk':'On track'}</span>`;
+}
+function recruitProgramDayLabel(r){
+  if(!r.dateRecruited) return '—';
+  const days = Math.max(1, Math.floor((Date.now() - new Date(r.dateRecruited).getTime())/86400000)+1);
+  return 'Day ' + days;
+}
+function recruitLicensingLabel(r){
+  const total = (r.examStages||[]).length;
+  const done = (r.examStages||[]).filter(e=>e.status==='Complete').length;
+  return total ? `${done}/${total}` : '—';
+}
+
+function renderRecruits(){
+  renderRecruitStats();
+  const savedLevel = localStorage.getItem('vik_current_level');
+  const lvlInput = document.getElementById('myLevel');
+  if(lvlInput && savedLevel && !lvlInput.value) lvlInput.value = savedLevel;
+
+  const tbody = document.getElementById('recruitTbody');
+  const rowCards = document.getElementById('recruitRowCards');
+  const emptyState = document.getElementById('recruitEmpty');
+  const filtered = recruits.filter(matchesRecruitFilters).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+
+  if(!filtered.length){
+    tbody.innerHTML = '';
+    rowCards.innerHTML = '';
+    emptyState.style.display = 'block';
+  } else {
+    emptyState.style.display = 'none';
+    tbody.innerHTML = filtered.map(r=>{
+      const pct = attendancePct(r);
+      return `
+      <tr onclick="openRecruitDetail('${r.id}')">
+        <td class="name-cell">${escapeHtml(r.name)||'—'}<div class="meta">${escapeHtml(r.professionCategory)||'—'}</div></td>
+        <td>${escapeHtml(r.jobTitle)||'—'}</td>
+        <td>${recruitProgramDayLabel(r)}</td>
+        <td>${r.coachingLevel||'—'}</td>
+        <td>${pct}%</td>
+        <td>${recruitLicensingLabel(r)}</td>
+        <td>${recruitRiskBadge(r)}</td>
+      </tr>`;
+    }).join('');
+
+    rowCards.innerHTML = filtered.map(r=>{
+      const pct = attendancePct(r);
+      return `
+      <div class="row-card" onclick="openRecruitDetail('${r.id}')">
+        <div class="row1">
+          <div>
+            <div class="name-cell">${escapeHtml(r.name)||'—'}</div>
+            <div class="meta">${escapeHtml(r.professionCategory)||'—'} · ${recruitProgramDayLabel(r)} · ${pct}% attendance</div>
+          </div>
+          ${recruitRiskBadge(r)}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Keep the open detail modal in sync with any change made elsewhere (e.g. Guru's async reply).
+  if(openRecruitId && document.getElementById('overlay').classList.contains('show')){
+    const r = recruits.find(x=>x.id===openRecruitId);
+    if(r) renderRecruitDetailPanel(r);
+    else { openRecruitId = null; closeOverlay(); }
+  }
+}
+
+function renderRecruitDetailPanel(r){
+  const pct = attendancePct(r);
+  const risk = isAtRisk(r);
+  const panel = document.getElementById('panel');
+  panel.innerHTML = `
+    <div class="rtop">
+      <div>
+        <div class="rname">${escapeHtml(r.name)||'—'}</div>
+        <div class="rmeta">${escapeHtml(r.phone)||'—'} · ${escapeHtml(r.email)||'—'}</div>
+      </div>
+      <span class="risk-badge ${risk?'flag':'ok'}">${risk?'At risk':'On track'}</span>
+    </div>
+
+    <div class="rsection-title">Profile &amp; background</div>
+    <div class="rgrid">
+      <div class="rfield"><label>First name</label><input data-tfield="firstName" value="${escapeHtml(r.firstName)}"></div>
+      <div class="rfield"><label>Last name</label><input data-tfield="lastName" value="${escapeHtml(r.lastName)}"></div>
+      <div class="rfield"><label>Date recruited</label><input type="date" data-tfield="dateRecruited" value="${escapeHtml(r.dateRecruited)}"></div>
+      <div class="rfield"><label>Date of birth</label><input type="date" data-tfield="dob" value="${escapeHtml(r.dob)}"></div>
+      <div class="rfield"><label>Profession category</label><input data-tfield="professionCategory" value="${escapeHtml(r.professionCategory)}"></div>
+      <div class="rfield"><label>Job title</label><input data-tfield="jobTitle" value="${escapeHtml(r.jobTitle)}"></div>
+      <div class="rfield"><label>Prior work field</label><input data-tfield="priorWorkField" value="${escapeHtml(r.priorWorkField)}"></div>
+      <div class="rfield"><label>Past education</label><input data-tfield="pastEducation" value="${escapeHtml(r.pastEducation)}"></div>
+      <div class="rfield"><label>Hobbies</label><input data-tfield="hobbies" value="${escapeHtml(r.hobbies)}"></div>
+      <div class="rfield"><label>Own insurance status</label>
+        <select data-rfield="ownInsuranceStatus"><option value="">—</option>${STATUS_OPTIONS.map(o=>`<option ${r.ownInsuranceStatus===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+    </div>
+
+    <div class="rsection-title">Dreams, fears &amp; pain points</div>
+    <div class="rgrid">
+      <div class="rfield" style="grid-column:1/-1;"><label>Dreams</label><input data-tfield="dreams" value="${escapeHtml(r.dreams)}" placeholder="What are they working toward?"></div>
+      <div class="rfield" style="grid-column:1/-1;"><label>Fears</label><input data-tfield="fears" value="${escapeHtml(r.fears)}" placeholder="What holds them back?"></div>
+      <div class="rfield" style="grid-column:1/-1;"><label>Pain points</label><input data-tfield="painPoints" value="${escapeHtml(r.painPoints)}" placeholder="What's not working in their current situation?"></div>
+    </div>
+
+    <div class="rsection-title">Family</div>
+    <div class="rgrid">
+      <div class="rfield"><label>Spouse / partner / family member?</label>
+        <select data-rfield="partnerRelation"><option value="">—</option><option ${r.partnerRelation==='None'?'selected':''}>None</option>${PARTNER_RELATION_OPTIONS.map(o=>`<option ${r.partnerRelation===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+    </div>
+    ${(r.partnerRelation && r.partnerRelation!=='None') ? `
+    <div class="rgrid">
+      <div class="rfield"><label>${escapeHtml(r.partnerRelation)} name</label><input data-tfield="spouseName" value="${escapeHtml(r.spouseName)}"></div>
+      <div class="rfield"><label>${escapeHtml(r.partnerRelation)} profession</label><input data-tfield="spouseProfession" value="${escapeHtml(r.spouseProfession)}"></div>
+      <div class="rfield"><label>${escapeHtml(r.partnerRelation)} DOB</label><input type="date" data-tfield="spouseDob" value="${escapeHtml(r.spouseDob)}"></div>
+      <div class="rfield"><label>${escapeHtml(r.partnerRelation)} employment</label>
+        <select data-rfield="spouseEmployment"><option value="">—</option>${EMPLOYMENT_OPTIONS.map(o=>`<option ${r.spouseEmployment===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="rfield"><label>${escapeHtml(r.partnerRelation)} education</label><input data-tfield="spouseEducation" value="${escapeHtml(r.spouseEducation)}"></div>
+      ${r.partnerRelation==='Spouse' ? `<div class="rfield"><label>Anniversary</label><input type="date" data-tfield="spouseAnniversary" value="${escapeHtml(r.spouseAnniversary)}"></div>` : ''}
+      <div class="rfield"><label>${escapeHtml(r.partnerRelation)} recruited?</label>
+        <select data-rfield="spouseRecruited"><option value="">—</option>${YES_NO_OPTIONS.map(o=>`<option ${r.spouseRecruited===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+    </div>` : ''}
+    <div class="exam-list">
+      ${(r.children||[]).map((ch,i)=>`
+        <div class="exam-row">
+          <span>${escapeHtml(ch.name)||'Child'} · age ${escapeHtml(ch.age)||'—'} · DOB ${escapeHtml(ch.dob)||'—'}</span>
+          <button class="btn ghost small" data-remove-child="${i}">Remove</button>
+        </div>`).join('') || '<div style="font-size:12px;color:var(--slate);">No children on file yet.</div>'}
+      <button class="btn ghost small" data-add-child style="margin-top:6px;">+ Add child</button>
+    </div>
+
+    <div class="rsection-title">Prospecting list (Top 25 / 50 / 100)</div>
+    <div style="display:flex; gap:14px; font-size:12px; color:var(--slate); margin-bottom:6px;">
+      <span>Top 25: ${(r.prospects||[]).filter(p=>p.tier==='Top 25').length}</span>
+      <span>Top 50: ${(r.prospects||[]).filter(p=>p.tier==='Top 50').length}</span>
+      <span>Top 100: ${(r.prospects||[]).filter(p=>p.tier==='Top 100').length}</span>
+    </div>
+    <div class="exam-list">
+      ${(r.prospects||[]).map((p,i)=>`
+        <div class="exam-row">
+          <span>${escapeHtml(p.firstName)} ${escapeHtml(p.lastName)} · ${escapeHtml(p.city)||'—'} · ${escapeHtml(p.phone)||'—'} · ${escapeHtml(p.email)||'—'}</span>
+          <span style="display:flex; gap:6px; align-items:center;">
+            <select data-prospect-tier="${i}" style="font-size:12px;">
+              ${PROSPECT_TIERS.map(t=>`<option ${p.tier===t?'selected':''}>${t}</option>`).join('')}
+            </select>
+            <button class="btn ghost small" data-remove-prospect="${i}">Remove</button>
+          </span>
+        </div>`).join('') || '<div style="font-size:12px;color:var(--slate);">No prospects on file yet.</div>'}
+      <button class="btn ghost small" data-add-prospect style="margin-top:6px;">+ Add prospect</button>
+    </div>
+
+    <div class="rsection-title">90-day program</div>
+    <div class="rgrid">
+      <div class="rfield"><label>Recruiting leg</label>
+        <select data-rfield="recruitingLeg"><option value="">—</option>${LEG_OPTIONS.map(o=>`<option ${r.recruitingLeg===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="rfield"><label>Curriculum</label>
+        <select data-rfield="curriculum"><option value="">—</option>${CURRICULUM_OPTIONS.map(o=>`<option ${r.curriculum===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="rfield"><label>Name list tier</label>
+        <select data-rfield="nameListTier"><option value="">—</option>${NAME_LIST_TIERS.map(o=>`<option ${r.nameListTier===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="rfield"><label>People recruited</label><input type="number" min="0" data-nfield="peopleRecruited" value="${r.peopleRecruited||0}"></div>
+      <div class="rfield"><label>Sales made</label><input type="number" min="0" data-nfield="salesMade" value="${r.salesMade||0}"></div>
+    </div>
+    ${(()=>{
+      if(!r.dateRecruited) return '';
+      const days = Math.max(1, Math.floor((Date.now() - new Date(r.dateRecruited).getTime())/86400000)+1);
+      const phase = days<=30 ? 'Prep (days 1-30)' : (days<=90 ? 'Exam completion (days 31-90)' : 'Past day 90');
+      return `<div class="meta" style="margin-top:6px;">Day ${days} of the program — ${phase}</div>`;
+    })()}
+    ${(()=>{
+      const gaps = [
+        { key:'coachingLevel', label:'coaching', bucket:'WFG philosophy/mindset' },
+        { key:'studyLevel', label:'study', bucket:'Licensing prep' },
+        { key:'learningLevel', label:'learning', bucket:'Product knowledge' },
+        { key:'personalGrowthLevel', label:'personal growth', bucket:'Presentation skills' }
+      ].filter(g=> r[g.key]==='Level 3 — Needs attention');
+      if(!gaps.length) return '';
+      const inFlight = guruSuggestionInFlight.has(r.id);
+      return `<div class="meta" style="margin-top:4px;color:var(--danger);">Gap flagged: ${gaps.map(g=>g.label).join(', ')} — suggested focus: ${gaps.map(g=>g.bucket).join(', ')}</div>
+      <div style="margin-top:6px;">
+        <button class="btn ghost small" data-guru-suggest-btn ${inFlight?'disabled':''}>${inFlight ? 'Guru is thinking…' : (r.guruSuggestion ? "Ask Guru again" : "Ask Guru for a suggestion")}</button>
+      </div>
+      ${r.guruSuggestion ? `<div class="meta" style="margin-top:6px; padding:8px; background:var(--bg2,#f7f7f9); border-radius:8px; white-space:pre-wrap;">${escapeHtml(r.guruSuggestion)}</div>` : ''}`;
+    })()}
+
+    <div class="rsection-title">Licensing progress</div>
+    <div class="exam-list">
+      ${r.examStages.map((e,i)=>`
+        <div class="exam-row">
+          <span>${escapeHtml(e.name)}</span>
+          <select data-exam-idx="${i}">
+            <option ${e.status==='Complete'?'selected':''}>Complete</option>
+            <option ${e.status==='Pending'?'selected':''}>Pending</option>
+          </select>
+        </div>`).join('')}
+    </div>
+
+    <div class="rsection-title">Super Saturday attendance</div>
+    <div class="satpct">${pct}% <span style="font-size:12px; color:var(--slate); font-family:var(--sans);">of ${new Date().getFullYear()} Saturdays</span></div>
+    <div style="margin-top:6px;">
+      <button class="btn ghost small" data-open-sat>Manage Super Saturdays</button>
+    </div>
+
+    <div class="rsection-title">Qualifying events</div>
+    <div class="events-row">
+      <label><input type="checkbox" data-event="blueMountain" ${r.events.blueMountain?'checked':''}> Blue Mountain</label>
+      <label><input type="checkbox" data-event="mexico" ${r.events.mexico?'checked':''}> Mexico</label>
+      <label><input type="checkbox" data-event="lasVegas" ${r.events.lasVegas?'checked':''}> Las Vegas</label>
+      <label><input type="checkbox" data-event="hawaii" ${r.events.hawaii?'checked':''}> Hawaii</label>
+    </div>
+
+    <div class="rsection-title">Coaching signals (Level 1 = on track, Level 2 = average/below average, Level 3 = needs attention, plus a separate Elite tier)</div>
+    <div class="rgrid">
+      <div class="rfield"><label>Coaching level</label>
+        <select data-rfield="coachingLevel"><option value="">—</option>${TIER_OPTIONS.map(o=>`<option ${r.coachingLevel===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="rfield"><label>Study level</label>
+        <select data-rfield="studyLevel"><option value="">—</option>${TIER_OPTIONS.map(o=>`<option ${r.studyLevel===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="rfield"><label>Learning level</label>
+        <select data-rfield="learningLevel"><option value="">—</option>${TIER_OPTIONS.map(o=>`<option ${r.learningLevel===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="rfield"><label>Personal growth level</label>
+        <select data-rfield="personalGrowthLevel"><option value="">—</option>${TIER_OPTIONS.map(o=>`<option ${r.personalGrowthLevel===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="rfield"><label>Eligible trainer</label>
+        <select data-rfield="eligibleTrainer">${TRAINER_OPTIONS.map(o=>`<option ${r.eligibleTrainer===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="panel-actions">
+      <button class="btn ghost" onclick="closeOverlay()">Close</button>
+    </div>
+  `;
+  wireRecruitDetail(r);
+}
+
+function openRecruitDetail(id){
+  const r = recruits.find(x=>x.id===id);
+  if(!r) return;
+  openRecruitId = id;
+  renderRecruitDetailPanel(r);
+  openOverlay();
+}
+
+function wireRecruitDetail(r){
+  const panel = document.getElementById('panel');
+  const id = r.id;
+
+  panel.querySelectorAll('select[data-exam-idx]').forEach(sel=>{
+    sel.addEventListener('change', ()=>{
+      const i = Number(sel.getAttribute('data-exam-idx'));
+      r.examStages[i].status = sel.value;
+      saveRecruits(); renderRecruits();
+    });
+  });
+
+  panel.querySelectorAll('select[data-rfield]').forEach(sel=>{
+    sel.addEventListener('change', ()=>{
+      r[sel.getAttribute('data-rfield')] = sel.value;
+      saveRecruits(); renderRecruits();
+    });
+  });
+
+  panel.querySelectorAll('input[data-tfield]').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      const field = inp.getAttribute('data-tfield');
+      r[field] = inp.value;
+      if(field==='firstName' || field==='lastName'){
+        r.name = [r.firstName, r.lastName].filter(Boolean).join(' ');
+      }
+      saveRecruits(); renderRecruits();
+    });
+  });
+
+  panel.querySelectorAll('input[data-nfield]').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      r[inp.getAttribute('data-nfield')] = Number(inp.value)||0;
+      saveRecruits();
+    });
+  });
+
+  const addChildBtn = panel.querySelector('[data-add-child]');
+  if(addChildBtn) addChildBtn.addEventListener('click', ()=> openAddChildModal(r));
+  panel.querySelectorAll('[data-remove-child]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i = Number(btn.getAttribute('data-remove-child'));
+      r.children.splice(i,1);
+      saveRecruits(); renderRecruits();
+    });
+  });
+
+  const addProspectBtn = panel.querySelector('[data-add-prospect]');
+  if(addProspectBtn) addProspectBtn.addEventListener('click', ()=> openAddProspectModal(r));
+  panel.querySelectorAll('[data-remove-prospect]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i = Number(btn.getAttribute('data-remove-prospect'));
+      r.prospects.splice(i,1);
+      saveRecruits(); renderRecruits();
+    });
+  });
+  panel.querySelectorAll('[data-prospect-tier]').forEach(sel=>{
+    sel.addEventListener('change', ()=>{
+      const i = Number(sel.getAttribute('data-prospect-tier'));
+      r.prospects[i].tier = sel.value;
+      saveRecruits(); renderRecruits();
+    });
+  });
+
+  panel.querySelectorAll('input[data-event]').forEach(chk=>{
+    chk.addEventListener('change', ()=>{
+      r.events[chk.getAttribute('data-event')] = chk.checked;
+      saveRecruits();
+    });
+  });
+
+  const guruBtn = panel.querySelector('[data-guru-suggest-btn]');
+  if(guruBtn) guruBtn.addEventListener('click', ()=> askGuruForAdvice(id));
+
+  const openSatBtn = panel.querySelector('[data-open-sat]');
+  if(openSatBtn) openSatBtn.addEventListener('click', ()=> openSaturdayModal(id));
+}
+
+
+document.getElementById('recruitSearch').addEventListener('input', renderRecruits);
+document.getElementById('filterCoachability').addEventListener('change', renderRecruits);
+document.getElementById('filterRisk').addEventListener('change', renderRecruits);
+['filterProfession','filterAgeBandRecruit','filterHobbies','filterMaritalStatus','filterHasKids'].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener(el.tagName==='SELECT' ? 'change' : 'input', ()=>{ updateRecruitFilterBadge(); renderRecruits(); });
+});
+document.getElementById('openRecruitFiltersBtn').addEventListener('click', ()=> document.getElementById('recruitFilterOverlay').classList.add('show'));
+document.getElementById('closeRecruitFiltersBtn').addEventListener('click', ()=> document.getElementById('recruitFilterOverlay').classList.remove('show'));
+document.getElementById('recruitFilterOverlay').addEventListener('click', (e)=>{ if(e.target.id==='recruitFilterOverlay') e.target.classList.remove('show'); });
+document.getElementById('clearRecruitFiltersBtn').addEventListener('click', ()=>{
+  document.getElementById('filterProfession').value = '';
+  document.getElementById('filterAgeBandRecruit').value = '';
+  document.getElementById('filterHobbies').value = '';
+  document.getElementById('filterMaritalStatus').value = '';
+  document.getElementById('filterHasKids').value = '';
+  updateRecruitFilterBadge();
+  renderRecruits();
+});
+
+function openAddChildModal(r){
+  document.getElementById('newChildName').value = '';
+  document.getElementById('newChildAge').value = '';
+  document.getElementById('newChildDob').value = '';
+  document.getElementById('addChildOverlay').classList.add('show');
+  const confirmBtn = document.getElementById('confirmAddChild');
+  const newConfirmBtn = confirmBtn.cloneNode(true);
+  confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+  newConfirmBtn.addEventListener('click', ()=>{
+    const name = document.getElementById('newChildName').value.trim();
+    if(!name) return;
+    const age = document.getElementById('newChildAge').value.trim();
+    const dob = document.getElementById('newChildDob').value;
+    r.children = r.children || [];
+    r.children.push({ name, age, dob });
+    saveRecruits(); renderRecruits();
+    document.getElementById('addChildOverlay').classList.remove('show');
+  });
+  setTimeout(()=> document.getElementById('newChildName').focus(), 50);
+}
+document.getElementById('cancelAddChild').addEventListener('click', ()=> document.getElementById('addChildOverlay').classList.remove('show'));
+document.getElementById('addChildOverlay').addEventListener('click', (e)=>{ if(e.target.id==='addChildOverlay') e.target.classList.remove('show'); });
+
+function openAddProspectModal(r){
+  document.getElementById('newProspectFirst').value = '';
+  document.getElementById('newProspectLast').value = '';
+  document.getElementById('newProspectCity').value = '';
+  document.getElementById('newProspectPhone').value = '';
+  document.getElementById('newProspectEmail').value = '';
+  document.getElementById('newProspectTier').value = 'Top 25';
+  document.getElementById('addProspectOverlay').classList.add('show');
+  const confirmBtn = document.getElementById('confirmAddProspect');
+  const newConfirmBtn = confirmBtn.cloneNode(true);
+  confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+  newConfirmBtn.addEventListener('click', ()=>{
+    const firstName = document.getElementById('newProspectFirst').value.trim();
+    const lastName = document.getElementById('newProspectLast').value.trim();
+    if(!firstName && !lastName) return;
+    const city = document.getElementById('newProspectCity').value.trim();
+    const phone = document.getElementById('newProspectPhone').value.trim();
+    const email = document.getElementById('newProspectEmail').value.trim();
+    const tier = document.getElementById('newProspectTier').value;
+    r.prospects = r.prospects || [];
+    r.prospects.push({ firstName, lastName, city, phone, email, tier });
+    saveRecruits(); renderRecruits();
+    document.getElementById('addProspectOverlay').classList.remove('show');
+  });
+  setTimeout(()=> document.getElementById('newProspectFirst').focus(), 50);
+}
+document.getElementById('cancelAddProspect').addEventListener('click', ()=> document.getElementById('addProspectOverlay').classList.remove('show'));
+document.getElementById('addProspectOverlay').addEventListener('click', (e)=>{ if(e.target.id==='addProspectOverlay') e.target.classList.remove('show'); });
+
+function openSaturdayModal(recruitId){
+  const r = recruits.find(x=>x.id===recruitId);
+  if(!r) return;
+  if(!Array.isArray(r.superSaturdays)) r.superSaturdays = [];
+  const startYear = new Date().getFullYear();
+  const years = [startYear, startYear+1];
+  let html = `<h2>Super Saturday attendance</h2><p class="sub" style="margin-top:0;">Check every Saturday they attended (long weekends count too). The % updates automatically.</p><div class="sat-modal-list">`;
+  years.forEach(year=>{
+    html += `<div class="sat-year-label">${year}</div>`;
+    let d = new Date(year,0,1);
+    while(d.getFullYear()===year){
+      if(d.getDay()===6){
+        const iso = d.toISOString().slice(0,10);
+        const checked = r.superSaturdays.includes(iso);
+        const label = d.toLocaleDateString('en-CA', { month:'short', day:'numeric', weekday:'short' });
+        html += `<label class="sat-row"><input type="checkbox" data-sat-date="${iso}" ${checked?'checked':''}> ${label}, ${year}</label>`;
+      }
+      d.setDate(d.getDate()+1);
+    }
+  });
+  html += `</div><div class="panel-actions"><button class="btn" id="closeSatModal">Done</button></div>`;
+  const panel = document.getElementById('satPanel');
+  panel.innerHTML = html;
+  panel.querySelectorAll('input[data-sat-date]').forEach(chk=>{
+    chk.addEventListener('change', ()=>{
+      const date = chk.getAttribute('data-sat-date');
+      if(chk.checked){
+        if(!r.superSaturdays.includes(date)) r.superSaturdays.push(date);
+      } else {
+        r.superSaturdays = r.superSaturdays.filter(x=>x!==date);
+      }
+      saveRecruits();
+    });
+  });
+  document.getElementById('closeSatModal').addEventListener('click', ()=>{
+    document.getElementById('satOverlay').classList.remove('show');
+    renderRecruits();
+  });
+  document.getElementById('satOverlay').classList.add('show');
+}
+document.getElementById('satOverlay').addEventListener('click', (e)=>{ if(e.target.id==='satOverlay'){ e.target.classList.remove('show'); renderRecruits(); } });
+
+function addRecruitDirect(){
+  const newRecruit = {
+    id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+    createdAt: Date.now(), name:'', phone:'', email:'',
+    firstName:'', lastName:'',
+    dateRecruited:'', dob:'', professionCategory:'', jobTitle:'', hobbies:'', pastEducation:'', priorWorkField:'', ptFtStatus:'',
+    spouseName:'', spouseProfession:'', spouseDob:'', spouseEmployment:'', spouseEducation:'', spouseAnniversary:'', spouseRecruited:'', partnerRelation:'', children:[], prospects:[],
+    ownInsuranceStatus:'', dreams:'', fears:'', painPoints:'',
+    examStages: defaultExamStages(),
+    superSaturdays: [],
+    events: { blueMountain:false, mexico:false, lasVegas:false, hawaii:false },
+    coachingLevel:'', studyLevel:'', learningLevel:'', personalGrowthLevel:'', eligibleTrainer:'Not yet',
+    nameListTier:'', nameList:[], curriculum:'', recruitingLeg:'', peopleRecruited:0, salesMade:0, programDay:1
+  };
+  recruits.push(newRecruit);
+  saveRecruits();
+  renderRecruits();
+  openRecruitDetail(newRecruit.id);
+}
+document.getElementById('addRecruitBtn').addEventListener('click', addRecruitDirect);
+
+populateFilters();
+loadClients();
+loadRecruits();
+</script>
+</body>
+</html>
