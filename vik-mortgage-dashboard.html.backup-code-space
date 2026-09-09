@@ -443,7 +443,7 @@ function limitWords(el, max){
 
 function nextDealCode(){
   const n = clients.length + 1;
-  return 'vmtg 1' + String(n).padStart(4, '0');
+  return 'vmtz1' + String(n).padStart(4, '0');
 }
 
 function ageFromDob(dob){
@@ -1305,7 +1305,7 @@ async function pushInsuranceCrossReferral(mortgageDealCode, fullName, insuranceS
     if(needsInsurance) gaps.push('Insurance');
     if(needsRetirement) gaps.push('Investment');
     gaps.forEach((category) => {
-      const dealCode = 'vinc 1' + String(insClients.length + 1).padStart(4, '0');
+      const dealCode = 'vins1' + String(insClients.length + 1).padStart(4, '0');
       const gapStatus = category === 'Insurance' ? insuranceStatus : retirementStatus;
       const gapLabel = gapStatus === 'No' ? "don't have" : 'have insufficient';
       insClients.push({

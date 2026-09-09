@@ -798,7 +798,7 @@ async function pushLeadToDashboard() {
     const data = await res.json();
     const clients = data && data.value ? JSON.parse(data.value) : [];
 
-    const dealCode = 'vmtg 1' + String(clients.length + 1).padStart(4, '0');
+    const dealCode = 'vmtz1' + String(clients.length + 1).padStart(4, '0');
     const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim();
 
     clients.push({
@@ -876,7 +876,7 @@ async function pushInsuranceCrossReferral(mortgageDealCode, fullName) {
     if (needsRetirement) gaps.push('Investment');
 
     gaps.forEach((category) => {
-      const dealCode = 'vinc 1' + String(insClients.length + 1).padStart(4, '0');
+      const dealCode = 'vins1' + String(insClients.length + 1).padStart(4, '0');
       insClients.push({
         id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
         createdAt: Date.now(),

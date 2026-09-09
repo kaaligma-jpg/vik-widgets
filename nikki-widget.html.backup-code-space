@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neo — Mortgage Site Greeter Prototype</title>
+<title>Nikki — Insurance Site Greeter Prototype</title>
 <style>
   :root {
     --navy: #16233F;
@@ -322,8 +322,8 @@
 <body>
 
 <div class="site-mock">
-  <div class="site-mock-header">Vik Mortgage &amp; Advisory</div>
-  <div class="site-mock-sub">This dark strip stands in for your mortgage website's homepage. Neo lives in the corner, ready the moment someone lands here.</div>
+  <div class="site-mock-header">Vik Insurance &amp; Wealth</div>
+  <div class="site-mock-sub">This dark strip stands in for your insurance website's homepage. Nikki lives in the corner, ready the moment someone lands here.</div>
 </div>
 
 <div class="caption">
@@ -335,7 +335,7 @@
     <div class="panel-head">
       <div class="avatar">N</div>
       <div class="who">
-        <div class="name">Neo</div>
+        <div class="name">Nikki</div>
         <div class="status">Usually replies in a few seconds</div>
       </div>
       <div class="close" id="closeBtn">&times;</div>
@@ -369,7 +369,9 @@ const sendBtn = document.getElementById('sendBtn');
 let state = 'greeting';
 let lead = {
   language: 'English', firstName: '', lastName: '', service: '',
-  phone: '', email: '', life: '', retirement: '', newsletter: ''
+  phone: '', email: '', newsletter: '',
+  livingBenefits: undefined, legacy: undefined, guarantees: undefined, wealth: undefined, estate: undefined,
+  hasMortgage: '', mortgageRenewalMonth: '', mortgageRenewalYear: ''
 };
 let started = false;
 let pendingField = null; // used for spelling-confirmation loop
@@ -377,16 +379,16 @@ let pendingField = null; // used for spelling-confirmation loop
 // Ten varied, soothing time-of-day greeting openers — one is picked at random
 // each visit, and the correct time-of-day phrase is spliced in automatically.
 const GREETING_TEMPLATES = [
-  "{tod}, welcome! I'm Neo. So glad you stopped by today.",
-  "{tod} and welcome — I'm Neo. Thanks so much for taking a moment to visit.",
-  "{tod}, I'm Neo. It's genuinely nice to have you here.",
-  "{tod}! I'm Neo, and I'll take good care of you from here.",
-  "{tod} — I'm Neo. Thank you for choosing to spend a little time with us.",
-  "{tod}! I'm Neo. I hope your day is off to a good start.",
-  "{tod}, welcome aboard — I'm Neo, here to help however I can.",
-  "{tod}, I'm Neo. It's a pleasure to meet you.",
-  "{tod}! I'm Neo. Thanks for stopping in — let's make this easy for you.",
-  "{tod}, and hello — I'm Neo. Happy to walk you through things at your pace."
+  "{tod}, welcome! I'm Nikki. So glad you stopped by today.",
+  "{tod} and welcome — I'm Nikki. Thanks so much for taking a moment to visit.",
+  "{tod}, I'm Nikki. It's genuinely nice to have you here.",
+  "{tod}! I'm Nikki, and I'll take good care of you from here.",
+  "{tod} — I'm Nikki. Thank you for choosing to spend a little time with us.",
+  "{tod}! I'm Nikki. I hope your day is off to a good start.",
+  "{tod}, welcome aboard — I'm Nikki, here to help however I can.",
+  "{tod}, I'm Nikki. It's a pleasure to meet you.",
+  "{tod}! I'm Nikki. Thanks for stopping in — let's make this easy for you.",
+  "{tod}, and hello — I'm Nikki. Happy to walk you through things at your pace."
 ];
 
 // Returns "Good morning" / "Good afternoon" / "Good evening" / "Good night"
@@ -551,7 +553,7 @@ function setInputMode(on, placeholder) {
   }
 }
 
-/* ---------- Entry point: type-yourself vs talk-to-Neo ---------- */
+/* ---------- Entry point: type-yourself vs talk-to-Nikki ---------- */
 
 function beginFlow() {
   setInputMode(false);
@@ -613,18 +615,37 @@ function showSelfForm() {
       <label>What brings you here?</label>
       <select id="f_service">
         <option value="">Select one...</option>
-        <option>Purchase</option>
-        <option>Refinance</option>
-        <option>Second Mortgage</option>
+        <option>Life Insurance</option>
+        <option>Living Benefits</option>
+        <option>Retirement Planning</option>
+        <option>General Inquiry</option>
       </select>
-      <label>Do you currently have life insurance?</label>
-      <select id="f_life">
+      <label>If you got sick or hurt tomorrow, is your income protected?</label>
+      <select id="f_livingBenefits">
         <option value="">Select one...</option>
         <option>Yes</option>
         <option>No</option>
       </select>
-      <label>Do you have a retirement or investment plan?</label>
-      <select id="f_retirement">
+      <label>If you weren't here tomorrow, would your family's life stay the same?</label>
+      <select id="f_legacy">
+        <option value="">Select one...</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+      <label>Is your retirement principal protected in a market crash?</label>
+      <select id="f_guarantees">
+        <option value="">Select one...</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+      <label>Do you have a structure in place to stay wealthy, not just build it?</label>
+      <select id="f_wealth">
+        <option value="">Select one...</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+      <label>Is your estate set up to go exactly where you want it to?</label>
+      <select id="f_estate">
         <option value="">Select one...</option>
         <option>Yes</option>
         <option>No</option>
@@ -635,6 +656,14 @@ function showSelfForm() {
         <option>Yes, please</option>
         <option>No, thank you</option>
       </select>
+      <label>Do you currently have a mortgage?</label>
+      <select id="f_hasMortgage">
+        <option value="">Select one...</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+      <label>If yes — approximate renewal month/year (e.g. June 2027)</label>
+      <input type="text" id="f_mortgageRenewal" placeholder="Leave blank if no mortgage">
       <div class="form-error" id="formError" style="display:none; color:#c0392b; font-size:13px; margin-top:4px;"></div>
       <div class="submit-btn" id="formSubmitBtn">Submit inquiry</div>
     `;
@@ -647,14 +676,23 @@ function showSelfForm() {
       { id: 'f_phone', label: 'Phone number' },
       { id: 'f_email', label: 'Email' },
       { id: 'f_service', label: 'What brings you here' },
-      { id: 'f_life', label: 'Life insurance question' },
-      { id: 'f_retirement', label: 'Retirement/investment plan question' },
-      { id: 'f_newsletter', label: 'Newsletter question' }
+      { id: 'f_livingBenefits', label: 'Income protection question' },
+      { id: 'f_legacy', label: 'Legacy question' },
+      { id: 'f_guarantees', label: 'Retirement guarantees question' },
+      { id: 'f_wealth', label: 'Staying wealthy question' },
+      { id: 'f_estate', label: 'Estate planning question' },
+      { id: 'f_newsletter', label: 'Newsletter question' },
+      { id: 'f_hasMortgage', label: 'Mortgage question' }
     ];
 
     document.getElementById('formSubmitBtn').onclick = () => {
       const errorBox = document.getElementById('formError');
       const missing = requiredFields.filter(f => !document.getElementById(f.id).value.trim());
+      const hasMortgageVal = document.getElementById('f_hasMortgage').value;
+      const renewalVal = document.getElementById('f_mortgageRenewal').value.trim();
+      if (hasMortgageVal === 'Yes' && !renewalVal) {
+        missing.push({ id: 'f_mortgageRenewal', label: 'Approximate renewal month/year' });
+      }
       if (missing.length > 0) {
         errorBox.textContent = `Please fill in: ${missing.map(f => f.label).join(', ')} before submitting.`;
         errorBox.style.display = 'block';
@@ -668,9 +706,14 @@ function showSelfForm() {
       lead.phone = document.getElementById('f_phone').value.trim();
       lead.email = document.getElementById('f_email').value.trim();
       lead.service = document.getElementById('f_service').value;
-      lead.life = document.getElementById('f_life').value;
-      lead.retirement = document.getElementById('f_retirement').value;
+      lead.livingBenefits = document.getElementById('f_livingBenefits').value;
+      lead.legacy = document.getElementById('f_legacy').value;
+      lead.guarantees = document.getElementById('f_guarantees').value;
+      lead.wealth = document.getElementById('f_wealth').value;
+      lead.estate = document.getElementById('f_estate').value;
       lead.newsletter = document.getElementById('f_newsletter').value;
+      lead.hasMortgage = hasMortgageVal;
+      lead.mortgageRenewalMonth = renewalVal;
       form.remove();
       addBubble('Submitted my details', 'user');
       finishFlow();
@@ -678,7 +721,7 @@ function showSelfForm() {
   }, 500);
 }
 
-/* ---------- Talk-to-Neo path ---------- */
+/* ---------- Talk-to-Nikki path ---------- */
 
 function confirmAndContinue(message, next) {
   showTyping(() => {
@@ -687,8 +730,8 @@ function confirmAndContinue(message, next) {
   }, 500);
 }
 
-/* Spelling-confirmation helper: shows what Neo captured, asks the person
-   to confirm or correct it, since Neo is typing it into English fields
+/* Spelling-confirmation helper: shows what Nikki captured, asks the person
+   to confirm or correct it, since Nikki is typing it into English fields
    while speaking in whatever language was chosen. */
 function askSpellingConfirm(fieldLabel, value, onConfirmed) {
   showTyping(() => {
@@ -741,31 +784,98 @@ function askService() {
   setInputMode(false);
   showTyping(() => {
     addBubble("What brings you here today?", 'neo');
-    addChoices(['Purchase', 'Refinance', 'Second Mortgage'], (choice) => {
+    addChoices(['Life Insurance', 'Living Benefits', 'Retirement Planning', 'General Inquiry'], (choice) => {
       lead.service = choice;
-      askLifeInsurance();
+      askTopicMenu();
     });
   });
 }
 
-function askLifeInsurance() {
+/* ---------- Five topic questions: living benefits, death & legacy,
+   retirement/guarantees, wealth-building, estate planning ---------- */
+
+const TOPICS = [
+  {
+    key: 'livingBenefits',
+    label: 'Living Benefits',
+    question: "Here's a real one — if you got sick or hurt tomorrow and couldn't work, is your income protected?"
+  },
+  {
+    key: 'legacy',
+    label: 'Death and Legacy',
+    question: "Let me ask you something most people avoid — if you weren't here tomorrow, would your family's life stay exactly the same?"
+  },
+  {
+    key: 'guarantees',
+    label: 'Retirement Guarantees',
+    question: "Quick one on your money — if the market crashed tomorrow, is your principal actually protected?"
+  },
+  {
+    key: 'wealth',
+    label: 'Staying Wealthy',
+    question: "Here's something worth thinking about — the wealthy don't just get wealthy, they stay wealthy. Do you have a structure in place that protects what you build?"
+  },
+  {
+    key: 'estate',
+    label: 'Estate Planning',
+    question: "Last one, and it's an important one — when everything you've built passes on, is it going exactly where you want it to?"
+  }
+];
+
+function askTopicMenu() {
   showTyping(() => {
-    addBubble("Just a couple of quick extra questions, if you don't mind. Do you currently have life insurance?", 'neo');
+    addBubble("I've got five real questions for you — the kind most people don't stop to think about until it's too late. Living benefits, death and legacy, retirement guarantees, staying wealthy, and estate planning.", 'neo');
+    showTyping(() => {
+      addBubble("Which one should we start with?", 'neo');
+      addChoices(TOPICS.map(t => t.label), (choiceLabel) => {
+        const topic = TOPICS.find(t => t.label === choiceLabel);
+        askTopic(topic, 0);
+      });
+    }, 600);
+  });
+}
+
+function askTopic(topic, index) {
+  showTyping(() => {
+    addBubble(topic.question, 'neo');
     addChoices(['Yes', 'No'], (choice) => {
-      lead.life = choice;
-      askRetirement();
+      lead[topic.key] = choice;
+      showTyping(() => {
+        addBubble("Want to know more about this one, or should we move on?", 'neo');
+        addChoices(['Tell me more', "Let's move on"], (moreChoice) => {
+          if (moreChoice === 'Tell me more') {
+            showTyping(() => {
+              addBubble("Great question — Vik will walk you through the full picture on this personally when you connect.", 'neo');
+              proceedToNextTopic(topic, index);
+            }, 500);
+          } else {
+            proceedToNextTopic(topic, index);
+          }
+        });
+      }, 500);
     });
   });
 }
 
-function askRetirement() {
+function proceedToNextTopic(currentTopic, index) {
+  const remaining = TOPICS.filter(t => t.key !== currentTopic.key && lead[t.key] === undefined);
+  if (remaining.length === 0) {
+    askNewsletter();
+    return;
+  }
   showTyping(() => {
-    addBubble("And do you have a retirement or investment plan in place?", 'neo');
-    addChoices(['Yes', 'No'], (choice) => {
-      lead.retirement = choice;
-      askNewsletter();
+    addBubble("Want to go through the rest, or are we good for now?", 'neo');
+    addChoices(["Continue", "That's enough for now"], (choice) => {
+      if (choice === "That's enough for now") {
+        askNewsletter();
+      } else {
+        addChoices(remaining.map(t => t.label), (choiceLabel) => {
+          const nextTopic = remaining.find(t => t.label === choiceLabel);
+          askTopic(nextTopic, index + 1);
+        });
+      }
     });
-  });
+  }, 500);
 }
 
 function askNewsletter() {
@@ -773,33 +883,63 @@ function askNewsletter() {
     addBubble("Last thing — would you like to receive our monthly newsletter? It's full of useful financial tips.", 'neo');
     addChoices(['Yes, please', 'No, thank you'], (choice) => {
       lead.newsletter = choice;
-      finishFlow();
+      askMortgage();
     });
+  });
+}
+
+function askMortgage() {
+  showTyping(() => {
+    addBubble("One more quick one — do you currently have a mortgage?", 'neo');
+    addChoices(['Yes', 'No'], (choice) => {
+      lead.hasMortgage = choice;
+      if (choice === 'Yes') {
+        askMortgageRenewal();
+      } else {
+        finishFlow();
+      }
+    });
+  });
+}
+
+function askMortgageRenewal() {
+  showTyping(() => {
+    addBubble("Got it — and roughly what month and year is your mortgage up for renewal? Just an estimate is fine.", 'neo');
+    setInputMode(true, 'e.g. June 2027');
+    state = 'mortgageRenewal';
   });
 }
 
 function finishFlow() {
   setInputMode(false);
   showTyping(() => {
-    addBubble(`Perfect, ${lead.firstName || ''}. Vik will have your details and someone will reach out shortly. Thanks so much for stopping by! ${signOffMessage()}`, 'neo');
+    addBubble(`Perfect, ${lead.firstName || ''}. Vik will have your details and someone will reach out shortly. And don't forget — our team can also help with mortgages and borrowing needs whenever that comes up! ${signOffMessage()}`, 'neo');
     showLeadCard();
     pushLeadToDashboard();
   }, 800);
 }
 
-// ---- Dashboard sync: sends this lead into the same backend store the
-// mortgage dashboard reads from, so it shows up immediately as a new
-// client card in stage "Lead". Mirrors the client object shape used by
-// vik-mortgage-dashboard.html (id, createdAt, dealCode, notesList, ...).
+// ---- Dashboard sync: sends this lead into Nikki's own insurance pipeline
+// store (separate from the mortgage dashboard's data), so insurance and
+// mortgage leads never mix. Mirrors the client object shape used by
+// vik-insurance-dashboard.html (id, createdAt, dealCode, notesList, ...).
 async function pushLeadToDashboard() {
-  const endpoint = 'https://fincop-backend.onrender.com/app-data/mortgage-clients';
+  const endpoint = 'https://fincop-backend.onrender.com/app-data/insurance-clients';
   try {
     const res = await fetch(endpoint);
     const data = await res.json();
     const clients = data && data.value ? JSON.parse(data.value) : [];
 
-    const dealCode = 'vmtg 1' + String(clients.length + 1).padStart(4, '0');
+    const dealCode = 'vins1' + String(clients.length + 1).padStart(4, '0');
     const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim();
+
+    // Nikki's site covers both insurance and investment/retirement
+    // conversations; "service" (what brought them in) decides which
+    // category the lead lands under, defaulting to "Both" when unclear.
+    const svc = (lead.service || '').toLowerCase();
+    let leadCategory = 'Both';
+    if (svc.indexOf('retire') !== -1 || svc.indexOf('invest') !== -1) leadCategory = 'Investment';
+    else if (svc.indexOf('insur') !== -1 || svc.indexOf('living') !== -1 || svc.indexOf('legacy') !== -1) leadCategory = 'Insurance';
 
     clients.push({
       id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
@@ -809,36 +949,15 @@ async function pushLeadToDashboard() {
       name: fullName,
       phone: lead.phone || '',
       email: lead.email || '',
-      city: '',
-      dob: '',
       age: null,
-      anniversary: '',
-      religion: '',
-      dealCategory: '',
-      product: lead.service || '',
-      mortgageType: '',
+      ageBand: '',
+      leadCategory,
       stage: 'Lead',
-      propertyAddress: '',
-      propertyType: '',
-      propertyTypeOther: '',
-      multipleProperties: false,
-      insuranceSoldWithDeal: false,
-      calledByVik: false,
-      closingDate: '',
-      mortgageTerm: '',
-      renewalDate: '',
       insuranceStatus: '',
       retirementStatus: '',
-      dependents: [],
-      additionalProperties: [],
-      educationPlanStatus: '',
-      referralType: 'Website/Online Ad',
-      referralOther: '',
-      referralName: '',
-      referralEmail: '',
-      referralPhone: '',
-      sourceAgent: 'Neo',
-      sourceNotes: `Language: ${lead.language || '—'}; Life insurance: ${lead.life || '—'}; Retirement plan: ${lead.retirement || '—'}; Newsletter: ${lead.newsletter || '—'}`
+      sourceAgent: 'Nikki',
+      sourceNotes: `Language: ${lead.language || '—'}; Living Benefits: ${lead.livingBenefits || '—'}; Death and Legacy: ${lead.legacy || '—'}; Retirement Guarantees: ${lead.guarantees || '—'}; Staying Wealthy: ${lead.wealth || '—'}; Estate Planning: ${lead.estate || '—'}; Newsletter: ${lead.newsletter || '—'}`,
+      linkedMortgageDealCode: ''
     });
 
     await fetch(endpoint, {
@@ -847,63 +966,73 @@ async function pushLeadToDashboard() {
       body: JSON.stringify({ value: JSON.stringify(clients) })
     });
 
-    // Cross-referral: if this mortgage client has no insurance and/or no
-    // retirement plan, spawn a brand new, separate lead in the insurance
-    // pipeline for each gap — filtered out of the mortgage lead itself.
-    pushInsuranceCrossReferral(dealCode, fullName);
+    // Cross-referral: spawn a lead in Neo's mortgage pipeline either way —
+    // "Yes" (has a mortgage) is a renewal opportunity, "No" (no mortgage yet)
+    // is a brand-new mortgage client opportunity down the line.
+    if (lead.hasMortgage === 'Yes' || lead.hasMortgage === 'No') {
+      pushMortgageCrossReferral(dealCode, fullName, lead.hasMortgage);
+    }
   } catch (e) {
-    console.error('Neo: could not push lead to dashboard', e);
+    console.error('Nikki: could not push lead to dashboard', e);
   }
 }
 
-// Creates one insurance-pipeline lead per gap found (insurance and/or
-// retirement). A client missing both gets two separate leads — one
-// "Insurance" and one "Investment" — same contact info, tagged back to
-// the originating mortgage deal via linkedMortgageDealCode.
-async function pushInsuranceCrossReferral(mortgageDealCode, fullName) {
-  const needsInsurance = lead.life === 'No';
-  const needsRetirement = lead.retirement === 'No';
-  if (!needsInsurance && !needsRetirement) return;
-
-  const endpoint = 'https://fincop-backend.onrender.com/app-data/insurance-clients';
+// Creates a new lead in the mortgage pipeline (same store Neo's widget and
+// vik-mortgage-dashboard.html read from) when an insurance client mentions
+// they already have a mortgage — tagged back to the originating insurance
+// deal via linkedInsuranceDealCode, with the renewal timing noted for
+// Neo's 365-day-out follow-up countdown.
+async function pushMortgageCrossReferral(insuranceDealCode, fullName, hasMortgage) {
+  const endpoint = 'https://fincop-backend.onrender.com/app-data/mortgage-clients';
+  const isRenewal = hasMortgage === 'Yes';
+  const opportunityLabel = isRenewal ? 'Renewal opportunity' : 'New mortgage client opportunity';
+  const opportunityDetail = isRenewal
+    ? `Renewal opportunity — client already has a mortgage elsewhere. Approximate renewal: ${lead.mortgageRenewalMonth || 'not given'}.`
+    : 'New mortgage client opportunity — client currently has no mortgage, a future first-time/purchase prospect.';
   try {
     const res = await fetch(endpoint);
     const data = await res.json();
-    const insClients = data && data.value ? JSON.parse(data.value) : [];
+    const mortClients = data && data.value ? JSON.parse(data.value) : [];
 
-    const gaps = [];
-    if (needsInsurance) gaps.push('Insurance');
-    if (needsRetirement) gaps.push('Investment');
-
-    gaps.forEach((category) => {
-      const dealCode = 'vinc 1' + String(insClients.length + 1).padStart(4, '0');
-      insClients.push({
-        id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-        createdAt: Date.now(),
-        dealCode,
-        notesList: [],
-        name: fullName,
-        phone: lead.phone || '',
-        email: lead.email || '',
-        age: null,
-        ageBand: '',
-        leadCategory: category,
-        stage: 'Lead',
-        insuranceStatus: category === 'Insurance' ? 'No' : '',
-        retirementStatus: category === 'Investment' ? 'No' : '',
-        sourceAgent: 'Neo',
-        sourceNotes: `Cross-referred from a mortgage deal (${mortgageDealCode}) — client said they don't have ${category === 'Insurance' ? 'life insurance' : 'a retirement/investment plan'}.`,
-        linkedMortgageDealCode: mortgageDealCode
-      });
+    const dealCode = 'vmtz1' + String(mortClients.length + 1).padStart(4, '0');
+    mortClients.push({
+      id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      createdAt: Date.now(),
+      dealCode,
+      notesList: [{ text: opportunityDetail, ts: Date.now(), author: 'Nikki' }],
+      topSummary: opportunityLabel,
+      name: fullName,
+      phone: lead.phone || '',
+      email: lead.email || '',
+      city: '', dob: '', age: null, anniversary: '', religion: '',
+      dealCategory: '', product: '', mortgageType: '',
+      stage: 'Lead',
+      propertyAddress: '', propertyType: '', propertyTypeOther: '',
+      multipleProperties: false,
+      insuranceSoldWithDeal: false,
+      calledByVik: false,
+      closingDate: '',
+      mortgageTerm: '',
+      renewalDate: '',
+      renewalMonthYearApprox: lead.mortgageRenewalMonth || '',
+      insuranceStatus: '', retirementStatus: '',
+      dependents: [], additionalProperties: [],
+      educationPlanStatus: '',
+      referralType: 'Website/Online Ad', referralOther: '',
+      referralName: '', referralEmail: '', referralPhone: '',
+      researchNotes: [], researchStatus: 'pending',
+      sourceAgent: 'Nikki',
+      sourceNotes: `Cross-referred from an insurance deal (${insuranceDealCode}) — ${opportunityDetail}`,
+      linkedInsuranceDealCode: insuranceDealCode
     });
 
     await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: JSON.stringify(insClients) })
+      body: JSON.stringify({ value: JSON.stringify(mortClients) })
     });
   } catch (e) {
-    console.error('Neo: could not push insurance cross-referral', e);
+    console.error('Nikki: could not push mortgage cross-referral', e);
   }
 }
 
@@ -917,8 +1046,11 @@ function showLeadCard() {
     <div class="row"><span>Phone</span><span>${lead.phone}</span></div>
     <div class="row"><span>Email</span><span>${lead.email}</span></div>
     <div class="row"><span>Language</span><span>${lead.language}</span></div>
-    <div class="row"><span>Life insurance</span><span>${lead.life || '—'}</span></div>
-    <div class="row"><span>Retirement plan</span><span>${lead.retirement || '—'}</span></div>
+    <div class="row"><span>Living Benefits</span><span>${lead.livingBenefits || '—'}</span></div>
+    <div class="row"><span>Death and Legacy</span><span>${lead.legacy || '—'}</span></div>
+    <div class="row"><span>Retirement Guarantees</span><span>${lead.guarantees || '—'}</span></div>
+    <div class="row"><span>Staying Wealthy</span><span>${lead.wealth || '—'}</span></div>
+    <div class="row"><span>Estate Planning</span><span>${lead.estate || '—'}</span></div>
     <div class="row"><span>Newsletter</span><span>${lead.newsletter || '—'}</span></div>
     <div class="flag">&#9679; Vikram's research will run automatically on this lead</div>
   `;
@@ -956,6 +1088,9 @@ function handleTextSubmit() {
       lead.email = confirmedVal;
       askService();
     });
+  } else if (state === 'mortgageRenewal') {
+    lead.mortgageRenewalMonth = val;
+    finishFlow();
   } else if (state === 'correcting') {
     // user typed the corrected value; re-run the same confirmation once more
     const field = pendingField;

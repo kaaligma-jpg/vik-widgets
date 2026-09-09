@@ -930,7 +930,7 @@ async function pushLeadToDashboard() {
     const data = await res.json();
     const clients = data && data.value ? JSON.parse(data.value) : [];
 
-    const dealCode = 'vins1' + String(clients.length + 1).padStart(4, '0');
+    const dealCode = 'vinc 1' + String(clients.length + 1).padStart(4, '0');
     const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim();
 
     // Nikki's site covers both insurance and investment/retirement
@@ -994,7 +994,7 @@ async function pushMortgageCrossReferral(insuranceDealCode, fullName, hasMortgag
     const data = await res.json();
     const mortClients = data && data.value ? JSON.parse(data.value) : [];
 
-    const dealCode = 'vmtz1' + String(mortClients.length + 1).padStart(4, '0');
+    const dealCode = 'vmtg 1' + String(mortClients.length + 1).padStart(4, '0');
     mortClients.push({
       id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
       createdAt: Date.now(),

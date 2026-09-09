@@ -1138,7 +1138,7 @@ document.getElementById('filterAgeBand').addEventListener('change', render);
 document.getElementById('addBtn').addEventListener('click', ()=>{
   const name = prompt('Client name?');
   if(!name) return;
-  const dealCode = 'vinc 1' + String(clients.length + 1).padStart(4,'0');
+  const dealCode = 'vins1' + String(clients.length + 1).padStart(4,'0');
   const newId = 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
   clients.push({
     id: newId,
