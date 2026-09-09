@@ -1102,9 +1102,6 @@ async function saveLeadEdit(id){
   render();
   openDetail(id);
   showToast('Lead updated');
-  // Now that there is a name to work with, let Vikram research - but only
-  // once per lead, so editing an existing client doesn't re-run him.
-  if(c.name && c.researchStatus !== 'done') triggerVikramResearch(id);
 }
 
 function toggleArchivedView(){
@@ -1168,8 +1165,7 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   render();
   openDetail(newId);
   editLead(newId);
-  // Vikram is NOT called here on purpose - the lead has no name yet.
-  // He is triggered from saveLeadEdit instead, once the name exists.
+  triggerVikramResearch(newId);
 });
 
 // Vikram's auto lead-research, mirrored from the mortgage dashboard. Fires once
