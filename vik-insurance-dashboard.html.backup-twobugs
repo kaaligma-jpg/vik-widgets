@@ -863,15 +863,10 @@ async function submitLogCall(){
   showToast('Call logged to ' + (c.dealCode||c.name));
 }
 
-// True while Vik has an edit form open. Background refreshes check this so
-// they don't wipe what he's typing.
-let isEditingLead = false;
-
 function sourceBadgeFor(c){
-  const s = c.sourceAgent || '';
-  if(s.indexOf('Neo') !== -1) return `<span class="badge neo">Neo</span>`;
-  if(s.indexOf('Vik') !== -1 || s.indexOf('manual') !== -1) return `<span class="badge">Vik</span>`;
-  return `<span class="badge nikki">Nikki</span>`;
+  return (c.sourceAgent||'').indexOf('Neo') !== -1
+    ? `<span class="badge neo">Neo</span>`
+    : `<span class="badge nikki">Nikki</span>`;
 }
 function categoryBadgeClass(c){
   return c.leadCategory==='Both' ? 'both' : (c.leadCategory==='Investment' ? 'investment' : 'insurance');
@@ -932,7 +927,6 @@ function render(){
 // to live permanently open on the flat card (research, notes, Sasha) so the
 // pipeline list itself stays scannable, matching the mortgage dashboard.
 function openDetail(id){
-  isEditingLead = false;
   openRecruitId = null;
   const c = clients.find(x=>x.id===id);
   if(!c) return;
@@ -1061,7 +1055,6 @@ function openDetail(id){
 function editLead(id){
   const c = clients.find(x=>x.id===id);
   if(!c) return;
-  isEditingLead = true;
   const wrap = document.getElementById('detailFieldsView');
   if(!wrap) return;
   wrap.outerHTML = `
@@ -1200,7 +1193,7 @@ async function triggerVikramResearch(id){
   researchInFlight.delete(id);
   await saveClients();
   render();
-  if(!isEditingLead && document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('research'); }
+  if(document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('research'); }
 }
 
 // ---- Sasha: per-lead communication agent (mirrored from the mortgage
@@ -1216,7 +1209,7 @@ async function sendSashaMessage(id, isVoice){
   if(!Array.isArray(c.sashaChat)) c.sashaChat = [];
   c.sashaChat.push({ from:'Vik', text, ts: Date.now() });
   await saveClients();
-  if(!isEditingLead && document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('sasha'); }
+  if(document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('sasha'); }
   // Sasha's replies are backend-powered (drafting/sending logic + this
   // lead's research/comm context). Until that endpoint is live, she
   // acknowledges and logs the ask rather than inventing a fake response.
@@ -1237,7 +1230,7 @@ async function sendSashaMessage(id, isVoice){
     c.sashaChat.push({ from:'Sasha', text: replyText, ts: Date.now() });
   }
   await saveClients();
-  if(!isEditingLead && document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('sasha'); }
+  if(document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('sasha'); }
   if(isVoice) speakSashaReply(replyText);
 }
 
