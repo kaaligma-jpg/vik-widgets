@@ -1003,11 +1003,9 @@ function captureFormFieldDraft(){
   const g = id => document.getElementById(id);
   const val = id => { const el = g(id); return el ? el.value : undefined; };
   const checked = id => { const el = g(id); return el ? el.checked : undefined; };
-  if(!g('f_firstName')) return; // form not currently rendered, nothing to capture
+  if(!g('f_name')) return; // form not currently rendered, nothing to capture
   formFieldDraft = {
-    firstName: val('f_firstName'),
-    lastName: val('f_lastName'),
-    name: [val('f_firstName'), val('f_lastName')].filter(Boolean).join(' '),
+    name: val('f_name'),
     phone: val('f_phone'),
     email: val('f_email'),
     city: val('f_city'),
@@ -1047,10 +1045,7 @@ function renderForm(keepScroll){
     <div class="hint">${editingId ? (c.dealCode||'') : 'Deal code ' + nextDealCode() + ' will be assigned on save.'}</div>
 
     <div class="sechead">Basic info</div>
-    <div class="field-row">
-      <div class="field"><label>First name</label><input id="f_firstName" value="${escapeHtml(c.firstName || (c.name||'').split(' ')[0] || '')}"></div>
-      <div class="field"><label>Last name</label><input id="f_lastName" value="${escapeHtml(c.lastName || (c.name||'').split(' ').slice(1).join(' ') || '')}"></div>
-    </div>
+    <div class="field"><label>Full name</label><input id="f_name" value="${escapeHtml(c.name)}"></div>
     <div class="field-row">
       <div class="field"><label>Phone</label><input id="f_phone" value="${escapeHtml(c.phone)}"></div>
       <div class="field"><label>Email</label><input id="f_email" value="${escapeHtml(c.email)}"></div>
@@ -1200,18 +1195,14 @@ function renderForm(keepScroll){
 }
 
 async function saveForm(){
-  const firstName = document.getElementById('f_firstName').value.trim();
-  const lastName = document.getElementById('f_lastName').value.trim();
-  const name = [firstName, lastName].filter(Boolean).join(' ');
-  if(!firstName){ showToast('First name is required'); return; }
+  const name = document.getElementById('f_name').value.trim();
+  if(!name){ showToast('Name is required'); return; }
   syncDependentDraftFromDom();
   syncPropertyDraftFromDom();
   const dob = document.getElementById('f_dob').value;
   const age = ageFromDob(dob);
   const data = {
     name,
-    firstName,
-    lastName,
     phone: document.getElementById('f_phone').value.trim(),
     email: document.getElementById('f_email').value.trim(),
     city: document.getElementById('f_city').value.trim(),

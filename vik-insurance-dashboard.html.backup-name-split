@@ -1059,8 +1059,7 @@ function editLead(id){
   if(!wrap) return;
   wrap.outerHTML = `
     <dl class="detail" id="detailFieldsView">
-      <dt>First name</dt><dd><input type="text" id="editFirstName" value="${escapeHtml(c.firstName || (c.name||'').split(' ')[0] || '')}"></dd>
-      <dt>Last name</dt><dd><input type="text" id="editLastName" value="${escapeHtml(c.lastName || (c.name||'').split(' ').slice(1).join(' ') || '')}"></dd>
+      <dt>Name</dt><dd><input type="text" id="editName" value="${escapeHtml(c.name||'')}"></dd>
       <dt>Phone</dt><dd><input type="tel" id="editPhone" value="${escapeHtml(c.phone||'')}" placeholder="e.g. 4161234567"></dd>
       <dt>Email</dt><dd><input type="email" id="editEmail" value="${escapeHtml(c.email||'')}"></dd>
       <dt>Deal code</dt><dd><input type="text" id="editDealCode" value="${escapeHtml(c.dealCode||'')}"></dd>
@@ -1079,9 +1078,7 @@ function editLead(id){
 async function saveLeadEdit(id){
   const c = clients.find(x=>x.id===id);
   if(!c) return;
-  c.firstName = document.getElementById('editFirstName').value.trim();
-  c.lastName = document.getElementById('editLastName').value.trim();
-  c.name = [c.firstName, c.lastName].filter(Boolean).join(' ');
+  c.name = document.getElementById('editName').value.trim();
   c.phone = document.getElementById('editPhone').value.trim();
   c.email = document.getElementById('editEmail').value.trim();
   c.dealCode = document.getElementById('editDealCode').value.trim();
