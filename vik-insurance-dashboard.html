@@ -1235,7 +1235,7 @@ async function sendSashaMessage(id, isVoice){
   try{
     const res = await fetch('https://fincop-backend.onrender.com/sasha-chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ dealCode:c.dealCode, name:c.name, email:c.email, phone:c.phone, message:text, autoSend:c.sashaAutoSend, researchNotes:c.researchNotes, history:c.sashaChat })
+      body: JSON.stringify({ dealCode:c.dealCode, name:c.name, email:c.email, phone:c.phone, message:text, autoSend:c.sashaAutoSend, researchNotes:c.researchNotes, history:c.sashaChat, whatsappReplied:c.whatsappReplied })
     });
     if(!res.ok) throw new Error('sasha backend not live yet');
     const data = await res.json();
