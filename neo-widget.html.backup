@@ -872,9 +872,8 @@ async function pushInsuranceCrossReferral(mortgageDealCode, fullName) {
     const insClients = data && data.value ? JSON.parse(data.value) : [];
 
     const gaps = [];
-    if (needsInsurance && needsRetirement) gaps.push('Both');
-    else if (needsInsurance) gaps.push('Insurance');
-    else if (needsRetirement) gaps.push('Investment');
+    if (needsInsurance) gaps.push('Insurance');
+    if (needsRetirement) gaps.push('Investment');
 
     gaps.forEach((category) => {
       const dealCode = 'vinc 1' + String(insClients.length + 1).padStart(4, '0');
@@ -890,10 +889,10 @@ async function pushInsuranceCrossReferral(mortgageDealCode, fullName) {
         ageBand: '',
         leadCategory: category,
         stage: 'Lead',
-        insuranceStatus: (category === 'Insurance' || category === 'Both') ? 'No' : '',
-        retirementStatus: (category === 'Investment' || category === 'Both') ? 'No' : '',
+        insuranceStatus: category === 'Insurance' ? 'No' : '',
+        retirementStatus: category === 'Investment' ? 'No' : '',
         sourceAgent: 'Neo',
-        sourceNotes: `Cross-referred from a mortgage deal (${mortgageDealCode}) — client said they don't have ${category === 'Both' ? 'life insurance or a retirement/investment plan' : (category === 'Insurance' ? 'life insurance' : 'a retirement/investment plan')}.`,
+        sourceNotes: `Cross-referred from a mortgage deal (${mortgageDealCode}) — client said they don't have ${category === 'Insurance' ? 'life insurance' : 'a retirement/investment plan'}.`,
         linkedMortgageDealCode: mortgageDealCode
       });
     });

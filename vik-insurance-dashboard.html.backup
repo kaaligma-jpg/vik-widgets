@@ -967,7 +967,7 @@ function openDetail(id){
           <button class="btn small ghost" onclick="copyFnaLink('${c.id}')">Copy FNA link</button>
           <button class="btn small" onclick="sendFnaViaSasha('${c.id}')">Send FNA via Sasha</button>
         </div>
-        <div class="item-meta" style="margin-top:6px;">Sasha's email sending isn't fully wired yet — this drops the link into her chat below so you can confirm/copy it out for now.</div>
+        <div class="item-meta" style="margin-top:6px;">Sends the FNA link to this client by email, via Sasha.</div>
       </div>
 
       <div class="sechead">Notes &amp; history</div>
