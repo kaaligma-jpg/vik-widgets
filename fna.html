@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dream Home Plus Life - Financial Needs Analysis</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  min-height: 100vh;
+  color: #f1f5f9;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+.container {
+  max-width: 720px;
+  width: 100%;
+}
+.brand {
+  text-align: center;
+  padding: 30px 0 10px;
+}
+.brand h1 {
+  font-size: 28px;
+  background: linear-gradient(90deg, #38bdf8, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.brand p {
+  color: #94a3b8;
+  font-size: 14px;
+  margin-top: 4px;
+}
+.progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0;
+}
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #334155;
+}
+.progress-fill {
+  height: 100%;
+  width: 4%;
+  background: linear-gradient(90deg, #38bdf8, #a78bfa);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+.progress-label {
+  font-size: 12px;
+  color: #94a3b8;
+  min-width: 40px;
+  text-align: right;
+}
+.card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid #334155;
+  border-radius: 20px;
+  padding: 32px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.step-tag {
+  display: inline-block;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.step-tag.pulse { background: rgba(167, 139, 250, 0.15); color: #a78bfa; }
+h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  line-height: 1.3;
+  color: #f8fafc;
+}
+.subtext {
+  color: #cbd5e1;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.subtext strong { color: #f1f5f9; }
+.highlight-box {
+  background: rgba(56, 189, 248, 0.08);
+  border-left: 3px solid #38bdf8;
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+.option-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.option-grid.single { grid-template-columns: 1fr; }
+.option {
+  background: rgba(15, 23, 42, 0.6);
+  border: 2px solid #334155;
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: #e2e8f0;
+}
+.option:hover { border-color: #38bdf8; background: rgba(56, 189, 248, 0.08); }
+.option.selected { border-color: #38bdf8; background: rgba(56, 189, 248, 0.15); box-shadow: 0 0 0 1px #38bdf8; }
+.option .icon { font-size: 22px; }
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.chip {
+  background: rgba(15, 23, 42, 0.6);
+  border: 2px solid #334155;
+  border-radius: 30px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #e2e8f0;
+  transition: all 0.2s ease;
+}
+.chip:hover { border-color: #a78bfa; }
+.chip.selected { border-color: #a78bfa; background: rgba(167, 139, 250, 0.2); color: #fff; }
+.slider-wrap { margin-bottom: 20px; }
+.slider-labels { display: flex; justify-content: space-between; font-size: 13px; color: #94a3b8; margin-bottom: 8px; }
+input[type="range"] {
+  width: 100%;
+  accent-color: #38bdf8;
+}
+input[type="text"], input[type="number"], input[type="email"], input[type="tel"] {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 2px solid #334155;
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: #f1f5f9;
+  font-size: 15px;
+  margin-bottom: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus { border-color: #38bdf8; }
+input::placeholder { color: #64748b; }
+.field-label {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  display: block;
+  font-weight: 600;
+}
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+}
+.btn {
+  padding: 14px 28px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-primary {
+  background: linear-gradient(90deg, #38bdf8, #a78bfa);
+  color: #0f172a;
+  margin-left: auto;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(56,189,248,0.3); }
+.btn-back {
+  background: transparent;
+  color: #94a3b8;
+  border: 2px solid #334155;
+}
+.btn-back:hover { color: #f1f5f9; border-color: #64748b; }
+.step { display: none; }
+.step.active { display: block; }
+.emoji-big { font-size: 40px; text-align: center; margin-bottom: 16px; }
+.intro-list { list-style: none; margin: 18px 0; }
+.intro-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  gap: 12px;
+  font-size: 15px;
+  color: #e2e8f0;
+  align-items: flex-start;
+}
+.intro-list li:last-child { border-bottom: none; }
+.intro-list .num {
+  background: rgba(56,189,248,0.15);
+  color: #38bdf8;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+  flex-shrink: 0;
+}
+.final-screen { text-align: center; }
+.final-screen .big-check {
+  font-size: 60px;
+  margin-bottom: 12px;
+}
+.tiny-note {
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+  margin-top: 18px;
+  line-height: 1.5;
+}
+.dependent-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 10px;
+}
+.checkbox-list { margin-bottom: 20px; }
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15,23,42,0.6);
+  border: 2px solid #334155;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.checkbox-item:hover { border-color: #38bdf8; }
+.checkbox-item.selected { border-color: #38bdf8; background: rgba(56,189,248,0.1); }
+.checkbox-item .box {
+  width: 20px; height: 20px;
+  border: 2px solid #64748b;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.checkbox-item.selected .box { background: #38bdf8; border-color: #38bdf8; color: #0f172a; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="brand">
+    <h1>Dream Home + Life</h1>
+    <p>Financial Needs Analysis - Guided by Vikas Sharma</p>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">Step 1/14</div>
+  </div>
+
+  <div class="card">
+
+    <!-- STEP 1: Welcome -->
+    <div class="step active" data-step="1">
+      <div class="emoji-big">🏡</div>
+      <span class="step-tag">Welcome</span>
+      <h2>Let's map out what truly matters to you and your family.</h2>
+      <p class="subtext">This isn't a boring form. It's a short, guided conversation that helps us see the full picture of your life, so any advice you get afterward actually fits <strong>you</strong> — not a generic template.</p>
+      <div class="highlight-box">Takes about 4 minutes. Mostly tapping, barely any typing. Your answers stay private and go straight to your advisor.</div>
+      <div class="nav-row">
+        <button class="btn btn-primary" onclick="nextStep()">Let's begin →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Why Need Analysis matters (education) -->
+    <div class="step" data-step="2">
+      <span class="step-tag pulse">Before we start</span>
+      <h2>Why does this "need analysis" even matter?</h2>
+      <p class="subtext">Most people buy insurance or investments the way they buy a lottery ticket — a little hope, no real plan. A real need analysis flips that around.</p>
+      <ul class="intro-list">
+        <li><span class="num">1</span> We look at what your family would actually lose — income, time, stability — if life threw a curveball tomorrow.</li>
+        <li><span class="num">2</span> We look at what you're quietly building — savings, retirement, your kids' future — and whether it's actually on track.</li>
+        <li><span class="num">3</span> The money you set aside for retirement isn't just a number — done right, it takes care of you the way you once took care of everyone else.</li>
+        <li><span class="num">4</span> And if there's no estate plan, a big chunk of what you built can quietly go to taxes — leaving your kids to sell what you worked for, or borrow against it, just to pay the bill.</li>
+      </ul>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2B: Probate / segregated funds (education continued) -->
+    <div class="step" data-step="3">
+      <span class="step-tag pulse">Before we start</span>
+      <h2>One more thing most people never get told.</h2>
+      <p class="subtext">Even the RRSPs and mutual funds sitting quietly in your bank can still get tied up in probate when you pass away — meaning delays, legal fees, and public court records before your family sees a dollar.</p>
+      <div class="highlight-box">Segregated funds are similar investment funds, but with one key difference — they let you name a direct beneficiary. That one feature alone lets them bypass probate entirely, passing directly to that person, faster and more privately.</div>
+      <p class="subtext">So the real question isn't just "do I have savings" — it's "will my family actually get this quickly, and in full, when it matters most?"</p>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Makes sense →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Basic info -->
+    <div class="step" data-step="4">
+      <span class="step-tag">About you</span>
+      <h2>Let's start with the basics.</h2>
+      <span class="field-label">First Name</span>
+      <input type="text" placeholder="First name" id="firstName">
+      <span class="field-label">Last Name</span>
+      <input type="text" placeholder="Last name" id="lastName">
+      <div class="two-col">
+        <div>
+          <span class="field-label">Phone</span>
+          <input type="tel" placeholder="(  ) - ____" id="fnaPhone">
+        </div>
+        <div>
+          <span class="field-label">Email</span>
+          <input type="email" placeholder="you@email.com" id="fnaEmail">
+        </div>
+      </div>
+      <div class="step-error" id="error4" style="display:none; color:#c0392b; font-size:13px; margin:8px 0;"></div>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Age & marital -->
+    <div class="step" data-step="5">
+      <span class="step-tag">About you</span>
+      <h2>A little more about your household.</h2>
+      <div class="two-col">
+        <div>
+          <span class="field-label">Your Age</span>
+          <input type="number" placeholder="Age" id="fnaAge">
+        </div>
+        <div>
+          <span class="field-label">City / Province</span>
+          <input type="text" placeholder="e.g. Toronto, ON" id="fnaCity">
+        </div>
+      </div>
+      <span class="field-label">Marital / Household status</span>
+      <div class="option-grid" id="fnaMarital">
+        <div class="option" onclick="selectOption(this)"><span class="icon">💍</span> Married / Common-law</div>
+        <div class="option" onclick="selectOption(this)"><span class="icon">🧑</span> Single</div>
+        <div class="option" onclick="selectOption(this)"><span class="icon">👨‍👩‍👧</span> Single parent</div>
+        <div class="option" onclick="selectOption(this)"><span class="icon">💔</span> Separated / Divorced</div>
+      </div>
+      <span class="field-label">Do you have children or other dependents?</span>
+      <div class="chip-row" id="fnaDependents">
+        <div class="chip" onclick="toggleChip(this)">No dependents</div>
+        <div class="chip" onclick="toggleChip(this)">1 child</div>
+        <div class="chip" onclick="toggleChip(this)">2 children</div>
+        <div class="chip" onclick="toggleChip(this)">3+ children</div>
+        <div class="chip" onclick="toggleChip(this)">Aging parent I support</div>
+      </div>
+      <div class="step-error" id="error5" style="display:none; color:#c0392b; font-size:13px; margin:8px 0;"></div>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: Why protection matters (education) -->
+    <div class="step" data-step="6">
+      <span class="step-tag pulse">Quick thought</span>
+      <h2>Why "protecting" your family isn't just an insurance sales line.</h2>
+      <p class="subtext">If your income stopped tomorrow — illness, accident, or worse — the mortgage, the groceries, the school fees don't pause with you. Protection isn't about you. It's about making sure the people who depend on you never feel the gap.</p>
+      <div class="highlight-box">Families with no protection plan don't fail because they didn't care. They fail because no one ever showed them the real number.</div>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">I see that →</button>
+      </div>
+    </div>
+
+    <!-- STEP 6: Income protection questions -->
+    <div class="step" data-step="7">
+      <span class="step-tag">Income & Protection</span>
+      <h2>If your income paused, what would feel the pressure first?</h2>
+      <div class="checkbox-list" id="fnaIncomePressure">
+        <div class="checkbox-item" onclick="toggleCheck(this)"><span class="box"></span> Mortgage or rent</div>
+        <div class="checkbox-item" onclick="toggleCheck(this)"><span class="box"></span> Everyday household expenses</div>
+        <div class="checkbox-item" onclick="toggleCheck(this)"><span class="box"></span> Children's education</div>
+        <div class="checkbox-item" onclick="toggleCheck(this)"><span class="box"></span> Existing debts / credit cards</div>
+        <div class="checkbox-item" onclick="toggleCheck(this)"><span class="box"></span> Nothing — I already have a solid plan</div>
+      </div>
+      <span class="field-label">Do you currently have life insurance?</span>
+      <div class="option-grid" id="fnaLifeInsurance">
+        <div class="option" onclick="selectOption(this)"><span class="icon">✅</span> Yes, I have coverage</div>
+        <div class="option" onclick="selectOption(this)"><span class="icon">❌</span> No, not yet</div>
+      </div>
+      <div class="step-error" id="error7" style="display:none; color:#c0392b; font-size:13px; margin:8px 0;"></div>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 7: Mortgage cross-check -->
+    <div class="step" data-step="8">
+      <span class="step-tag">Your home</span>
+      <h2>Do you currently have a mortgage?</h2>
+      <p class="subtext">Just so we look at the full picture — and yes, we can help on the borrowing side too if that's ever useful.</p>
+      <div class="option-grid" id="fnaMortgage">
+        <div class="option" onclick="selectOption(this); showMortgageFollow()"><span class="icon">🏠</span> Yes</div>
+        <div class="option" onclick="selectOption(this); hideMortgageFollow()"><span class="icon">🚫</span> No</div>
+      </div>
+      <div id="mortgageFollow" style="display:none;">
+        <span class="field-label">Approximate renewal month / year</span>
+        <input type="text" placeholder="e.g. June 2027" id="fnaMortgageRenewal">
+      </div>
+      <div class="step-error" id="error8" style="display:none; color:#c0392b; font-size:13px; margin:8px 0;"></div>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 8: Education funding (education) -->
+    <div class="step" data-step="9">
+      <span class="step-tag pulse">Quick thought</span>
+      <h2>Education plans quietly compound too — just like debt does.</h2>
+      <p class="subtext">A small monthly amount started early for a child's education grows enormously over 15-18 years thanks to compounding and government grants. Waiting even 5 years to start can cut the end result nearly in half.</p>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Got it →</button>
+      </div>
+    </div>
+
+    <!-- STEP 9: Retirement / Build wealth -->
+    <div class="step" data-step="10">
+      <span class="step-tag">Building Wealth</span>
+      <h2>Let's talk about retirement and savings.</h2>
+      <span class="field-label">At what age would you like to retire?</span>
+      <input type="number" placeholder="e.g. 60" id="fnaRetireAge">
+      <span class="field-label">Do you have a retirement plan (RRSP, pension, investments)?</span>
+      <div class="option-grid" id="fnaRetirePlan">
+        <div class="option" onclick="selectOption(this)"><span class="icon">📈</span> Yes, in place</div>
+        <div class="option" onclick="selectOption(this)"><span class="icon">🤔</span> Not really / not sure</div>
+      </div>
+      <span class="field-label">Do you have a regular monthly savings plan?</span>
+      <div class="chip-row" id="fnaSavingsPlan">
+        <div class="chip" onclick="toggleChip(this)">Yes, consistently</div>
+        <div class="chip" onclick="toggleChip(this)">Sometimes</div>
+        <div class="chip" onclick="toggleChip(this)">Not currently</div>
+      </div>
+      <div class="step-error" id="error10" style="display:none; color:#c0392b; font-size:13px; margin:8px 0;"></div>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 10: Estate planning (education) -->
+    <div class="step" data-step="11">
+      <span class="step-tag pulse">Quick thought</span>
+      <h2>Why estate planning matters more than people think.</h2>
+      <p class="subtext">Without a will or clear plan, decisions about your family and assets can end up in the hands of a court, not the people you'd have chosen. Estate planning isn't about being wealthy — it's about making sure your wishes are actually followed.</p>
+      <span class="field-label">Do you currently have a will?</span>
+      <div class="option-grid" id="fnaWill">
+        <div class="option" onclick="selectOption(this)"><span class="icon">📄</span> Yes</div>
+        <div class="option" onclick="selectOption(this)"><span class="icon">🚫</span> No / not yet</div>
+      </div>
+      <div class="step-error" id="error11" style="display:none; color:#c0392b; font-size:13px; margin:8px 0;"></div>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 11: Emergency fund -->
+    <div class="step" data-step="12">
+      <span class="step-tag">Safety Net</span>
+      <h2>If an unexpected expense hit tomorrow, how ready are you?</h2>
+      <div class="option-grid single" id="fnaEmergencyFund">
+        <div class="option" onclick="selectOption(this)"><span class="icon">💪</span> I have 3-6+ months of expenses saved</div>
+        <div class="option" onclick="selectOption(this)"><span class="icon">🙂</span> I have some savings, but not much</div>
+        <div class="option" onclick="selectOption(this)"><span class="icon">😬</span> I don't have an emergency fund yet</div>
+      </div>
+      <div class="step-error" id="error12" style="display:none; color:#c0392b; font-size:13px; margin:8px 0;"></div>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 12: Priority ranking -->
+    <div class="step" data-step="13">
+      <span class="step-tag">Your Priorities</span>
+      <h2>Which of these feels most urgent to you right now?</h2>
+      <p class="subtext">Pick as many as matter — this simply helps your advisor focus the conversation on what you actually care about.</p>
+      <div class="chip-row" id="fnaPriorities">
+        <div class="chip" onclick="toggleChip(this)">Cash flow</div>
+        <div class="chip" onclick="toggleChip(this)">Protection for my family</div>
+        <div class="chip" onclick="toggleChip(this)">Retirement</div>
+        <div class="chip" onclick="toggleChip(this)">Paying off debt</div>
+        <div class="chip" onclick="toggleChip(this)">Emergency fund</div>
+        <div class="chip" onclick="toggleChip(this)">Estate planning</div>
+      </div>
+      <div class="step-error" id="error13" style="display:none; color:#c0392b; font-size:13px; margin:8px 0;"></div>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 13: Investor self-rating -->
+    <div class="step" data-step="14">
+      <span class="step-tag">Almost done</span>
+      <h2>Last quick one — how would you describe yourself as an investor?</h2>
+      <span class="field-label">Investment knowledge</span>
+      <div class="chip-row" id="fnaInvestKnowledge">
+        <div class="chip" onclick="toggleChip(this)">Excellent</div>
+        <div class="chip" onclick="toggleChip(this)">Good</div>
+        <div class="chip" onclick="toggleChip(this)">Fair</div>
+        <div class="chip" onclick="toggleChip(this)">Poor / Nil</div>
+      </div>
+      <span class="field-label">Comfort with risk</span>
+      <div class="chip-row" id="fnaRiskComfort">
+        <div class="chip" onclick="toggleChip(this)">Low</div>
+        <div class="chip" onclick="toggleChip(this)">Low-Medium</div>
+        <div class="chip" onclick="toggleChip(this)">Medium</div>
+        <div class="chip" onclick="toggleChip(this)">Medium-High</div>
+        <div class="chip" onclick="toggleChip(this)">High</div>
+      </div>
+      <div class="step-error" id="error14" style="display:none; color:#c0392b; font-size:13px; margin:8px 0;"></div>
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prevStep()">← Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Finish →</button>
+      </div>
+    </div>
+
+    <!-- STEP 14: Final -->
+    <div class="step" data-step="15">
+      <div class="final-screen">
+        <div class="big-check" id="finalIcon">✅</div>
+        <h2 id="finalHeading">That's it — you're done.</h2>
+        <p class="subtext" id="finalSubtext">Thank you for taking the time to think this through. Your advisor will review your answers and reach out personally to walk you through what actually fits your life — no pressure, just clarity.</p>
+        <div class="highlight-box" style="text-align:left;">Your information is kept private and is only used to prepare a plan that's relevant to you and your family.</div>
+      </div>
+    </div>
+
+  </div>
+  <p class="tiny-note">Dream Home + Life · A guided financial needs analysis · Powered by your advisor, Vikas Sharma</p>
+</div>
+
+<div class="container" id="gateScreen" style="display:none;">
+  <div class="brand"><h1>Dream Home + Life</h1><p>Financial Needs Analysis</p></div>
+  <div class="card">
+    <div class="emoji-big">🔒</div>
+    <h2>This link needs to come from your advisor.</h2>
+    <p class="subtext">This form is personalized to a specific client, and the link you have doesn't include that reference. Please ask your advisor to resend your FNA link.</p>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 15;
+const INSURANCE_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/insurance-clients';
+const clientId = new URLSearchParams(window.location.search).get('c');
+const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
+
+if(!clientId && !isPreview){
+  document.querySelector('.container').style.display = 'none';
+  document.getElementById('gateScreen').style.display = 'flex';
+}
+
+function updateProgress() {
+  const pct = Math.round((currentStep / totalSteps) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').innerText = 'Step ' + currentStep + '/' + totalSteps;
+}
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+  document.querySelector('.step[data-step="' + n + '"]').classList.add('active');
+  updateProgress();
+  document.querySelector('.card').scrollTop = 0;
+  window.scrollTo(0,0);
+}
+
+function showError(stepNum, message) {
+  const box = document.getElementById('error' + stepNum);
+  if (box) { box.textContent = message; box.style.display = 'block'; }
+}
+function hideError(stepNum) {
+  const box = document.getElementById('error' + stepNum);
+  if (box) { box.style.display = 'none'; }
+}
+function hasSelection(containerId) {
+  const el = document.getElementById(containerId);
+  return !!(el && el.querySelector('.selected'));
+}
+function filled(inputId) {
+  const el = document.getElementById(inputId);
+  return !!(el && el.value.trim() !== '');
+}
+
+function validateStep(n) {
+  let missing = [];
+  if (n === 4) {
+    if (!filled('firstName')) missing.push('First name');
+    if (!filled('lastName')) missing.push('Last name');
+    if (!filled('fnaPhone')) missing.push('Phone');
+    if (!filled('fnaEmail')) missing.push('Email');
+  } else if (n === 5) {
+    if (!filled('fnaAge')) missing.push('Your age');
+    if (!filled('fnaCity')) missing.push('City / Province');
+    if (!hasSelection('fnaMarital')) missing.push('Marital / household status');
+    if (!hasSelection('fnaDependents')) missing.push('Dependents');
+  } else if (n === 7) {
+    if (!hasSelection('fnaIncomePressure')) missing.push('What would feel the pressure first');
+    if (!hasSelection('fnaLifeInsurance')) missing.push('Life insurance question');
+  } else if (n === 8) {
+    if (!hasSelection('fnaMortgage')) missing.push('Mortgage question');
+    else {
+      const mortgageEl = document.getElementById('fnaMortgage');
+      const selected = mortgageEl.querySelector('.selected');
+      if (selected && selected.textContent.trim().includes('Yes') && !filled('fnaMortgageRenewal')) {
+        missing.push('Approximate renewal month / year');
+      }
+    }
+  } else if (n === 10) {
+    if (!filled('fnaRetireAge')) missing.push('Retirement age');
+    if (!hasSelection('fnaRetirePlan')) missing.push('Retirement plan question');
+    if (!hasSelection('fnaSavingsPlan')) missing.push('Monthly savings plan question');
+  } else if (n === 11) {
+    if (!hasSelection('fnaWill')) missing.push('Will question');
+  } else if (n === 12) {
+    if (!hasSelection('fnaEmergencyFund')) missing.push('Emergency fund readiness');
+  } else if (n === 13) {
+    if (!hasSelection('fnaPriorities')) missing.push('At least one priority');
+  } else if (n === 14) {
+    if (!hasSelection('fnaInvestKnowledge')) missing.push('Investment knowledge');
+    if (!hasSelection('fnaRiskComfort')) missing.push('Comfort with risk');
+  }
+  return missing;
+}
+
+function nextStep() {
+  const missing = validateStep(currentStep);
+  if (missing.length > 0) {
+    showError(currentStep, 'Please answer: ' + missing.join(', ') + ' before continuing.');
+    return;
+  }
+  hideError(currentStep);
+  if (currentStep === 14) {
+    // Final content step complete — submit before showing the thank-you screen
+    document.getElementById('finalHeading').innerText = 'Saving your answers…';
+    document.getElementById('finalSubtext').innerText = 'One moment.';
+    currentStep = 15;
+    showStep(15);
+    if(isPreview){
+      document.getElementById('finalIcon').innerText = '👀';
+      document.getElementById('finalHeading').innerText = "Preview mode — nothing was saved.";
+      document.getElementById('finalSubtext').innerText = "This is what a client would see after submitting. Real submissions (opened via a client's actual link) save automatically.";
+      return;
+    }
+    submitFna().then(result => {
+      if(result.ok){
+        document.getElementById('finalIcon').innerText = '✅';
+        document.getElementById('finalHeading').innerText = "That's it — you're done.";
+        document.getElementById('finalSubtext').innerText = "Thank you for taking the time to think this through. Your advisor will review your answers and reach out personally to walk you through what actually fits your life — no pressure, just clarity.";
+      } else {
+        document.getElementById('finalIcon').innerText = '⚠️';
+        document.getElementById('finalHeading').innerText = "Almost there — one hiccup.";
+        document.getElementById('finalSubtext').innerText = "We couldn't automatically save your answers just now. Please let your advisor know so they can follow up directly.";
+      }
+    });
+    return;
+  }
+  if (currentStep < totalSteps) { currentStep++; showStep(currentStep); }
+}
+function prevStep() {
+  if (currentStep > 1) { currentStep--; showStep(currentStep); }
+}
+
+function selectOption(el) {
+  const siblings = el.parentElement.querySelectorAll('.option');
+  siblings.forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function toggleChip(el) {
+  el.classList.toggle('selected');
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('selected');
+  const box = el.querySelector('.box');
+  box.innerText = el.classList.contains('selected') ? '✓' : '';
+}
+
+function showMortgageFollow() {
+  document.getElementById('mortgageFollow').style.display = 'block';
+}
+function hideMortgageFollow() {
+  document.getElementById('mortgageFollow').style.display = 'none';
+}
+
+// ---- Data collection + real submission ----
+function selectedText(containerId){
+  const el = document.getElementById(containerId);
+  if(!el) return null;
+  const sel = el.querySelector('.selected');
+  if(!sel) return null;
+  const icon = sel.querySelector('.icon');
+  let text = sel.textContent.trim();
+  if(icon) text = text.replace(icon.textContent, '').trim();
+  return text;
+}
+function selectedTexts(containerId){
+  const el = document.getElementById(containerId);
+  if(!el) return [];
+  return Array.from(el.querySelectorAll('.selected')).map(s=>{
+    const box = s.querySelector('.box');
+    let t = s.textContent.trim();
+    if(box) t = t.replace(box.textContent,'').trim();
+    return t;
+  });
+}
+function val(id){ const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+function collectFnaData(){
+  return {
+    firstName: val('firstName'),
+    lastName: val('lastName'),
+    phone: val('fnaPhone'),
+    email: val('fnaEmail'),
+    age: val('fnaAge'),
+    city: val('fnaCity'),
+    maritalStatus: selectedText('fnaMarital'),
+    dependents: selectedTexts('fnaDependents'),
+    incomePressure: selectedTexts('fnaIncomePressure'),
+    hasLifeInsurance: selectedText('fnaLifeInsurance'),
+    hasMortgage: selectedText('fnaMortgage'),
+    mortgageRenewal: val('fnaMortgageRenewal'),
+    retireAge: val('fnaRetireAge'),
+    retirePlan: selectedText('fnaRetirePlan'),
+    savingsPlan: selectedTexts('fnaSavingsPlan'),
+    hasWill: selectedText('fnaWill'),
+    emergencyFund: selectedText('fnaEmergencyFund'),
+    priorities: selectedTexts('fnaPriorities'),
+    investKnowledge: selectedTexts('fnaInvestKnowledge'),
+    riskComfort: selectedTexts('fnaRiskComfort'),
+    submittedAt: Date.now()
+  };
+}
+
+async function submitFna(){
+  const data = collectFnaData();
+  if(!clientId) return { ok:false, reason:'no-client' };
+  try{
+    const res = await fetch(INSURANCE_ENDPOINT);
+    const json = await res.json();
+    let clients = json && json.value ? JSON.parse(json.value) : [];
+    const idx = clients.findIndex(c=>c.id===clientId);
+    if(idx===-1) return { ok:false, reason:'not-found' };
+    clients[idx].fna = data;
+    clients[idx].fnaSubmittedAt = Date.now();
+    await fetch(INSURANCE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: JSON.stringify(clients) })
+    });
+    return { ok:true };
+  }catch(e){
+    return { ok:false, reason:'error' };
+  }
+}
+
+updateProgress();
+</script>
+</body>
+</html>

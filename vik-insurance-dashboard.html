@@ -681,8 +681,8 @@ function renderAgentNotes(c){
     </div>`).join('');
 }
 
-const FNA_BASE_URL = 'https://kaaligma-jpg.github.io/vik-widgets/dream-home-plus-life-fna.html';
-function fnaLinkFor(id){ return FNA_BASE_URL + '?client=' + encodeURIComponent(id); }
+const FNA_BASE_URL = 'https://kaaligma-jpg.github.io/vik-widgets/fna.html';
+function fnaLinkFor(id){ return FNA_BASE_URL + '?c=' + encodeURIComponent(id); }
 
 function renderFnaSummary(fna){
   const rows = [

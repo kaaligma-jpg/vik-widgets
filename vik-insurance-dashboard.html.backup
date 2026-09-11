@@ -877,6 +877,13 @@ function categoryBadgeClass(c){
   return c.leadCategory==='Both' ? 'both' : (c.leadCategory==='Investment' ? 'investment' : 'insurance');
 }
 
+function categoryBadges(c){
+  if(c.leadCategory === 'Both'){
+    return '<span class="badge insurance">Insurance</span> <span class="badge investment">Investment</span>';
+  }
+  return '<span class="badge ' + categoryBadgeClass(c) + '">' + (c.leadCategory || 'Insurance') + '</span>';
+}
+
 function render(){
   renderStats();
   const tbody = document.getElementById('tbody');
@@ -903,7 +910,7 @@ function render(){
     <tr onclick="openDetail('${c.id}')">
       <td class="name-cell">${escapeHtml(c.name)||'—'}<div class="meta">${escapeHtml(c.phone)||'—'} <span class="code-tag">${escapeHtml(c.dealCode||'')}</span></div></td>
       <td>${escapeHtml(c.dealCode||'—')}<div class="meta">Age band: ${band}</div></td>
-      <td><span class="badge ${categoryBadgeClass(c)}">${c.leadCategory||'Insurance'}</span></td>
+      <td>${categoryBadges(c)}</td>
       <td>${sourceBadgeFor(c)}</td>
       <td>${escapeHtml(c.insuranceStatus)||'—'}</td>
       <td>${escapeHtml(c.retirementStatus)||'—'}</td>
@@ -920,7 +927,7 @@ function render(){
           <div class="meta">${escapeHtml(c.phone)||'—'} · <span class="code-tag">${escapeHtml(c.dealCode||'')}</span></div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-          <span class="badge ${categoryBadgeClass(c)}">${c.leadCategory||'Insurance'}</span>
+          ${categoryBadges(c)}
           ${sourceBadgeFor(c)}
           ${c.archived ? '<button class="btn small secondary" title="Restore to active pipeline" onclick="event.stopPropagation(); restoreLead(\''+c.id+'\')">Restore</button>' : ''}
         </div>
@@ -944,7 +951,7 @@ function openDetail(id){
       <dt>Phone</dt><dd>${escapeHtml(c.phone)||'—'}</dd>
       <dt>Email</dt><dd>${escapeHtml(c.email)||'—'}</dd>
       <dt>Age band</dt><dd>${band}</dd>
-      <dt>Category</dt><dd><span class="badge ${categoryBadgeClass(c)}">${c.leadCategory||'Insurance'}</span></dd>
+      <dt>Category</dt><dd>${categoryBadges(c)}</dd>
       <dt>Source</dt><dd>${sourceBadgeFor(c)}</dd>
       ${c.linkedMortgageDealCode ? `<dt>Linked mortgage deal</dt><dd>${escapeHtml(c.linkedMortgageDealCode)}</dd>` : ''}
       ${c.sourceNotes ? `<dt>Source note</dt><dd>${escapeHtml(c.sourceNotes)}</dd>` : ''}
