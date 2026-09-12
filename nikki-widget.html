@@ -784,26 +784,6 @@ function askEmail() {
    understand; the productFamily field records what it maps to, so the
    dashboard knows without asking them to name a product. */
 const SERVICE_DETAIL = {
-  'Life Insurance': {
-    intro: "Good — let's narrow it down a little. Which of these is closest to what's on your mind?",
-    options: [
-      {
-        label: "Make sure my family is okay if I'm gone",
-        family: 'Life - income replacement',
-        explain: "That's the core of it. A tax-free amount goes to the people you name, so the income you were bringing in doesn't just stop. Some plans cover a set number of years, others last your whole life."
-      },
-      {
-        label: 'Cover the mortgage or debts',
-        family: 'Life - term / debt coverage',
-        explain: "This is usually the most affordable kind — coverage for a set term, sized to clear the mortgage and any loans so nobody inherits the payments."
-      },
-      {
-        label: 'Build something with cash value I can use later',
-        family: 'Life - permanent / UL',
-        explain: "That's permanent coverage. It never expires, and part of what you pay builds value inside the policy that you can borrow against or draw on down the road."
-      }
-    ]
-  },
   'Living Benefits': {
     intro: "Good — let's narrow it down a little. Which of these is closest to what's on your mind?",
     options: [
@@ -848,7 +828,7 @@ function askService() {
   setInputMode(false);
   showTyping(() => {
     addBubble("What brings you here today?", 'neo');
-    addChoices(['Life Insurance', 'Living Benefits', 'Retirement Planning', 'General Inquiry'], (choice) => {
+    addChoices(['Living Benefits', 'Retirement Planning', 'General Inquiry'], (choice) => {
       lead.service = choice;
       if (SERVICE_DETAIL[choice]) askServiceDetail(choice);
       else askTopicMenu();
