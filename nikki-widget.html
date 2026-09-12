@@ -615,10 +615,11 @@ function showSelfForm() {
       <label>What brings you here?</label>
       <select id="f_service">
         <option value="">Select one...</option>
-        <option>Life Insurance</option>
         <option>Living Benefits</option>
-        <option>Retirement Planning</option>
-        <option>General Inquiry</option>
+        <option>Legacy and Protection</option>
+        <option>Retirement and Wealth</option>
+        <option>Children's Education Planning</option>
+        <option>Estate Planning</option>
       </select>
       <label>If you got sick or hurt tomorrow, is your income protected?</label>
       <select id="f_livingBenefits">
@@ -638,8 +639,8 @@ function showSelfForm() {
         <option>Yes</option>
         <option>No</option>
       </select>
-      <label>Do you have a structure in place to stay wealthy, not just build it?</label>
-      <select id="f_wealth">
+      <label>Is there something set aside specifically for your children's education?</label>
+      <select id="f_education">
         <option value="">Select one...</option>
         <option>Yes</option>
         <option>No</option>
@@ -679,7 +680,7 @@ function showSelfForm() {
       { id: 'f_livingBenefits', label: 'Income protection question' },
       { id: 'f_legacy', label: 'Legacy question' },
       { id: 'f_guarantees', label: 'Retirement guarantees question' },
-      { id: 'f_wealth', label: 'Staying wealthy question' },
+      { id: 'f_education', label: "Children's education question" },
       { id: 'f_estate', label: 'Estate planning question' },
       { id: 'f_newsletter', label: 'Newsletter question' },
       { id: 'f_hasMortgage', label: 'Mortgage question' }
@@ -709,7 +710,7 @@ function showSelfForm() {
       lead.livingBenefits = document.getElementById('f_livingBenefits').value;
       lead.legacy = document.getElementById('f_legacy').value;
       lead.guarantees = document.getElementById('f_guarantees').value;
-      lead.wealth = document.getElementById('f_wealth').value;
+      lead.education = document.getElementById('f_education').value;
       lead.estate = document.getElementById('f_estate').value;
       lead.newsletter = document.getElementById('f_newsletter').value;
       lead.hasMortgage = hasMortgageVal;

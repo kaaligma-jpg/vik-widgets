@@ -780,60 +780,10 @@ function askEmail() {
   });
 }
 
-/* Plain-language sub-choices. The client picks something they actually
-   understand; the productFamily field records what it maps to, so the
-   dashboard knows without asking them to name a product. */
-const SERVICE_DETAIL = {
-  'Living Benefits': {
-    intro: "Good — let's narrow it down a little. Which of these is closest to what's on your mind?",
-    options: [
-      {
-        label: 'If I got seriously ill',
-        family: 'Living benefits - critical illness',
-        explain: "Critical illness coverage. If you're diagnosed with something serious — cancer, heart attack, stroke are the common ones — you get a lump sum, tax-free, to spend however you need. It pays whether or not you go back to work."
-      },
-      {
-        label: "If I couldn't work for a while",
-        family: 'Living benefits - disability',
-        explain: "Disability coverage. It replaces a portion of your income each month while you can't work. Your ability to earn is usually your biggest asset, and it's the one most people never insure."
-      },
-      {
-        label: 'Care costs later in life',
-        family: 'Living benefits - long-term care',
-        explain: "Long-term care coverage. It helps pay for help at home or in a facility if you can't manage on your own, so the cost doesn't land on your savings or your kids."
-      }
-    ]
-  }
-};
-
-function askServiceDetail(service) {
-  const detail = SERVICE_DETAIL[service];
-  if (!detail) { askTopicMenu(); return; }
-
-  showTyping(() => {
-    addBubble(detail.intro, 'neo');
-    addChoices(detail.options.map(o => o.label), (choiceLabel) => {
-      const picked = detail.options.find(o => o.label === choiceLabel);
-      lead.serviceDetail = choiceLabel;
-      lead.productFamily = picked ? picked.family : '';
-      showTyping(() => {
-        addBubble(picked ? picked.explain : '', 'neo');
-        askTopicMenu();
-      });
-    });
-  });
-}
-
 function askService() {
   setInputMode(false);
-  showTyping(() => {
-    addBubble("What brings you here today?", 'neo');
-    addChoices(['Living Benefits', 'Retirement Planning', 'General Inquiry'], (choice) => {
-      lead.service = choice;
-      if (SERVICE_DETAIL[choice]) askServiceDetail(choice);
-      else askTopicMenu();
-    });
-  });
+  lead.service = 'Insurance';
+  askTopicMenu();
 }
 
 /* ---------- Five topic questions: living benefits, death & legacy,
@@ -847,18 +797,18 @@ const TOPICS = [
   },
   {
     key: 'legacy',
-    label: 'Death and Legacy',
+    label: 'Legacy and Protection',
     question: "Let me ask you something most people avoid — if you weren't here tomorrow, would your family's life stay exactly the same?"
   },
   {
     key: 'guarantees',
-    label: 'Retirement Guarantees',
-    question: "Quick one on your money — if the market crashed tomorrow, is your principal actually protected?"
+    label: 'Retirement and Wealth',
+    question: "Quick one on your money — the RRSPs and investments you're building for retirement, if the market dropped tomorrow, would your principal actually be protected?"
   },
   {
-    key: 'wealth',
-    label: 'Staying Wealthy',
-    question: "Here's something worth thinking about — the wealthy don't just get wealthy, they stay wealthy. Do you have a structure in place that protects what you build?"
+    key: 'education',
+    label: "Children's Education Planning",
+    question: "Kids' education adds up fast — tuition, books and living costs can run well past a hundred thousand dollars by the time they're done. Is there something set aside just for that?"
   },
   {
     key: 'estate',
@@ -869,7 +819,7 @@ const TOPICS = [
 
 function askTopicMenu() {
   showTyping(() => {
-    addBubble("I've got five real questions for you — the kind most people don't stop to think about until it's too late. Living benefits, death and legacy, retirement guarantees, staying wealthy, and estate planning.", 'neo');
+    addBubble("What brings you here today? I've got five real questions for you — the kind most people don't stop to think about until it's too late. Living benefits, legacy and protection, retirement and wealth, children's education, and estate planning.", 'neo');
     showTyping(() => {
       addBubble("Which one should we start with?", 'neo');
       addChoices(TOPICS.map(t => t.label), (choiceLabel) => {
@@ -1001,7 +951,7 @@ async function pushLeadToDashboard() {
       insuranceStatus: '',
       retirementStatus: '',
       sourceAgent: 'Nikki',
-      sourceNotes: `Language: ${lead.language || '—'}; Interest: ${lead.serviceDetail || '—'}${lead.productFamily ? ' (' + lead.productFamily + ')' : ''}; Living Benefits: ${lead.livingBenefits || '—'}; Death and Legacy: ${lead.legacy || '—'}; Retirement Guarantees: ${lead.guarantees || '—'}; Staying Wealthy: ${lead.wealth || '—'}; Estate Planning: ${lead.estate || '—'}; Newsletter: ${lead.newsletter || '—'}`,
+      sourceNotes: `Language: ${lead.language || '—'}; Living Benefits: ${lead.livingBenefits || '—'}; Legacy and Protection: ${lead.legacy || '—'}; Retirement and Wealth: ${lead.guarantees || '—'}; Children's Education: ${lead.education || '—'}; Estate Planning: ${lead.estate || '—'}; Newsletter: ${lead.newsletter || '—'}`,
       linkedMortgageDealCode: ''
     });
 
@@ -1091,11 +1041,10 @@ function showLeadCard() {
     <div class="row"><span>Phone</span><span>${lead.phone}</span></div>
     <div class="row"><span>Email</span><span>${lead.email}</span></div>
     <div class="row"><span>Language</span><span>${lead.language}</span></div>
-    ${lead.serviceDetail ? `<div class="row"><span>Interest</span><span>${lead.serviceDetail}</span></div>` : ''}
     <div class="row"><span>Living Benefits</span><span>${lead.livingBenefits || '—'}</span></div>
-    <div class="row"><span>Death and Legacy</span><span>${lead.legacy || '—'}</span></div>
-    <div class="row"><span>Retirement Guarantees</span><span>${lead.guarantees || '—'}</span></div>
-    <div class="row"><span>Staying Wealthy</span><span>${lead.wealth || '—'}</span></div>
+    <div class="row"><span>Legacy and Protection</span><span>${lead.legacy || '—'}</span></div>
+    <div class="row"><span>Retirement and Wealth</span><span>${lead.guarantees || '—'}</span></div>
+    <div class="row"><span>Children's Education</span><span>${lead.education || '—'}</span></div>
     <div class="row"><span>Estate Planning</span><span>${lead.estate || '—'}</span></div>
     <div class="row"><span>Newsletter</span><span>${lead.newsletter || '—'}</span></div>
     <div class="flag">&#9679; Vikram's research will run automatically on this lead</div>
