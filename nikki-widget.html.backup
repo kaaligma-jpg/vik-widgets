@@ -780,78 +780,13 @@ function askEmail() {
   });
 }
 
-/* Plain-language sub-choices. The client picks something they actually
-   understand; the productFamily field records what it maps to, so the
-   dashboard knows without asking them to name a product. */
-const SERVICE_DETAIL = {
-  'Life Insurance': {
-    intro: "Good — let's narrow it down a little. Which of these is closest to what's on your mind?",
-    options: [
-      {
-        label: "Make sure my family is okay if I'm gone",
-        family: 'Life - income replacement',
-        explain: "That's the core of it. A tax-free amount goes to the people you name, so the income you were bringing in doesn't just stop. Some plans cover a set number of years, others last your whole life."
-      },
-      {
-        label: 'Cover the mortgage or debts',
-        family: 'Life - term / debt coverage',
-        explain: "This is usually the most affordable kind — coverage for a set term, sized to clear the mortgage and any loans so nobody inherits the payments."
-      },
-      {
-        label: 'Build something with cash value I can use later',
-        family: 'Life - permanent / UL',
-        explain: "That's permanent coverage. It never expires, and part of what you pay builds value inside the policy that you can borrow against or draw on down the road."
-      }
-    ]
-  },
-  'Living Benefits': {
-    intro: "Good — let's narrow it down a little. Which of these is closest to what's on your mind?",
-    options: [
-      {
-        label: 'If I got seriously ill',
-        family: 'Living benefits - critical illness',
-        explain: "Critical illness coverage. If you're diagnosed with something serious — cancer, heart attack, stroke are the common ones — you get a lump sum, tax-free, to spend however you need. It pays whether or not you go back to work."
-      },
-      {
-        label: "If I couldn't work for a while",
-        family: 'Living benefits - disability',
-        explain: "Disability coverage. It replaces a portion of your income each month while you can't work. Your ability to earn is usually your biggest asset, and it's the one most people never insure."
-      },
-      {
-        label: 'Care costs later in life',
-        family: 'Living benefits - long-term care',
-        explain: "Long-term care coverage. It helps pay for help at home or in a facility if you can't manage on your own, so the cost doesn't land on your savings or your kids."
-      }
-    ]
-  }
-};
-
-function askServiceDetail(service) {
-  const detail = SERVICE_DETAIL[service];
-  if (!detail) { askTopicMenu(); return; }
-
-  showTyping(() => {
-    addBubble(detail.intro, 'neo');
-    addChoices(detail.options.map(o => o.label), (choiceLabel) => {
-      const picked = detail.options.find(o => o.label === choiceLabel);
-      lead.serviceDetail = choiceLabel;
-      lead.productFamily = picked ? picked.family : '';
-      showTyping(() => {
-        addBubble(picked ? picked.explain : '', 'neo');
-        askTopicMenu();
-      });
-    });
-  });
-}
-
 function askService() {
   setInputMode(false);
   showTyping(() => {
     addBubble("What brings you here today?", 'neo');
     addChoices(['Life Insurance', 'Living Benefits', 'Retirement Planning', 'General Inquiry'], (choice) => {
       lead.service = choice;
-      if (SERVICE_DETAIL[choice]) askServiceDetail(choice);
-      else askTopicMenu();
+      askTopicMenu();
     });
   });
 }
@@ -1021,7 +956,7 @@ async function pushLeadToDashboard() {
       insuranceStatus: '',
       retirementStatus: '',
       sourceAgent: 'Nikki',
-      sourceNotes: `Language: ${lead.language || '—'}; Interest: ${lead.serviceDetail || '—'}${lead.productFamily ? ' (' + lead.productFamily + ')' : ''}; Living Benefits: ${lead.livingBenefits || '—'}; Death and Legacy: ${lead.legacy || '—'}; Retirement Guarantees: ${lead.guarantees || '—'}; Staying Wealthy: ${lead.wealth || '—'}; Estate Planning: ${lead.estate || '—'}; Newsletter: ${lead.newsletter || '—'}`,
+      sourceNotes: `Language: ${lead.language || '—'}; Living Benefits: ${lead.livingBenefits || '—'}; Death and Legacy: ${lead.legacy || '—'}; Retirement Guarantees: ${lead.guarantees || '—'}; Staying Wealthy: ${lead.wealth || '—'}; Estate Planning: ${lead.estate || '—'}; Newsletter: ${lead.newsletter || '—'}`,
       linkedMortgageDealCode: ''
     });
 
@@ -1111,7 +1046,6 @@ function showLeadCard() {
     <div class="row"><span>Phone</span><span>${lead.phone}</span></div>
     <div class="row"><span>Email</span><span>${lead.email}</span></div>
     <div class="row"><span>Language</span><span>${lead.language}</span></div>
-    ${lead.serviceDetail ? `<div class="row"><span>Interest</span><span>${lead.serviceDetail}</span></div>` : ''}
     <div class="row"><span>Living Benefits</span><span>${lead.livingBenefits || '—'}</span></div>
     <div class="row"><span>Death and Legacy</span><span>${lead.legacy || '—'}</span></div>
     <div class="row"><span>Retirement Guarantees</span><span>${lead.guarantees || '—'}</span></div>
