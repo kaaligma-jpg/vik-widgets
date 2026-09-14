@@ -2349,10 +2349,6 @@ function openEditRecruitForm(id){
       '<div class="field"><label>Email</label><input id="editRecEmail" value="' + escapeHtml(r.email||'') + '"></div>',
       '<div class="field"><label>Phone</label><input id="editRecPhone" value="' + escapeHtml(r.phone||'') + '"></div>',
     '</div>',
-    '<div class="field-row">',
-      '<div class="field"><label>Guru start date (Day 1)</label><input type="date" id="editRecStart" value="' + (r.startDate||'') + '"></div>',
-      '<div class="field"><label>&nbsp;</label><div class="hint">Day 1 is this date. Move it back to jump the recruit forward, forward to push them back. Leave blank to stop the count.</div></div>',
-    '</div>',
     '<div class="panel-actions"><div></div><div class="right">',
       '<button class="btn secondary" onclick="closeRecruitEditPanel()">Cancel</button> ',
       '<button class="btn" onclick="submitEditRecruit()">Save changes</button>',
@@ -2371,8 +2367,6 @@ function submitEditRecruit(){
   r.lastName  = document.getElementById('editRecLast').value.trim();
   r.email     = document.getElementById('editRecEmail').value.trim();
   r.phone     = document.getElementById('editRecPhone').value.trim();
-  const sd = document.getElementById('editRecStart').value.trim();
-  r.startDate = sd ? sd : null;
   saveRecruits();
   closeRecruitEditPanel();
   renderRecruits();
