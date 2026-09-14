@@ -1,0 +1,39 @@
+let recruitCallId = null;
+function openRecruitCall(id){
+  recruitCallId = id;
+  const r = mortgageRecruits.find(x=>x.id===id);
+  if(!r) return;
+  const panel = document.getElementById('callPanel');
+  panel.innerHTML =
+    '<h2>Log call: ' + escapeHtml(r.firstName+' '+r.lastName) + '</h2>' +
+    '<div class="hint" style="margin-bottom:10px;">' + (escapeHtml(r.phone)||'no phone on file') + '</div>' +
+    '<div class="field"><label>Direction</label><select id="rcall_direction">' +
+    '<option>Outbound call</option><option>Inbound call</option>' +
+    '<option>Missed call</option><option>Voicemail</option>' +
+    '</select></div>' +
+    '<div class="field"><label>What was discussed / outcome</label>' +
+    '<textarea id="rcall_notes" rows="4"></textarea></div>' +
+    '<div class="panel-actions"><div></div><div class="right">' +
+    '<button class="btn secondary" onclick="closeRecruitCall()">Cancel</button>' +
+    '<button class="btn" onclick="submitRecruitCall()">Save call</button>' +
+    '</div></div>';
+  document.getElementById('callOverlay').classList.add('show');
+}
+function closeRecruitCall(){
+  document.getElementById('callOverlay').classList.remove('show');
+  recruitCallId = null;
+}
+async function submitRecruitCall(){
+  const r = mortgageRecruits.find(x=>x.id===recruitCallId);
+  if(!r) return;
+  const direction = document.getElementById('rcall_direction').value;
+  const text = document.getElementById('rcall_notes').value.trim();
+  if(!Array.isArray(r.callHistory)) r.callHistory = [];
+  r.callHistory.push({ text: text || '(no notes)', direction: direction, ts: Date.now(), author: 'Vik' });
+  const keep = recruitCallId;
+  await saveRecruits();
+  closeRecruitCall();
+  renderRecruits();
+  if(document.getElementById('recruitDetailWrap').style.display !== 'none') openRecruitDetail(keep);
+  showToast('Call logged');
+}
