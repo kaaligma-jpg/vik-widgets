@@ -2277,7 +2277,6 @@ function openRecruitDetail(id){
   wrap.style.display = '';
   wrap.innerHTML = `
     <button class="btn secondary small" onclick="closeRecruitDetail()" style="margin-bottom:16px;">← Back to recruits</button>
-    <button class="btn secondary small" onclick="openEditRecruitForm('${r.id}')" style="margin-bottom:16px; margin-left:8px;">Edit details</button>
     <h1 style="margin-bottom:4px;">${escapeHtml(r.firstName+' '+r.lastName)}</h1>
     <dl class="detail">
       <dt>Email</dt><dd>${escapeHtml(r.email)||'—'}</dd>
@@ -2326,52 +2325,6 @@ function openAddRecruitForm(){
     </div>
   `;
   document.getElementById('addRecruitOverlay').classList.add('show');
-}
-
-// Edit an existing recruit's details (reuses the add-recruit panel).
-let editingRecruitId = null;
-
-function closeRecruitEditPanel(){
-  document.getElementById('addRecruitOverlay').classList.remove('show');
-}
-
-function openEditRecruitForm(id){
-  const r = mortgageRecruits.find(x=>x.id===id);
-  if(!r) return;
-  editingRecruitId = id;
-  document.getElementById('addRecruitPanel').innerHTML = [
-    '<h2>Edit recruit</h2>',
-    '<div class="field-row">',
-      '<div class="field"><label>First name</label><input id="editRecFirst" value="' + escapeHtml(r.firstName||'') + '"></div>',
-      '<div class="field"><label>Last name</label><input id="editRecLast" value="' + escapeHtml(r.lastName||'') + '"></div>',
-    '</div>',
-    '<div class="field-row">',
-      '<div class="field"><label>Email</label><input id="editRecEmail" value="' + escapeHtml(r.email||'') + '"></div>',
-      '<div class="field"><label>Phone</label><input id="editRecPhone" value="' + escapeHtml(r.phone||'') + '"></div>',
-    '</div>',
-    '<div class="panel-actions"><div></div><div class="right">',
-      '<button class="btn secondary" onclick="closeRecruitEditPanel()">Cancel</button> ',
-      '<button class="btn" onclick="submitEditRecruit()">Save changes</button>',
-    '</div></div>'
-  ].join('');
-  document.getElementById('addRecruitOverlay').classList.add('show');
-}
-
-function submitEditRecruit(){
-  const id = editingRecruitId;
-  const r = mortgageRecruits.find(x=>x.id===id);
-  if(!r) return;
-  const first = document.getElementById('editRecFirst').value.trim();
-  if(!first){ showToast('First name required'); return; }
-  r.firstName = first;
-  r.lastName  = document.getElementById('editRecLast').value.trim();
-  r.email     = document.getElementById('editRecEmail').value.trim();
-  r.phone     = document.getElementById('editRecPhone').value.trim();
-  saveRecruits();
-  closeRecruitEditPanel();
-  renderRecruits();
-  if(currentRecruitDetailId===id) openRecruitDetail(id);
-  showToast('Recruit updated');
 }
 
 function submitAddRecruit(){
