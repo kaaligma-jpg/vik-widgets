@@ -90,9 +90,6 @@
   .sasha-voice-btn{ font-size:16px; padding:6px 10px; border-radius:50%; background:#F1EAFB; border:1px solid var(--brass, #b48c3c); cursor:pointer; line-height:1; }
   .sasha-voice-btn.listening{ background:var(--brass, #b48c3c); animation:sashaPulse 1s infinite; }
   @keyframes sashaPulse{ 0%{ box-shadow:0 0 0 0 rgba(180,140,60,0.5); } 70%{ box-shadow:0 0 0 10px rgba(180,140,60,0); } 100%{ box-shadow:0 0 0 0 rgba(180,140,60,0); } }
-  .sasha-tab{ all:unset; cursor:pointer; font-size:12px; font-weight:600; padding:6px 12px; border-radius:16px; background:#F1EFE8; color:var(--slate); }
-  .sasha-tab.on{ background:var(--brass); color:#fff; }
-  .sasha-mode-row{ display:flex; gap:8px; margin:8px 0 4px; }
   .sasha-voice-hint{ font-size:11px; opacity:0.7; margin-top:4px; }
   .addnote{ display:flex; gap:8px; margin-top:8px; }
   .addnote textarea{ flex:1; min-height:36px; resize:vertical; }
@@ -536,7 +533,6 @@ async function loadClients(){
     clients.forEach(c=>{
       if(!Array.isArray(c.notesList)) c.notesList = [];
       if(!Array.isArray(c.sashaChat)) c.sashaChat = [];
-      if(!Array.isArray(c.sashaTalk)) c.sashaTalk = [];
       if(typeof c.sashaAutoSend !== 'boolean') c.sashaAutoSend = false;
     });
   }catch(e){ clients = []; }
@@ -582,11 +578,8 @@ function renderStats(){
 
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-let sashaMode = 'talk';
-function switchSashaMode(id, mode){ sashaMode = mode; openDetail(id); switchLayerTab(id,'sasha'); }
 function renderSashaChat(c){
-  const talking = (sashaMode !== 'send');
-  const items = ((talking ? c.sashaTalk : c.sashaChat)||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
+  const items = (c.sashaChat||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
   if(items.length===0) return `<div class="n" style="color:var(--slate);">No conversation with Sasha yet on this lead — ask her something below.</div>`;
   return items.map(m=>`
     <div class="sasha-msg ${m.from==='Vik'?'vik':'sasha'}">
@@ -1017,14 +1010,12 @@ function openDetail(id){
         </div>
       </div>
       <div class="layer-pane" id="pane-sasha">
-        <div class="sasha-mode-row"><button class="sasha-tab ${sashaMode!=='send'?'on':''}" onclick="switchSashaMode('${c.id}','talk')">Talk to Sasha</button><button class="sasha-tab ${sashaMode==='send'?'on':''}" onclick="switchSashaMode('${c.id}','send')">Send to client</button></div>
-        <div class="hint" style="margin:6px 0;">${sashaMode==='send' ? 'Sasha will write a message to this client.' : 'Private. Nothing you say here reaches the client.'}</div>
-        <label style="font-weight:400; font-size:12px; display:${sashaMode==='send'?'block':'none'}; margin:4px 0;">
+        <label style="font-weight:400; font-size:12px; display:block; margin:4px 0;">
           <input type="checkbox" id="sashaAutoSend" ${c.sashaAutoSend?'checked':''}> let Sasha send without asking me first
         </label>
         <div id="sashaChatWrap">${renderSashaChat(c)}</div>
         <div class="addnote">
-          <textarea placeholder="${sashaMode==='send' ? 'Tell Sasha what to write…' : 'Ask Sasha anything about this lead…'}" id="sashaInput" rows="2"></textarea>
+          <textarea placeholder="Ask Sasha something about this lead…" id="sashaInput" rows="2"></textarea>
           <button class="sasha-voice-btn" id="sashaVoiceBtn" title="Talk to Sasha by voice">🎙️</button>
           <button class="btn small" id="sashaSendBtn">Send</button>
         </div>
@@ -1233,11 +1224,8 @@ async function sendSashaMessage(id, isVoice){
   if(!cardInput) return;
   const text = cardInput.value.trim();
   if(!text) return;
-  const talking = (sashaMode !== 'send');
   if(!Array.isArray(c.sashaChat)) c.sashaChat = [];
-  if(!Array.isArray(c.sashaTalk)) c.sashaTalk = [];
-  const thread = talking ? c.sashaTalk : c.sashaChat;
-  thread.push({ from:'Vik', text, ts: Date.now() });
+  c.sashaChat.push({ from:'Vik', text, ts: Date.now() });
   await saveClients();
   if(!isEditingLead && document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('sasha'); }
   // Sasha's replies are backend-powered (drafting/sending logic + this
@@ -1247,17 +1235,17 @@ async function sendSashaMessage(id, isVoice){
   try{
     const res = await fetch('https://fincop-backend.onrender.com/sasha-chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ mode: talking ? 'talk' : 'send', dealCode:c.dealCode, name:c.name, email:c.email, phone:c.phone, message:text, autoSend: talking ? false : c.sashaAutoSend, researchNotes:c.researchNotes, history: thread, whatsappReplied:c.whatsappReplied })
+      body: JSON.stringify({ dealCode:c.dealCode, name:c.name, email:c.email, phone:c.phone, message:text, autoSend:c.sashaAutoSend, researchNotes:c.researchNotes, history:c.sashaChat, whatsappReplied:c.whatsappReplied })
     });
-    if(!res.ok) throw new Error('sasha backend error ' + res.status);
+    if(!res.ok) throw new Error('sasha backend not live yet');
     const data = await res.json();
     replyText = (data && data.reply) || 'Got it.';
     if(data && data.sent) replyText += '\n\n(Sent via ' + (data.channel||'email').toLowerCase() + ' to ' + (data.to || 'the client') + ')';
     else if(data && data.sendError) replyText += '\n\n(Not sent — ' + data.sendError + ')';
-    thread.push({ from:'Sasha', text: replyText, ts: Date.now() });
+    c.sashaChat.push({ from:'Sasha', text: replyText, ts: Date.now() });
   }catch(e){
-    replyText = "I couldn't reach my backend just now, so nothing was sent. Try again in a moment.";
-    thread.push({ from:'Sasha', text: replyText, ts: Date.now() });
+    replyText = "Noted — I can't draft or send yet since my backend isn't connected. Once Vik wires up my endpoint, I'll reply here and " + (c.sashaAutoSend ? "send this on my own." : "hold it for your approval first.");
+    c.sashaChat.push({ from:'Sasha', text: replyText, ts: Date.now() });
   }
   await saveClients();
   if(!isEditingLead && document.getElementById('overlay').classList.contains('show')){ openDetail(id); switchLayerTab('sasha'); }

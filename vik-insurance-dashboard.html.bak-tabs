@@ -1017,14 +1017,12 @@ function openDetail(id){
         </div>
       </div>
       <div class="layer-pane" id="pane-sasha">
-        <div class="sasha-mode-row"><button class="sasha-tab ${sashaMode!=='send'?'on':''}" onclick="switchSashaMode('${c.id}','talk')">Talk to Sasha</button><button class="sasha-tab ${sashaMode==='send'?'on':''}" onclick="switchSashaMode('${c.id}','send')">Send to client</button></div>
-        <div class="hint" style="margin:6px 0;">${sashaMode==='send' ? 'Sasha will write a message to this client.' : 'Private. Nothing you say here reaches the client.'}</div>
-        <label style="font-weight:400; font-size:12px; display:${sashaMode==='send'?'block':'none'}; margin:4px 0;">
+        <label style="font-weight:400; font-size:12px; display:block; margin:4px 0;">
           <input type="checkbox" id="sashaAutoSend" ${c.sashaAutoSend?'checked':''}> let Sasha send without asking me first
         </label>
         <div id="sashaChatWrap">${renderSashaChat(c)}</div>
         <div class="addnote">
-          <textarea placeholder="${sashaMode==='send' ? 'Tell Sasha what to write…' : 'Ask Sasha anything about this lead…'}" id="sashaInput" rows="2"></textarea>
+          <textarea placeholder="Ask Sasha something about this lead…" id="sashaInput" rows="2"></textarea>
           <button class="sasha-voice-btn" id="sashaVoiceBtn" title="Talk to Sasha by voice">🎙️</button>
           <button class="btn small" id="sashaSendBtn">Send</button>
         </div>

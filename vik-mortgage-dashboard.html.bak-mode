@@ -263,9 +263,6 @@
   .sasha-voice-btn{ font-size:16px; padding:6px 10px; border-radius:50%; background:#F1EAFB; border:1px solid var(--brass); cursor:pointer; line-height:1; }
   .sasha-voice-btn.listening{ background:var(--brass); animation:sashaPulse 1s infinite; }
   @keyframes sashaPulse{ 0%{ box-shadow:0 0 0 0 rgba(180,140,60,0.5); } 70%{ box-shadow:0 0 0 10px rgba(180,140,60,0); } 100%{ box-shadow:0 0 0 0 rgba(180,140,60,0); } }
-  .sasha-tab{ all:unset; cursor:pointer; font-size:12px; font-weight:600; padding:6px 12px; border-radius:16px; background:#F1EFE8; color:var(--slate); }
-  .sasha-tab.on{ background:var(--brass); color:#fff; }
-  .sasha-mode-row{ display:flex; gap:8px; margin:8px 0 4px; }
   .sasha-voice-hint{ font-size:11px; opacity:0.7; margin-top:4px; }
   .doc-item{ display:flex; align-items:center; justify-content:space-between; background:#FBFAF6; border:1px solid var(--line); border-radius:6px; padding:8px 10px; margin-bottom:8px; }
   .doc-item .doc-name{ font-size:13px; font-weight:600; }
@@ -544,7 +541,6 @@ function migrateNotes(c){
   if(typeof c.topSummary !== 'string') c.topSummary = '';
   if(typeof c.researchStatus !== 'string') c.researchStatus = c.researchNotes.length ? 'done' : 'pending';
   if(!Array.isArray(c.sashaChat)) c.sashaChat = [];
-  if(!Array.isArray(c.sashaTalk)) c.sashaTalk = [];
   if(typeof c.sashaAutoSend !== 'boolean') c.sashaAutoSend = false;
   if(!Array.isArray(c.documents)) c.documents = [];
 }
@@ -1490,12 +1486,9 @@ function switchLayerTab(id, layer){
 }
 
 // ---- Sasha: per-deal communication agent ----
-let sashaMode = 'talk';
-function switchSashaMode(id, mode){ sashaMode = mode; openDetail(id); switchLayerTab(id,'sasha'); }
 function renderSashaChat(c){
-  const talking = (sashaMode !== 'send');
-  const items = ((talking ? c.sashaTalk : c.sashaChat)||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
-  if(items.length===0) return `<div class="note-empty">${talking ? 'Nothing here yet. Whatever you say here stays between you and Sasha.' : 'No client messages drafted on this deal yet.'}</div>`;
+  const items = (c.sashaChat||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
+  if(items.length===0) return `<div class="note-empty">No conversation with Sasha yet on this deal — ask her something below.</div>`;
   return `<div class="sasha-chat">` + items.map(m=>`
     <div class="sasha-msg ${m.from==='Vik'?'vik':'sasha'}">
       <div class="item-meta">${m.from==='Vik'?'You':'Sasha'} · ${escapeHtml(formatNoteTs(m.ts))}</div>
@@ -1517,11 +1510,8 @@ async function sendSashaMessage(id, isVoice){
   const input = document.getElementById('sashaChatInput');
   const text = input.value.trim();
   if(!text) return;
-  const talking = (sashaMode !== 'send');
   if(!Array.isArray(c.sashaChat)) c.sashaChat = [];
-  if(!Array.isArray(c.sashaTalk)) c.sashaTalk = [];
-  const thread = talking ? c.sashaTalk : c.sashaChat;
-  thread.push({ from:'Vik', text, ts: Date.now() });
+  c.sashaChat.push({ from:'Vik', text, ts: Date.now() });
   await saveClients();
   openDetail(id);
   switchLayerTab(id,'sasha');
@@ -1532,17 +1522,17 @@ async function sendSashaMessage(id, isVoice){
   try{
     const res = await fetch('https://fincop-backend.onrender.com/sasha-chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ mode: talking ? 'talk' : 'send', dealCode:c.dealCode, name:c.name, email:c.email, phone:c.phone, message:text, autoSend: talking ? false : c.sashaAutoSend, history: thread, researchNotes:c.researchNotes })
+      body: JSON.stringify({ dealCode:c.dealCode, name:c.name, email:c.email, phone:c.phone, message:text, autoSend:c.sashaAutoSend, history:c.sashaChat, researchNotes:c.researchNotes })
     });
-    if(!res.ok) throw new Error('sasha backend error ' + res.status);
+    if(!res.ok) throw new Error('sasha backend not live yet');
     const data = await res.json();
     replyText = (data && data.reply) || 'Got it.';
     if(data && data.sent) replyText += '\n\n(Sent via ' + (data.channel||'email').toLowerCase() + ' to ' + (data.to || 'the client') + ')';
     else if(data && data.sendError) replyText += '\n\n(Not sent — ' + data.sendError + ')';
-    thread.push({ from:'Sasha', text: replyText, ts: Date.now() });
+    c.sashaChat.push({ from:'Sasha', text: replyText, ts: Date.now() });
   }catch(e){
-    replyText = "I couldn't reach my backend just now, so nothing was sent. Try again in a moment.";
-    thread.push({ from:'Sasha', text: replyText, ts: Date.now() });
+    replyText = "Noted — I can't draft or send yet since my backend isn't connected. Once Vik wires up my endpoint, I'll reply here and " + (c.sashaAutoSend ? "send this on my own." : "hold it for your approval first.");
+    c.sashaChat.push({ from:'Sasha', text: replyText, ts: Date.now() });
   }
   await saveClients();
   openDetail(id);
@@ -1851,10 +1841,10 @@ function openDetail(id){
         </div>
       </div>
       <div class="layer-pane" id="pane-sasha">
-        <div class="sasha-mode-row"><button class="sasha-tab ${sashaMode!=='send'?'on':''}" onclick="switchSashaMode('${c.id}','talk')">Talk to Sasha</button><button class="sasha-tab ${sashaMode==='send'?'on':''}" onclick="switchSashaMode('${c.id}','send')">Send to client</button></div><div class="hint" style="margin:6px 0;">${sashaMode==='send' ? 'Sasha will write a message to this client. Auto-send: <label style="font-weight:600;"><input type="checkbox" id="sasha_autosend_'+c.id+'" '+(c.sashaAutoSend?'checked':'')+' onchange="toggleSashaAutoSend(&quot;'+c.id+'&quot;, this.checked)"> let Sasha send without asking me first</label>' : 'Private. Nothing you say here reaches the client. Ask her anything about this deal.'}</div>
+        <div class="hint" style="margin:6px 0;">Talk to Sasha about this deal — draft a follow-up, ask her to send the FNA, or get a suggestion on next step. Auto-send: <label style="font-weight:600;"><input type="checkbox" id="sasha_autosend_${c.id}" ${c.sashaAutoSend?'checked':''} onchange="toggleSashaAutoSend('${c.id}', this.checked)"> let Sasha send without asking me first</label></div>
         <div id="sashaChatWrap">${renderSashaChat(c)}</div>
         <div class="note-add-row">
-          <textarea id="sashaChatInput" rows="2" placeholder="${sashaMode==='send' ? 'Tell Sasha what to write to this client…' : 'Ask Sasha anything about this deal…'}"></textarea>
+          <textarea id="sashaChatInput" rows="2" placeholder="Ask Sasha something about this deal…"></textarea>
           <button class="sasha-voice-btn" id="sashaVoiceBtn_${c.id}" onclick="toggleSashaVoice('${c.id}')" title="Talk to Sasha by voice">🎙️</button>
           <button class="btn small" onclick="sendSashaMessage('${c.id}')">Send</button>
         </div>
