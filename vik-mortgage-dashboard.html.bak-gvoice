@@ -1565,15 +1565,14 @@ async function sendSashaMessage(id, isVoice){
 let sashaRecognition = null;
 let sashaListeningDealId = null;
 
-const GURU_VOICE_ID = 'TWutjvRaJqAX89preB4e';
-function speakSashaReply(text, voiceId){
+function speakSashaReply(text){
   const clean = String(text||'').replace(/\s+/g,' ').trim();
   if(!clean) return;
   if(window.sashaAudio){ try{ window.sashaAudio.pause(); }catch(e){} }
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   fetch('https://fincop-backend.onrender.com/sasha-speak', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(voiceId ? { text: clean, voiceId: voiceId } : { text: clean })
+    body: JSON.stringify({ text: clean })
   }).then(function(r){
     if(!r.ok) throw new Error('tts ' + r.status);
     return r.blob();
@@ -2650,7 +2649,7 @@ async function sendGuruMessage(isVoice){
   }
   guruChat.push({ from:'Guru', text: replyText });
   renderGuruChat();
-  if(isVoice) speakSashaReply(replyText, GURU_VOICE_ID);
+  if(isVoice) speakSashaReply(replyText);
 }
 function toggleGuruVoice(){
   const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
