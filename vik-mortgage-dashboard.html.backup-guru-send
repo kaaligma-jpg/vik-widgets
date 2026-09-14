@@ -1981,7 +1981,6 @@ function ensureRecruitDefaults(r){
   if(typeof r.phone !== 'string') r.phone = '';
   if(typeof r.guruAssigned !== 'boolean') r.guruAssigned = false;
   if(typeof r.startDate !== 'string') r.startDate = null; // ISO date Guru's Day 1 email goes out
-  if(!r.emailsSent || typeof r.emailsSent !== 'object') r.emailsSent = {}; // { "6": "2026-09-13T..." }
   if(!r.dailyReplies || typeof r.dailyReplies !== 'object') r.dailyReplies = {}; // { "1": "done" | "not_done" }
   if(!Array.isArray(r.prospects)) r.prospects = [];
   return r;
@@ -2057,44 +2056,6 @@ function toggleGuruAssigned(id, checked){
   saveRecruits();
   renderRecruits();
   if(currentRecruitDetailId===id) openRecruitDetail(id);
-}
-
-// Sends the recruit's current day page as an email, from Guru.
-const GURU_SEND_ENDPOINT = 'https://fincop-backend.onrender.com/guru-test-send';
-
-async function sendGuruDayEmail(id){
-  const r = mortgageRecruits.find(x=>x.id===id);
-  if(!r) return;
-  if(!r.email){ showToast('No email address on file for this recruit'); return; }
-  const day = currentProgramDay(r);
-  if(!day || day < 1){ showToast('Program has not started yet'); return; }
-
-  const task = MORTGAGE_GURU_TASKS[day-1];
-  const subject = 'Day ' + day + ' of 90 — Team Vik';
-  const body = 'Day ' + day + ' of 90\n\n'
-    + task + '\n\n'
-    + 'Also: add 5 new connects to your Top 100 list.\n\n'
-    + 'Reply to this email when it is done, or tell me what got in the way.';
-
-  showToast('Sending Day ' + day + ' to ' + (r.firstName||'recruit') + '...');
-  try{
-    const res = await fetch(GURU_SEND_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to: r.email, subject: subject, body: body })
-    });
-    const out = await res.json();
-    if(out && out.sent){
-      r.emailsSent[String(day)] = new Date().toISOString();
-      saveRecruits();
-      showToast('Day ' + day + ' sent to ' + r.email);
-      if(currentRecruitDetailId===id) openRecruitDetail(id);
-    } else {
-      showToast('Could not send — try again');
-    }
-  }catch(e){
-    showToast('Could not send — check the connection and try again');
-  }
 }
 
 function logDailyReply(id, day, outcome){
@@ -2286,13 +2247,7 @@ function openRecruitDetail(id){
       <dd style="margin-top:6px;">
         <label class="checkbox-row" style="margin:0 0 6px;"><input type="checkbox" ${r.guruAssigned?'checked':''} onchange="toggleGuruAssigned('${r.id}', this.checked)"> Guru assigned</label>
         <div class="hint">${r.guruAssigned && r.startDate ? (cur===0 ? 'Day 1 goes out ' + r.startDate : (cur===90 ? 'Program complete (90/90 days).' : 'Currently on Day ' + cur + ' of 90.')) : 'Not started.'}</div>
-        ${r.guruAssigned && cur >= 1 && cur <= 90 ? `
-        <div style="margin-top:8px;">
-          <button class="btn small" onclick="sendGuruDayEmail('${r.id}')">Send Day ${cur} to ${escapeHtml(r.firstName||'recruit')}</button>
-          <span class="hint" style="margin-left:8px;">${r.emailsSent && r.emailsSent[String(cur)] ? 'Already sent ' + new Date(r.emailsSent[String(cur)]).toLocaleString() : 'Not sent yet'}</span>
-        </div>
-        <div class="hint" style="margin-top:6px;">Sends from Guru. Reply comes back to Vik — log it with Mark done / Mark not done below.</div>
-        ` : ''}
+        <div class="hint" style="margin-top:4px;">Note: the email account Guru sends from isn't configured yet, so daily emails are queued here rather than actually sent. Tracking (green/red) still works the same way once you log a recruit's reply below — flip it over to live sending once the account is set up.</div>
       </dd>
 
       <div class="sechead">Top 100 prospecting list <span class="hint">(${r.prospects.length}/100 — build out in the first 60 days, then export to Pineapple Connect)</span></div>
