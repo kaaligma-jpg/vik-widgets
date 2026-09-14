@@ -1,0 +1,73 @@
+
+// ---- Guru chat: Vik asking Guru about the recruits. Never sends to anyone. ----
+let guruChat = [];
+let guruRecognition = null;
+function renderGuruChat(){
+  const wrap = document.getElementById('guruChatWrap');
+  if(!wrap) return;
+  if(!guruChat.length){ wrap.innerHTML = '<div class="note-empty">Ask Guru who is behind, who went quiet, or how someone is doing.</div>'; return; }
+  wrap.innerHTML = '<div class="sasha-chat">' + guruChat.map(function(m){
+    return '<div class="sasha-msg ' + (m.from==='Vik'?'vik':'sasha') + '">'
+      + '<div class="item-meta">' + (m.from==='Vik'?'You':'Guru') + '</div>'
+      + '<div>' + escapeHtml(m.text) + '</div></div>';
+  }).join('') + '</div>';
+  wrap.scrollTop = wrap.scrollHeight;
+}
+function guruDigest(){
+  return mortgageRecruits.map(function(r){
+    return {
+      name: (r.firstName||'') + ' ' + (r.lastName||''),
+      day: currentProgramDay(r),
+      guruAssigned: !!r.guruAssigned,
+      startDate: r.startDate,
+      marks: r.dailyReplies || {},
+      notes: r.dailyNotes || {},
+      prospects: (r.prospects||[]).length
+    };
+  });
+}
+async function sendGuruMessage(isVoice){
+  const input = document.getElementById('guruChatInput');
+  if(!input) return;
+  const text = input.value.trim();
+  if(!text) return;
+  guruChat.push({ from:'Vik', text: text });
+  input.value = '';
+  renderGuruChat();
+  let replyText;
+  try{
+    const res = await fetch('https://fincop-backend.onrender.com/guru-chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message: text, history: guruChat, recruits: guruDigest() })
+    });
+    if(!res.ok) throw new Error('guru backend error ' + res.status);
+    const data = await res.json();
+    replyText = (data && data.reply) || 'Got it.';
+  }catch(e){
+    replyText = "I couldn't reach my backend just now. Try again in a moment.";
+  }
+  guruChat.push({ from:'Guru', text: replyText });
+  renderGuruChat();
+  if(isVoice) speakSashaReply(replyText);
+}
+function toggleGuruVoice(){
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = document.getElementById('guruVoiceBtn');
+  const hint = document.getElementById('guruVoiceHint');
+  if(!SpeechRecognitionAPI){ showToast('Voice needs Chrome or Edge.'); return; }
+  if(guruRecognition){ guruRecognition.stop(); return; }
+  guruRecognition = new SpeechRecognitionAPI();
+  guruRecognition.lang = 'en-US';
+  guruRecognition.continuous = false;
+  guruRecognition.interimResults = false;
+  guruRecognition.onstart = function(){ if(btn) btn.classList.add('listening'); if(hint) hint.textContent = 'Listening… speak now.'; };
+  guruRecognition.onresult = function(event){
+    const input = document.getElementById('guruChatInput');
+    if(input) input.value = event.results[0][0].transcript;
+    if(hint) hint.textContent = '';
+    sendGuruMessage(true);
+  };
+  guruRecognition.onerror = function(event){ if(hint) hint.textContent = 'Tap the mic and try again.'; };
+  guruRecognition.onend = function(){ if(btn) btn.classList.remove('listening'); guruRecognition = null; };
+  guruRecognition.start();
+}

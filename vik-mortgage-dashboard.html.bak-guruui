@@ -346,17 +346,6 @@
 
       <div class="stats" id="recruitStats"></div>
 
-      <div style="border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:10px 0; background:#FBFAF6;">
-        <div style="font-weight:700; font-size:13px; margin-bottom:6px;">Ask Guru</div>
-        <div id="guruChatWrap"></div>
-        <div class="note-add-row">
-          <textarea id="guruChatInput" rows="2" placeholder="Ask Guru about your recruits…"></textarea>
-          <button class="sasha-voice-btn" id="guruVoiceBtn" onclick="toggleGuruVoice()" title="Talk to Guru by voice">&#127897;</button>
-          <button class="btn small" onclick="sendGuruMessage()">Send</button>
-        </div>
-        <div class="sasha-voice-hint" id="guruVoiceHint"></div>
-      </div>
-
       <div id="recruitListWrap">
       <div class="toolbar">
         <input id="recruitSearch" type="text" placeholder="Search recruits by name, email, phone…">
@@ -2599,82 +2588,7 @@ function submitAddRecruit(){
 }
 
 document.getElementById('addRecruitBtn').addEventListener('click', openAddRecruitForm);
-
-// ---- Guru chat: Vik asking Guru about the recruits. Never sends to anyone. ----
-let guruChat = [];
-let guruRecognition = null;
-function renderGuruChat(){
-  const wrap = document.getElementById('guruChatWrap');
-  if(!wrap) return;
-  if(!guruChat.length){ wrap.innerHTML = '<div class="note-empty">Ask Guru who is behind, who went quiet, or how someone is doing.</div>'; return; }
-  wrap.innerHTML = '<div class="sasha-chat">' + guruChat.map(function(m){
-    return '<div class="sasha-msg ' + (m.from==='Vik'?'vik':'sasha') + '">'
-      + '<div class="item-meta">' + (m.from==='Vik'?'You':'Guru') + '</div>'
-      + '<div>' + escapeHtml(m.text) + '</div></div>';
-  }).join('') + '</div>';
-  wrap.scrollTop = wrap.scrollHeight;
-}
-function guruDigest(){
-  return mortgageRecruits.map(function(r){
-    return {
-      name: (r.firstName||'') + ' ' + (r.lastName||''),
-      day: currentProgramDay(r),
-      guruAssigned: !!r.guruAssigned,
-      startDate: r.startDate,
-      marks: r.dailyReplies || {},
-      notes: r.dailyNotes || {},
-      prospects: (r.prospects||[]).length
-    };
-  });
-}
-async function sendGuruMessage(isVoice){
-  const input = document.getElementById('guruChatInput');
-  if(!input) return;
-  const text = input.value.trim();
-  if(!text) return;
-  guruChat.push({ from:'Vik', text: text });
-  input.value = '';
-  renderGuruChat();
-  let replyText;
-  try{
-    const res = await fetch('https://fincop-backend.onrender.com/guru-chat', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message: text, history: guruChat, recruits: guruDigest() })
-    });
-    if(!res.ok) throw new Error('guru backend error ' + res.status);
-    const data = await res.json();
-    replyText = (data && data.reply) || 'Got it.';
-  }catch(e){
-    replyText = "I couldn't reach my backend just now. Try again in a moment.";
-  }
-  guruChat.push({ from:'Guru', text: replyText });
-  renderGuruChat();
-  if(isVoice) speakSashaReply(replyText);
-}
-function toggleGuruVoice(){
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.getElementById('guruVoiceBtn');
-  const hint = document.getElementById('guruVoiceHint');
-  if(!SpeechRecognitionAPI){ showToast('Voice needs Chrome or Edge.'); return; }
-  if(guruRecognition){ guruRecognition.stop(); return; }
-  guruRecognition = new SpeechRecognitionAPI();
-  guruRecognition.lang = 'en-US';
-  guruRecognition.continuous = false;
-  guruRecognition.interimResults = false;
-  guruRecognition.onstart = function(){ if(btn) btn.classList.add('listening'); if(hint) hint.textContent = 'Listening… speak now.'; };
-  guruRecognition.onresult = function(event){
-    const input = document.getElementById('guruChatInput');
-    if(input) input.value = event.results[0][0].transcript;
-    if(hint) hint.textContent = '';
-    sendGuruMessage(true);
-  };
-  guruRecognition.onerror = function(event){ if(hint) hint.textContent = 'Tap the mic and try again.'; };
-  guruRecognition.onend = function(){ if(btn) btn.classList.remove('listening'); guruRecognition = null; };
-  guruRecognition.start();
-}
-
 document.getElementById('recruitSearch').addEventListener('input', renderRecruits);
-renderGuruChat();
 document.getElementById('addRecruitOverlay').addEventListener('click', (e)=>{ if(e.target.id==='addRecruitOverlay') e.target.classList.remove('show'); });
 document.getElementById('addProspectOverlay').addEventListener('click', (e)=>{ if(e.target.id==='addProspectOverlay') e.target.classList.remove('show'); });
 loadRecruits();
