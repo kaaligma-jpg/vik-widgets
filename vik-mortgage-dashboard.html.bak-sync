@@ -1996,23 +1996,12 @@ function showView(view){
   if(view==='recruits'){ closeRecruitDetail(); renderRecruits(); }
 }
 
-const TASKS_ENDPOINT = "https://fincop-backend.onrender.com/app-data/mortgage-guru-tasks";
-async function syncGuruTasks(){
-  try{
-    await fetch(TASKS_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ value: JSON.stringify(MORTGAGE_GURU_TASKS) })
-    });
-  }catch(e){ console.log("task sync failed", e); }
-}
 async function loadRecruits(){
 try{
 const res = await fetch(RECRUIT_ENDPOINT);
 const data = await res.json();
 mortgageRecruits = data && data.value ? JSON.parse(data.value) : [];
 mortgageRecruits.forEach(ensureRecruitDefaults);
-syncGuruTasks();
 }catch(e){
 mortgageRecruits = [];
 }
