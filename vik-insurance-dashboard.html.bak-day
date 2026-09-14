@@ -349,7 +349,6 @@
             <th>Attendance</th>
             <th>Licensing</th>
             <th>Risk</th>
-            <th></th>
           </tr>
         </thead>
         <tbody id="recruitTbody"></tbody>
@@ -408,12 +407,11 @@ function renderAssignment(raw){
 function shiftProgramDay(id, delta){
   const r = recruits.find(x=>x.id===id);
   if(!r) return;
-  const real = recruitProgramDay(r);
-  if(real === null) return;
-  let d = (r.viewDay || Math.min(90, real)) + delta;
+  let d = (r.programDay || 1) + delta;
   if(d < 1) d = 1;
   if(d > 90) d = 90;
-  r.viewDay = d;
+  r.programDay = d;
+  saveRecruits();
   renderRecruitDetailPanel(r);
 }
 const STATUS_OPTIONS = ["No","Yes — Sufficient","Yes — Insufficient"];
@@ -1458,20 +1456,10 @@ function recruitRiskBadge(r){
   const risk = isAtRisk(r);
   return `<span class="risk-badge ${risk?'flag':'ok'}">${risk?'At risk':'On track'}</span>`;
 }
-function recruitProgramDay(r){
-  if(!r || !r.dateRecruited) return null;
-  const started = new Date(r.dateRecruited + 'T00:00:00');
-  if(isNaN(started.getTime())) return null;
-  const today = new Date();
-  const a = Date.UTC(started.getFullYear(), started.getMonth(), started.getDate());
-  const b = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-  const days = Math.floor((b - a)/86400000) + 1;
-  if(days < 1) return 1;
-  return days;
-}
 function recruitProgramDayLabel(r){
-  const d = recruitProgramDay(r);
-  return d === null ? '—' : ('Day ' + d);
+  if(!r.dateRecruited) return '—';
+  const days = Math.max(1, Math.floor((Date.now() - new Date(r.dateRecruited).getTime())/86400000)+1);
+  return 'Day ' + days;
 }
 function recruitLicensingLabel(r){
   const total = (r.examStages||[]).length;
@@ -1500,15 +1488,13 @@ function renderRecruits(){
       const pct = attendancePct(r);
       return `
       <tr onclick="openRecruitDetail('${r.id}')">
-        <td class="name-cell">${escapeHtml(r.name)||'—'}
-          <div class="meta">${escapeHtml(r.phone)||'no phone'} · ${escapeHtml(r.email)||'no email'}</div></td>
+        <td class="name-cell">${escapeHtml(r.name)||'—'}<div class="meta">${escapeHtml(r.professionCategory)||'—'}</div></td>
         <td>${escapeHtml(r.jobTitle)||'—'}</td>
         <td>${recruitProgramDayLabel(r)}</td>
         <td>${r.coachingLevel||'—'}</td>
         <td>${pct}%</td>
         <td>${recruitLicensingLabel(r)}</td>
         <td>${recruitRiskBadge(r)}</td>
-        <td><button class="btn ghost small" type="button" onclick="event.stopPropagation(); openRecruitDetail('${r.id}')">Edit</button></td>
       </tr>`;
     }).join('');
 
@@ -1550,20 +1536,9 @@ function renderRecruitDetailPanel(r){
 
     <div class="rsection-title">90-day programme</div>
     <div style="background:#f6f7f9;border-radius:10px;padding:14px 16px;margin-bottom:14px;max-height:460px;overflow-y:auto;">
-      ${(()=>{
-        const realDay = recruitProgramDay(r);
-        if(realDay === null){
-          return '<div style="color:#8a6d1f;">No start date yet. Set "Date recruited" below and the programme begins from that date.</div>';
-        }
-        const viewing = Math.min(90, Math.max(1, r.viewDay || realDay));
-        const offTrack = viewing !== realDay;
-        return '<div style="font-size:12px;color:#666;margin-bottom:4px;">' + insurancePhaseLabel(viewing) + '</div>'
-          + '<div style="font-weight:600;margin-bottom:6px;">Day ' + viewing + ' of 90'
-          + (realDay > 90 ? ' <span style="font-weight:400;color:#8a6d1f;">(past day 90)</span>' : '')
-          + (offTrack ? ' <span style="font-weight:400;color:#8a6d1f;">— previewing, today is Day ' + Math.min(90, realDay) + '</span>' : '')
-          + '</div>'
-          + '<div style="line-height:1.55;font-size:13.5px;">' + renderAssignment(insuranceGuruTasks[viewing-1]) + '</div>';
-      })()}
+      <div style="font-size:12px;color:#666;margin-bottom:4px;">${insurancePhaseLabel(r.programDay||1)}</div>
+      <div style="font-weight:600;margin-bottom:6px;">Day ${r.programDay||1} of 90</div>
+      <div style="line-height:1.55;font-size:13.5px;">${renderAssignment(insuranceGuruTasks[(r.programDay||1)-1])}</div>
       <div style="font-size:12px;color:#666;margin-top:10px;padding-top:8px;border-top:1px solid #e3e5e9;">Every working day: 10 new conversations started, 5 new names added to your list.</div>
       <div style="margin-top:10px;display:flex;gap:8px;">
         <button class="btn ghost small" type="button" onclick="shiftProgramDay('${r.id}',-1)">← Previous day</button>
@@ -1659,7 +1634,12 @@ function renderRecruitDetailPanel(r){
       <div class="rfield"><label>People recruited</label><input type="number" min="0" data-nfield="peopleRecruited" value="${r.peopleRecruited||0}"></div>
       <div class="rfield"><label>Sales made</label><input type="number" min="0" data-nfield="salesMade" value="${r.salesMade||0}"></div>
     </div>
-
+    ${(()=>{
+      if(!r.dateRecruited) return '';
+      const days = Math.max(1, Math.floor((Date.now() - new Date(r.dateRecruited).getTime())/86400000)+1);
+      const phase = days<=30 ? 'Prep (days 1-30)' : (days<=90 ? 'Exam completion (days 31-90)' : 'Past day 90');
+      return `<div class="meta" style="margin-top:6px;">Day ${days} of the program — ${phase}</div>`;
+    })()}
     ${(()=>{
       const gaps = [
         { key:'coachingLevel', label:'coaching', bucket:'WFG philosophy/mindset' },
@@ -1975,7 +1955,7 @@ function guruDigest(){
     return {
       name: r.name || ((r.firstName||'') + ' ' + (r.lastName||'')).trim(),
       side: 'insurance',
-      day: recruitProgramDay(r),
+      day: r.programDay || 1,
       coachingLevel: r.coachingLevel || '',
       studyLevel: r.studyLevel || '',
       learningLevel: r.learningLevel || '',
