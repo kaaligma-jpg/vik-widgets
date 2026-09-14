@@ -1550,8 +1550,6 @@ function renderRecruitDetailPanel(r){
     <div class="rgrid">
       <div class="rfield"><label>First name</label><input data-tfield="firstName" value="${escapeHtml(r.firstName)}"></div>
       <div class="rfield"><label>Last name</label><input data-tfield="lastName" value="${escapeHtml(r.lastName)}"></div>
-      <div class="rfield"><label>Phone</label><input type="tel" data-tfield="phone" placeholder="416 555 0123" value="${escapeHtml(r.phone)}"></div>
-      <div class="rfield"><label>Email</label><input type="email" data-tfield="email" placeholder="name@example.com" value="${escapeHtml(r.email)}"></div>
       <div class="rfield"><label>Date recruited</label><input type="date" data-tfield="dateRecruited" value="${escapeHtml(r.dateRecruited)}"></div>
       <div class="rfield"><label>Date of birth</label><input type="date" data-tfield="dob" value="${escapeHtml(r.dob)}"></div>
       <div class="rfield"><label>Profession category</label><input data-tfield="professionCategory" value="${escapeHtml(r.professionCategory)}"></div>
