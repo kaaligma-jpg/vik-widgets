@@ -317,17 +317,6 @@
 
       <div class="stats" id="recruitStats"></div>
 
-      <div style="border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:10px 0; background:#FBFAF6;">
-        <div style="font-weight:700; font-size:13px; margin-bottom:6px;">Ask Guru</div>
-        <div id="guruChatWrap"></div>
-        <div style="display:flex; gap:8px; align-items:flex-start; margin-top:8px;">
-          <textarea id="guruChatInput" rows="2" placeholder="Ask Guru about your recruits…" style="flex:1;"></textarea>
-          <button class="sasha-voice-btn" id="guruVoiceBtn" type="button" onclick="toggleGuruVoice()" title="Talk to Guru by voice">&#127897;</button>
-          <button class="btn small" type="button" onclick="sendGuruMessage()">Send</button>
-        </div>
-        <div class="sasha-voice-hint" id="guruVoiceHint"></div>
-      </div>
-
       <div class="toolbar">
         <input id="recruitSearch" placeholder="Search recruits by name...">
         <select id="filterCoachability"><option value="">Coaching level: any</option><option>Level 1 — On track</option><option>Level 2 — Average/below average</option><option>Level 3 — Needs attention</option><option>Elite</option></select>
@@ -1330,14 +1319,14 @@ async function sendSashaMessage(id, isVoice){
 let sashaRecognition = null;
 let sashaListeningDealId = null;
 
-function speakSashaReply(text, voiceId){
+function speakSashaReply(text){
   const clean = String(text||'').replace(/\s+/g,' ').trim();
   if(!clean) return;
   if(window.sashaAudio){ try{ window.sashaAudio.pause(); }catch(e){} }
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   fetch('https://fincop-backend.onrender.com/sasha-speak', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(voiceId ? { text: clean, voiceId: voiceId } : { text: clean })
+    body: JSON.stringify({ text: clean })
   }).then(function(r){
     if(!r.ok) throw new Error('tts ' + r.status);
     return r.blob();
@@ -1927,98 +1916,9 @@ function addRecruitDirect(){
 }
 document.getElementById('addRecruitBtn').addEventListener('click', addRecruitDirect);
 
-// ---- Ask Guru: Vik asking Guru about the insurance recruits. Sends to nobody. ----
-const GURU_VOICE_ID = 'TWutjvRaJqAX89preB4e';
-let guruChat = [];
-let guruRecognition = null;
-
-function renderGuruChat(){
-  const wrap = document.getElementById('guruChatWrap');
-  if(!wrap) return;
-  if(!guruChat.length){
-    wrap.innerHTML = '<div class="note-empty">Ask Guru who is behind, who went quiet, or how someone is doing.</div>';
-    return;
-  }
-  wrap.innerHTML = '<div class="sasha-chat">' + guruChat.map(function(m){
-    return '<div class="sasha-msg ' + (m.from==='Vik'?'vik':'sasha') + '">'
-      + '<div class="item-meta">' + (m.from==='Vik'?'You':'Guru') + '</div>'
-      + '<div>' + escapeHtml(m.text) + '</div></div>';
-  }).join('') + '</div>';
-  wrap.scrollTop = wrap.scrollHeight;
-}
-
-function guruDigest(){
-  return (recruits||[]).map(function(r){
-    const done = r.examStages ? r.examStages.filter(function(e){ return e && e.done; }).length : 0;
-    return {
-      name: r.name || ((r.firstName||'') + ' ' + (r.lastName||'')).trim(),
-      side: 'insurance',
-      day: r.programDay || 1,
-      coachingLevel: r.coachingLevel || '',
-      studyLevel: r.studyLevel || '',
-      learningLevel: r.learningLevel || '',
-      personalGrowthLevel: r.personalGrowthLevel || '',
-      examStagesDone: done,
-      superSaturdays: (r.superSaturdays||[]).length,
-      prospects: (r.prospects||[]).length,
-      nameList: (r.nameList||[]).length,
-      salesMade: r.salesMade || 0,
-      peopleRecruited: r.peopleRecruited || 0
-    };
-  });
-}
-
-async function sendGuruMessage(isVoice){
-  const input = document.getElementById('guruChatInput');
-  if(!input) return;
-  const text = input.value.trim();
-  if(!text) return;
-  guruChat.push({ from:'Vik', text: text });
-  input.value = '';
-  renderGuruChat();
-  let replyText;
-  try{
-    const res = await fetch('https://fincop-backend.onrender.com/guru-chat', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message: text, history: guruChat, recruits: guruDigest() })
-    });
-    if(!res.ok) throw new Error('guru backend error ' + res.status);
-    const data = await res.json();
-    replyText = (data && data.reply) || 'Got it.';
-  }catch(e){
-    replyText = "I couldn't reach my backend just now. Try again in a moment.";
-  }
-  guruChat.push({ from:'Guru', text: replyText });
-  renderGuruChat();
-  if(isVoice) speakSashaReply(replyText, GURU_VOICE_ID);
-}
-
-function toggleGuruVoice(){
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.getElementById('guruVoiceBtn');
-  const hint = document.getElementById('guruVoiceHint');
-  if(!SpeechRecognitionAPI){ showToast('Voice needs Chrome or Edge.'); return; }
-  if(guruRecognition){ guruRecognition.stop(); return; }
-  guruRecognition = new SpeechRecognitionAPI();
-  guruRecognition.lang = 'en-US';
-  guruRecognition.continuous = false;
-  guruRecognition.interimResults = false;
-  guruRecognition.onstart = function(){ if(btn) btn.classList.add('listening'); if(hint) hint.textContent = 'Listening… speak now.'; };
-  guruRecognition.onresult = function(event){
-    const inp = document.getElementById('guruChatInput');
-    if(inp) inp.value = event.results[0][0].transcript;
-    if(hint) hint.textContent = '';
-    sendGuruMessage(true);
-  };
-  guruRecognition.onerror = function(){ if(hint) hint.textContent = 'Tap the mic and try again.'; };
-  guruRecognition.onend = function(){ if(btn) btn.classList.remove('listening'); guruRecognition = null; };
-  guruRecognition.start();
-}
-
 populateFilters();
 loadClients();
 loadRecruits();
-renderGuruChat();
 </script>
 </body>
 </html>
