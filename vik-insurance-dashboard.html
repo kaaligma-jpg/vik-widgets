@@ -528,39 +528,6 @@ async function loadRecruits(){
   renderRecruits();
 }
 
-// Guru's training-advice suggestion, mirrored from Vikram's research pattern.
-// Backend endpoint (/guru-training-advice) isn't live yet — this fails
-// gracefully with a placeholder message until it's built.
-const guruSuggestionInFlight = new Set();
-async function askGuruForAdvice(id){
-  const r = recruits.find(x=>x.id===id);
-  if(!r) return;
-  if(guruSuggestionInFlight.has(id)) return;
-  const gaps = [
-    { key:'coachingLevel', label:'coaching', bucket:'WFG philosophy/mindset' },
-    { key:'studyLevel', label:'study', bucket:'Licensing prep' },
-    { key:'learningLevel', label:'learning', bucket:'Product knowledge' },
-    { key:'personalGrowthLevel', label:'personal growth', bucket:'Presentation skills' }
-  ].filter(g=> r[g.key]==='Level 3 — Needs attention');
-  guruSuggestionInFlight.add(id);
-  renderRecruits();
-  try{
-    const res = await fetch('https://fincop-backend.onrender.com/guru-training-advice', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ recruitId: id, name: r.name, gaps: gaps.map(g=>({label:g.label, bucket:g.bucket})) })
-    });
-    if(!res.ok) throw new Error('no guru endpoint yet');
-    const data = await res.json();
-    r.guruSuggestion = (data && data.suggestion) ? data.suggestion : 'Guru returned no suggestion.';
-  }catch(e){
-    r.guruSuggestion = 'Guru\'s training-advice endpoint isn\'t connected yet — this button is wired and ready, it just needs the backend to go live.';
-  }
-  guruSuggestionInFlight.delete(id);
-  await saveRecruits();
-  renderRecruits();
-}
-
 async function saveRecruits(){
   try{
     await fetch(RECRUIT_ENDPOINT, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ value: JSON.stringify(recruits) }) });
@@ -1703,12 +1670,7 @@ function renderRecruitDetailPanel(r){
         { key:'personalGrowthLevel', label:'personal growth', bucket:'Presentation skills' }
       ].filter(g=> r[g.key]==='Level 3 — Needs attention');
       if(!gaps.length) return '';
-      const inFlight = guruSuggestionInFlight.has(r.id);
-      return `<div class="meta" style="margin-top:4px;color:var(--danger);">Gap flagged: ${gaps.map(g=>g.label).join(', ')} — suggested focus: ${gaps.map(g=>g.bucket).join(', ')}</div>
-      <div style="margin-top:6px;">
-        <button class="btn ghost small" data-guru-suggest-btn ${inFlight?'disabled':''}>${inFlight ? 'Guru is thinking…' : (r.guruSuggestion ? "Ask Guru again" : "Ask Guru for a suggestion")}</button>
-      </div>
-      ${r.guruSuggestion ? `<div class="meta" style="margin-top:6px; padding:8px; background:var(--bg2,#f7f7f9); border-radius:8px; white-space:pre-wrap;">${escapeHtml(r.guruSuggestion)}</div>` : ''}`;
+      return `<div class="meta" style="margin-top:4px;color:var(--danger);">Gap flagged: ${gaps.map(g=>g.label).join(', ')} — suggested focus: ${gaps.map(g=>g.bucket).join(', ')}</div>`;
     })()}
 
     <div class="rsection-title">Licensing progress</div>
@@ -1840,9 +1802,6 @@ function wireRecruitDetail(r){
       saveRecruits();
     });
   });
-
-  const guruBtn = panel.querySelector('[data-guru-suggest-btn]');
-  if(guruBtn) guruBtn.addEventListener('click', ()=> askGuruForAdvice(id));
 
   const openSatBtn = panel.querySelector('[data-open-sat]');
   if(openSatBtn) openSatBtn.addEventListener('click', ()=> openSaturdayModal(id));
