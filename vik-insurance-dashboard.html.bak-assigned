@@ -521,7 +521,6 @@ async function loadRecruits(){
       if(typeof r.peopleRecruited !== 'number') r.peopleRecruited = 0;
       if(typeof r.salesMade !== 'number') r.salesMade = 0;
       if(!r.programDay) r.programDay = 1;
-      if(typeof r.guruAssigned !== 'boolean') r.guruAssigned = false;
     });
   }catch(e){ recruits = []; }
   await loadInsuranceGuruTasks();
@@ -1407,7 +1406,6 @@ function renderRecruitStats(){
     <div class="stat"><div class="num">${atRisk}</div><div class="lbl">At risk this week</div></div>
     <div class="stat"><div class="num">${avgAttendance}%</div><div class="lbl">Avg Super Saturday attendance</div></div>
     <div class="stat"><div class="num">${fullyLicensed}</div><div class="lbl">Fully licensed</div></div>
-    <div class="stat"><div class="num">${recruits.filter(r=>r.guruAssigned).length}</div><div class="lbl">Guru assigned</div></div>
   `;
 }
 
@@ -1470,32 +1468,6 @@ function recruitProgramDay(r){
   const days = Math.floor((b - a)/86400000) + 1;
   if(days < 1) return 1;
   return days;
-}
-function toggleGuruAssigned(id, checked){
-  const r = recruits.find(x=>x.id===id);
-  if(!r) return;
-  if(checked && !r.dateRecruited){
-    showToast('Set "Date recruited" first — that is the day the programme starts from.');
-    renderRecruitDetailPanel(r);
-    return;
-  }
-  if(checked && !r.email){
-    showToast('Add an email address first — Guru sends the assignment by email.');
-    renderRecruitDetailPanel(r);
-    return;
-  }
-  r.guruAssigned = !!checked;
-  saveRecruits();
-  renderRecruits();
-  renderRecruitDetailPanel(r);
-}
-function guruSendStatus(r){
-  if(!r.guruAssigned) return 'Off. Nothing is being sent to this recruit.';
-  const d = recruitProgramDay(r);
-  if(d === null) return 'No start date — nothing will send.';
-  if(d > 90) return 'Past Day 90. The programme is finished.';
-  const sentCount = r.emailsSent ? Object.keys(r.emailsSent).length : 0;
-  return 'On. Today is Day ' + d + '. ' + sentCount + ' of 90 sent so far to ' + (r.email || 'no email on file') + '.';
 }
 function recruitProgramDayLabel(r){
   const d = recruitProgramDay(r);
@@ -1596,13 +1568,6 @@ function renderRecruitDetailPanel(r){
       <div style="margin-top:10px;display:flex;gap:8px;">
         <button class="btn ghost small" type="button" onclick="shiftProgramDay('${r.id}',-1)">← Previous day</button>
         <button class="btn ghost small" type="button" onclick="shiftProgramDay('${r.id}',1)">Next day →</button>
-      </div>
-      <div style="margin-top:12px;padding-top:10px;border-top:1px solid #e3e5e9;">
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
-          <input type="checkbox" ${r.guruAssigned?'checked':''} onchange="toggleGuruAssigned('${r.id}', this.checked)">
-          <span><strong>Guru assigned</strong> — send this recruit their assignment every morning</span>
-        </label>
-        <div style="font-size:12px;color:#666;margin-top:6px;">${guruSendStatus(r)}</div>
       </div>
     </div>
 
