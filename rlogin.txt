@@ -1,0 +1,68 @@
+
+const RECRUIT_PORTAL_BASE = 'https://kaaligma-jpg.github.io/vik-widgets/recruit.html';
+const CODE_CHARS = 'abcdefghjkmnpqrstuvwxyz23456789';
+
+function makeAccessCode(){
+  let s = '';
+  for(let i=0;i<6;i++) s += CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)];
+  return s;
+}
+
+function recruitPortalLink(r){
+  return RECRUIT_PORTAL_BASE + '?s=mortgage&r=' + encodeURIComponent(r.id);
+}
+
+function openRecruitLogin(id){
+  const r = mortgageRecruits.find(x=>x.id===id);
+  if(!r) return;
+  currentRecruitDetailId = id;
+  if(!r.accessCode){ r.accessCode = makeAccessCode(); saveRecruits(); }
+  paintRecruitLogin(r);
+  document.getElementById('callOverlay').classList.add('show');
+}
+
+function paintRecruitLogin(r){
+  const link = recruitPortalLink(r);
+  document.getElementById('callPanel').innerHTML = `
+    <h2>Login for ${escapeHtml(r.firstName+' '+r.lastName)}</h2>
+    <div class="field"><label>Their code</label>
+      <div style="font-size:26px; letter-spacing:3px; font-family:Georgia,serif;">${escapeHtml(r.accessCode)}</div>
+    </div>
+    <div class="field"><label>Their link</label>
+      <input id="recruitLinkBox" readonly value="${escapeHtml(link)}">
+    </div>
+    <div class="field"><label>Message to send them</label>
+      <textarea id="recruitLoginMsg" style="min-height:110px;" readonly>${escapeHtml(
+        'Here is your training page.\n\n' + link + '\n\nYour code: ' + r.accessCode +
+        '\n\nOpen it every day, read the task, and tell me when it is done.'
+      )}</textarea>
+    </div>
+    <div class="panel-actions">
+      <div><button class="btn small secondary" onclick="regenRecruitCode('${r.id}')">New code</button></div>
+      <div class="right">
+        <button class="btn secondary" onclick="closeRecruitLogin()">Close</button>
+        <button class="btn" onclick="copyRecruitLogin()">Copy message</button>
+      </div>
+    </div>
+  `;
+}
+
+function closeRecruitLogin(){
+  document.getElementById('callOverlay').classList.remove('show');
+}
+
+function copyRecruitLogin(){
+  const box = document.getElementById('recruitLoginMsg');
+  box.select();
+  try{ document.execCommand('copy'); showToast('Message copied — paste it into WhatsApp or email'); }
+  catch(e){ showToast('Could not copy — select the text by hand'); }
+}
+
+function regenRecruitCode(id){
+  const r = mortgageRecruits.find(x=>x.id===id);
+  if(!r) return;
+  if(!confirm('Make a new code? The old one stops working.')) return;
+  r.accessCode = makeAccessCode();
+  saveRecruits();
+  paintRecruitLogin(r);
+}
