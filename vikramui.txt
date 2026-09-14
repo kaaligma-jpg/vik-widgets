@@ -1,0 +1,61 @@
+
+// ---- Vikram: the one who sees everything. Private to Vik. ----
+const VIKRAM_VOICE_ID = 'VOICE_ID_HERE';
+let vikramChat = [];
+let vikramRecognition = null;
+function renderVikramChat(){
+  const wrap = document.getElementById('vikramChatWrap');
+  if(!wrap) return;
+  if(!vikramChat.length){ wrap.innerHTML = '<div class="note-empty">Ask Vikram what is stuck, what is at risk, or what deserves your attention today.</div>'; return; }
+  wrap.innerHTML = '<div class="sasha-chat" style="max-height:460px;">' + vikramChat.map(function(m){
+    return '<div class="sasha-msg ' + (m.from==='Vik'?'vik':'sasha') + '" style="max-width:92%;">'
+      + '<div class="item-meta">' + (m.from==='Vik'?'You':'Vikram') + '</div>'
+      + '<div>' + escapeHtml(m.text) + '</div></div>';
+  }).join('') + '</div>';
+  wrap.scrollTop = wrap.scrollHeight;
+}
+async function sendVikramMessage(isVoice){
+  const input = document.getElementById('vikramChatInput');
+  if(!input) return;
+  const text = input.value.trim();
+  if(!text) return;
+  vikramChat.push({ from:'Vik', text: text });
+  input.value = '';
+  renderVikramChat();
+  let replyText;
+  try{
+    const res = await fetch('https://fincop-backend.onrender.com/vikram-chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message: text, history: vikramChat })
+    });
+    if(!res.ok) throw new Error('vikram backend error ' + res.status);
+    const data = await res.json();
+    replyText = (data && data.reply) || 'Got it.';
+  }catch(e){
+    replyText = "I couldn't reach my backend just now. Try again in a moment.";
+  }
+  vikramChat.push({ from:'Vikram', text: replyText });
+  renderVikramChat();
+  if(isVoice) speakSashaReply(replyText, VIKRAM_VOICE_ID);
+}
+function toggleVikramVoice(){
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = document.getElementById('vikramVoiceBtn');
+  const hint = document.getElementById('vikramVoiceHint');
+  if(!SpeechRecognitionAPI){ showToast('Voice needs Chrome or Edge.'); return; }
+  if(vikramRecognition){ vikramRecognition.stop(); return; }
+  vikramRecognition = new SpeechRecognitionAPI();
+  vikramRecognition.lang = 'en-US';
+  vikramRecognition.continuous = false;
+  vikramRecognition.interimResults = false;
+  vikramRecognition.onstart = function(){ if(btn) btn.classList.add('listening'); if(hint) hint.textContent = 'Listening… speak now.'; };
+  vikramRecognition.onresult = function(event){
+    const input = document.getElementById('vikramChatInput');
+    if(input) input.value = event.results[0][0].transcript;
+    if(hint) hint.textContent = '';
+    sendVikramMessage(true);
+  };
+  vikramRecognition.onerror = function(event){ if(hint) hint.textContent = 'Tap the mic and try again.'; };
+  vikramRecognition.onend = function(){ if(btn) btn.classList.remove('listening'); vikramRecognition = null; };
+  vikramRecognition.start();
+}

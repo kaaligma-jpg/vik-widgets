@@ -281,24 +281,11 @@
     <div class="navlist">
       <button class="active" id="navClientsBtn" onclick="showView('clients')">Clients</button>
       <button id="navRecruitsBtn" onclick="showView('recruits')">Recruits (Guru)</button>
-      <button id="navVikramBtn" onclick="showView('vikram')">Ask Vikram</button>
       <a href="vik-insurance-dashboard.html" style="all:unset;cursor:pointer;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9D0DC;display:block;">Insurance Pipeline</a>
     </div>
   </div>
 
   <div class="main">
-    <div id="view-vikram" style="display:none;">
-      <h1>Ask Vikram</h1>
-      <p class="sub">Vikram sees the mortgage pipeline, the insurance pipeline and the recruit programme together. Private to you &mdash; he never sends anything to anyone.</p>
-      <div id="vikramChatWrap"></div>
-      <div class="note-add-row">
-        <textarea id="vikramChatInput" rows="2" placeholder="What is stuck? Who should I chase today?"></textarea>
-        <button class="sasha-voice-btn" id="vikramVoiceBtn" onclick="toggleVikramVoice()" title="Talk to Vikram by voice">&#127897;</button>
-        <button class="btn small" onclick="sendVikramMessage()">Send</button>
-      </div>
-      <div class="sasha-voice-hint" id="vikramVoiceHint"></div>
-    </div>
-
     <div id="view-clients">
     <h1>Mortgage pipeline</h1>
     <p class="sub">Every deal, one place. Search, filter, and track from lead to funded — plus follow-up, referral, and financial-planning tracking.</p>
@@ -2039,9 +2026,6 @@ function showView(view){
   document.getElementById('view-recruits').style.display = (view==='recruits') ? '' : 'none';
   document.getElementById('navClientsBtn').classList.toggle('active', view==='clients');
   document.getElementById('navRecruitsBtn').classList.toggle('active', view==='recruits');
-  document.getElementById('view-vikram').style.display = (view==='vikram') ? '' : 'none';
-  document.getElementById('navVikramBtn').classList.toggle('active', view==='vikram');
-  if(view==='vikram') renderVikramChat();
   if(view==='recruits'){ closeRecruitDetail(); renderRecruits(); }
 }
 
@@ -2688,68 +2672,6 @@ function toggleGuruVoice(){
   guruRecognition.onerror = function(event){ if(hint) hint.textContent = 'Tap the mic and try again.'; };
   guruRecognition.onend = function(){ if(btn) btn.classList.remove('listening'); guruRecognition = null; };
   guruRecognition.start();
-}
-
-
-// ---- Vikram: the one who sees everything. Private to Vik. ----
-const VIKRAM_VOICE_ID = 'VOICE_ID_HERE';
-let vikramChat = [];
-let vikramRecognition = null;
-function renderVikramChat(){
-  const wrap = document.getElementById('vikramChatWrap');
-  if(!wrap) return;
-  if(!vikramChat.length){ wrap.innerHTML = '<div class="note-empty">Ask Vikram what is stuck, what is at risk, or what deserves your attention today.</div>'; return; }
-  wrap.innerHTML = '<div class="sasha-chat" style="max-height:460px;">' + vikramChat.map(function(m){
-    return '<div class="sasha-msg ' + (m.from==='Vik'?'vik':'sasha') + '" style="max-width:92%;">'
-      + '<div class="item-meta">' + (m.from==='Vik'?'You':'Vikram') + '</div>'
-      + '<div>' + escapeHtml(m.text) + '</div></div>';
-  }).join('') + '</div>';
-  wrap.scrollTop = wrap.scrollHeight;
-}
-async function sendVikramMessage(isVoice){
-  const input = document.getElementById('vikramChatInput');
-  if(!input) return;
-  const text = input.value.trim();
-  if(!text) return;
-  vikramChat.push({ from:'Vik', text: text });
-  input.value = '';
-  renderVikramChat();
-  let replyText;
-  try{
-    const res = await fetch('https://fincop-backend.onrender.com/vikram-chat', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message: text, history: vikramChat })
-    });
-    if(!res.ok) throw new Error('vikram backend error ' + res.status);
-    const data = await res.json();
-    replyText = (data && data.reply) || 'Got it.';
-  }catch(e){
-    replyText = "I couldn't reach my backend just now. Try again in a moment.";
-  }
-  vikramChat.push({ from:'Vikram', text: replyText });
-  renderVikramChat();
-  if(isVoice) speakSashaReply(replyText, VIKRAM_VOICE_ID);
-}
-function toggleVikramVoice(){
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.getElementById('vikramVoiceBtn');
-  const hint = document.getElementById('vikramVoiceHint');
-  if(!SpeechRecognitionAPI){ showToast('Voice needs Chrome or Edge.'); return; }
-  if(vikramRecognition){ vikramRecognition.stop(); return; }
-  vikramRecognition = new SpeechRecognitionAPI();
-  vikramRecognition.lang = 'en-US';
-  vikramRecognition.continuous = false;
-  vikramRecognition.interimResults = false;
-  vikramRecognition.onstart = function(){ if(btn) btn.classList.add('listening'); if(hint) hint.textContent = 'Listening… speak now.'; };
-  vikramRecognition.onresult = function(event){
-    const input = document.getElementById('vikramChatInput');
-    if(input) input.value = event.results[0][0].transcript;
-    if(hint) hint.textContent = '';
-    sendVikramMessage(true);
-  };
-  vikramRecognition.onerror = function(event){ if(hint) hint.textContent = 'Tap the mic and try again.'; };
-  vikramRecognition.onend = function(){ if(btn) btn.classList.remove('listening'); vikramRecognition = null; };
-  vikramRecognition.start();
 }
 
 document.getElementById('recruitSearch').addEventListener('input', renderRecruits);
