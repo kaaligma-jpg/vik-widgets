@@ -2270,15 +2270,6 @@ function closeRecruitDetail(){
 }
 
 let recruitCallId = null;
-function renderRecruitCalls(r){
-  const list = Array.isArray(r.callHistory) ? r.callHistory.slice().reverse() : [];
-  if(!list.length) return '<div class="hint">No calls logged yet.</div>';
-  return list.map(function(c){
-    return '<div style="border-left:2px solid var(--line);padding:4px 0 4px 10px;margin-bottom:8px;">'
-      + '<div class="hint">' + escapeHtml(c.direction||'Call') + ' - ' + new Date(c.ts).toLocaleString() + '</div>'
-      + '<div>' + escapeHtml(c.text||'') + '</div></div>';
-  }).join('');
-}
 function openRecruitCall(id){
   recruitCallId = id;
   const r = mortgageRecruits.find(x=>x.id===id);
@@ -2347,9 +2338,6 @@ function openRecruitDetail(id){
         <div class="hint" style="margin-top:6px;">Sends from Guru. Reply comes back to Vik — log it with Mark done / Mark not done below.</div>
         ` : ''}
       </dd>
-
-      <div class="sechead">Call history</div>
-      <dd style="margin-top:6px;">${renderRecruitCalls(r)}</dd>
 
       <div class="sechead">Top 100 prospecting list <span class="hint">(${r.prospects.length}/100 — build out in the first 60 days, then export to Pineapple Connect)</span></div>
       ${renderProspectList(r)}
