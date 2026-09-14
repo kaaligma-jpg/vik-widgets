@@ -1980,7 +1980,7 @@ async function sendGuruMessage(isVoice){
   try{
     const res = await fetch('https://fincop-backend.onrender.com/guru-chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message: text, history: guruChat, recruits: guruDigest(), side: 'insurance' })
+      body: JSON.stringify({ message: text, history: guruChat, recruits: guruDigest() })
     });
     if(!res.ok) throw new Error('guru backend error ' + res.status);
     const data = await res.json();
