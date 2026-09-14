@@ -2109,41 +2109,6 @@ async function sendGuruDayEmail(id){
   }
 }
 
-
-function renderDayChat(r, day, dueYet){
-  if(!dueYet) return '';
-  const thread = (r.dayChat && r.dayChat[String(day)]) || [];
-  let out = '';
-  if(thread.length){
-    out += '<div style="margin-top:8px; border-left:3px solid var(--line); padding-left:10px;">';
-    thread.forEach(m=>{
-      const who = m.from === 'vik' ? 'You' : escapeHtml(r.firstName || 'Recruit');
-      const when = m.ts ? new Date(m.ts).toLocaleString() : '';
-      out += '<div style="margin-bottom:8px;"><div class="note-meta"><b>' + who + '</b> · ' + escapeHtml(when) + '</div>'
-           + '<div style="white-space:pre-wrap; font-size:13px;">' + escapeHtml(m.text || '') + '</div></div>';
-    });
-    out += '</div>';
-  }
-  out += '<div style="margin-top:6px;"><textarea id="vikReply' + day + '" placeholder="Write back to '
-       + escapeHtml(r.firstName || 'them') + '…" style="width:100%; min-height:52px; font-size:13px;"></textarea>'
-       + '<button class="btn small secondary" onclick="sendVikDayReply(\'' + r.id + '\',' + day + ')">Send reply</button></div>';
-  return out;
-}
-
-function sendVikDayReply(id, day){
-  const r = mortgageRecruits.find(x=>x.id===id);
-  if(!r) return;
-  const box = document.getElementById('vikReply' + day);
-  const text = (box && box.value || '').trim();
-  if(!text){ showToast('Write something first'); return; }
-  if(!r.dayChat || typeof r.dayChat !== 'object') r.dayChat = {};
-  if(!Array.isArray(r.dayChat[String(day)])) r.dayChat[String(day)] = [];
-  r.dayChat[String(day)].push({ from:'vik', text: text, ts: new Date().toISOString() });
-  saveRecruits();
-  openRecruitDetail(id);
-  showToast('Sent — it shows on their page');
-}
-
 function logDailyReply(id, day, outcome){
   const r = mortgageRecruits.find(x=>x.id===id);
   if(!r) return;
@@ -2368,7 +2333,7 @@ function renderDailyLog(r){
     const dueYet = status !== 'not_due';
     const badge = status==='green' ? '<span class="badge Approved">Done</span>' : (status==='red' ? '<span class="badge Declined">No reply / not done</span>' : '<span class="badge soft">Not due yet</span>');
     rows += `<div class="note-item" style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
-      <div style="flex:1;"><b>Day ${d}</b> — ${escapeHtml(MORTGAGE_GURU_TASKS[d-1])}<div class="note-meta">Also: add 5 new connects to the Top 100 list</div>${renderDayChat(r,d,dueYet)}</div>
+      <div><b>Day ${d}</b> — ${escapeHtml(MORTGAGE_GURU_TASKS[d-1])}<div class="note-meta">Also: add 5 new connects to the Top 100 list</div></div>
       <div style="text-align:right; white-space:nowrap;">
         ${badge}
         ${dueYet ? `<div style="margin-top:4px;"><button class="btn small secondary" onclick="logDailyReply('${r.id}',${d},'done')">Mark done</button> <button class="btn small secondary" onclick="logDailyReply('${r.id}',${d},'not_done')">Mark not done</button></div>` : ''}

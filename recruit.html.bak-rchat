@@ -80,7 +80,6 @@
 
     <div class="card" id="replyCard">
       <h1>Today's answer</h1>
-      <div id="todayThread"></div>
       <div class="sub">Tell Vik how it went. He reads every one.</div>
       <div class="pick">
         <button id="btnDone" onclick="pickOutcome('done')">Done</button>
@@ -167,8 +166,7 @@ function paint(d){
   document.getElementById('taskText').textContent =
     d.task || (DAY ? 'No task loaded for today. Tell Vik.' : 'Vik will start you shortly.');
   document.getElementById('prospCount').textContent = (d.prospectCount || 0) + ' of 100 added';
-  document.getElementById('replyText').value = '';
-  document.getElementById('todayThread').innerHTML = renderThread(d.chat || [], d.firstName);
+  document.getElementById('replyText').value = d.todayText || '';
   outcome = d.outcome || '';
   markButtons();
   document.getElementById('replyCard').style.display = DAY ? '' : 'none';
@@ -177,21 +175,10 @@ function paint(d){
   document.getElementById('histList').innerHTML = h.length ? h.map(x => {
     const tag = x.outcome === 'done' ? '<span class="tag g">done</span>'
               : x.outcome ? '<span class="tag r">not yet</span>' : '';
-    const note = renderThread(x.chat || [], d.firstName);
+    const note = x.text ? '<div class="muted">' + esc(x.text) + '</div>' : '';
     return '<div class="hist"><div class="hd">Day ' + x.day + tag + '</div>'
       + '<div class="muted">' + esc((x.task || '').slice(0, 160)) + '</div>' + note + '</div>';
   }).join('') : '<div class="muted">Nothing yet.</div>';
-}
-
-function renderThread(thread, me){
-  if(!thread || !thread.length) return '';
-  return '<div style="border-left:3px solid var(--line); padding-left:10px; margin:10px 0;">'
-    + thread.map(function(m){
-      var who = (m.from === 'vik') ? 'Vik' : (me || 'You');
-      var when = m.ts ? new Date(m.ts).toLocaleString() : '';
-      return '<div style="margin-bottom:8px;"><div class="muted"><b>' + esc(who) + '</b> &middot; ' + esc(when) + '</div>'
-        + '<div style="white-space:pre-wrap; font-size:14px;">' + esc(m.text || '') + '</div></div>';
-    }).join('') + '</div>';
 }
 
 function markButtons(){
