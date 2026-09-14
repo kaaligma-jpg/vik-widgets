@@ -353,30 +353,6 @@
 <script>
 const ENDPOINT = 'https://fincop-backend.onrender.com/app-data/insurance-clients';
 const RECRUIT_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/insurance-recruits';
-const INS_TASKS_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/insurance-guru-tasks';
-let insuranceGuruTasks = [];
-async function loadInsuranceGuruTasks(){
-  try{
-    const res = await fetch(INS_TASKS_ENDPOINT);
-    const data = await res.json();
-    insuranceGuruTasks = data && data.value ? JSON.parse(data.value) : [];
-  }catch(e){ insuranceGuruTasks = []; }
-}
-function insurancePhaseLabel(day){
-  if(day <= 30) return 'Phase 1 — Build the ground you stand on (Days 1-30)';
-  if(day <= 60) return 'Phase 2 — Rhythm beats effort (Days 31-60)';
-  return 'Phase 3 — Carry someone else (Days 61-90)';
-}
-function shiftProgramDay(id, delta){
-  const r = recruits.find(x=>x.id===id);
-  if(!r) return;
-  let d = (r.programDay || 1) + delta;
-  if(d < 1) d = 1;
-  if(d > 90) d = 90;
-  r.programDay = d;
-  saveRecruits();
-  renderRecruitDetailPanel(r);
-}
 const STATUS_OPTIONS = ["No","Yes — Sufficient","Yes — Insufficient"];
 const AGE_BANDS = ["Under 40","40-45","46-50","51-55","56-60","61-65","65+"];
 const STAGE_OPTIONS = ["Lead","Contacted","FNA Sent","FNA Completed","Application","Approved","Declined","Not Interested"];
@@ -484,7 +460,6 @@ async function loadRecruits(){
       if(!r.programDay) r.programDay = 1;
     });
   }catch(e){ recruits = []; }
-  await loadInsuranceGuruTasks();
   renderRecruits();
 }
 
@@ -1495,18 +1470,6 @@ function renderRecruitDetailPanel(r){
         <div class="rmeta">${escapeHtml(r.phone)||'—'} · ${escapeHtml(r.email)||'—'}</div>
       </div>
       <span class="risk-badge ${risk?'flag':'ok'}">${risk?'At risk':'On track'}</span>
-    </div>
-
-    <div class="rsection-title">90-day programme</div>
-    <div style="background:#f6f7f9;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-      <div style="font-size:12px;color:#666;margin-bottom:4px;">${insurancePhaseLabel(r.programDay||1)}</div>
-      <div style="font-weight:600;margin-bottom:6px;">Day ${r.programDay||1} of 90</div>
-      <div style="line-height:1.45;">${escapeHtml((insuranceGuruTasks[(r.programDay||1)-1]) || 'Tasks not loaded yet.')}</div>
-      <div style="font-size:12px;color:#666;margin-top:8px;">Also: add 5 new names to your list.</div>
-      <div style="margin-top:10px;display:flex;gap:8px;">
-        <button class="btn ghost small" type="button" onclick="shiftProgramDay('${r.id}',-1)">← Previous day</button>
-        <button class="btn ghost small" type="button" onclick="shiftProgramDay('${r.id}',1)">Next day →</button>
-      </div>
     </div>
 
     <div class="rsection-title">Profile &amp; background</div>
