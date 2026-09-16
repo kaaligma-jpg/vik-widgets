@@ -272,7 +272,7 @@
   .doc-item .item-meta{ margin-bottom:0; }
   .doc-item a{ color:var(--brass); font-size:12px; font-weight:600; text-decoration:none; }
 </style>
-  <script src="twilio-voice-sdk.min.js"></script>
+  <script src="https://sdk.twilio.com/js/voice/releases/2.11.2/twilio.min.js"></script>
 </head>
 <body>
 
