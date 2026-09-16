@@ -197,6 +197,10 @@
   .task-add-form.open{ display:flex; }
   .task-add-form input, .task-add-form select{ padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--sans); font-size:13px; }
   .task-add-form input[type=text]{ flex:1; min-width:160px; }
+  .task-type-pills{ display:flex; gap:6px; flex-wrap:wrap; }
+  .task-type-pills button{ padding:6px 12px; border-radius:16px; border:1px solid var(--line); background:var(--paper); color:var(--slate); font-size:12px; cursor:pointer; font-family:var(--sans); }
+  .task-type-pills button.active{ background:var(--brass); color:#fff; border-color:var(--brass); }
+  .task-id-tag{ font-family:monospace; font-size:11px; color:var(--brass); background:#EDE8DD; padding:1px 6px; border-radius:4px; margin-right:6px; }
 
   .cards{ display:none; }
   @media (max-width: 720px){
@@ -341,9 +345,11 @@
 
   <div class="task-subtabs" id="taskSubtabs">
     <button class="active" onclick="setTaskCategory('all')">All</button>
-    <button onclick="setTaskCategory('production')">Production</button>
-    <button onclick="setTaskCategory('recruitment')">Recruitment</button>
-    <button onclick="setTaskCategory('keypartner')">Key Partners</button>
+    <button onclick="setTaskCategory('vikmtg')">Mortgage</button>
+    <button onclick="setTaskCategory('vikins')">Insurance</button>
+    <button onclick="setTaskCategory('vikrecm')">Recruitment (Mortgage)</button>
+    <button onclick="setTaskCategory('vikreci')">Recruitment (Insurance)</button>
+    <button onclick="setTaskCategory('vikkp')">Key Partners</button>
   </div>
 
   <div class="toolbar">
@@ -351,15 +357,41 @@
   </div>
 
   <div class="task-add-form" id="taskAddForm">
-    <select id="taskCategoryInput">
-      <option value="production">Production</option>
-      <option value="recruitment">Recruitment</option>
-      <option value="keypartner">Key Partners</option>
-    </select>
-    <input type="text" id="taskRelatedInput" placeholder="Related to (name)">
-    <input type="text" id="taskSubjectInput" placeholder="What needs to happen?">
+    <div style="width:100%; display:flex; gap:10px; flex-wrap:wrap;">
+      <select id="taskIdTypeInput">
+        <option value="vikmtg">Mortgage (vikmtg)</option>
+        <option value="vikins">Insurance (vikins)</option>
+        <option value="vikrecm">Recruitment — Mortgage (vikrecm)</option>
+        <option value="vikreci">Recruitment — Insurance (vikreci)</option>
+        <option value="vikkp">Key Partners (vikkp)</option>
+      </select>
+      <input type="text" id="taskFirstNameInput" placeholder="First name">
+      <input type="text" id="taskLastNameInput" placeholder="Last name">
+      <select id="taskRelatedTypeInput">
+        <option value="unrelated">Related Type: Unrelated</option>
+        <option value="deal">Related Type: Deal</option>
+        <option value="contact">Related Type: Contact</option>
+        <option value="partner">Related Type: Partner</option>
+      </select>
+    </div>
+    <div style="width:100%;">
+      <div style="font-size:12px; color:var(--slate); margin-bottom:6px;">Type of task</div>
+      <div class="task-type-pills" id="taskTypePills">
+        <button type="button" class="active" data-val="followup" onclick="selectTaskType('followup')">Follow Up</button>
+        <button type="button" data-val="todo" onclick="selectTaskType('todo')">To Do</button>
+        <button type="button" data-val="call" onclick="selectTaskType('call')">Call</button>
+        <button type="button" data-val="meetperson" onclick="selectTaskType('meetperson')">Meet in Person</button>
+        <button type="button" data-val="meetonline" onclick="selectTaskType('meetonline')">Meet Online</button>
+        <button type="button" data-val="note" onclick="selectTaskType('note')">Note</button>
+        <button type="button" data-val="text" onclick="selectTaskType('text')">Text</button>
+      </div>
+    </div>
+    <input type="text" id="taskSubjectInput" placeholder="What needs to happen?" style="width:100%;">
     <input type="datetime-local" id="taskDueInput">
-    <button class="btn small" onclick="saveNewTask()">Save task</button>
+    <div style="width:100%; display:flex; gap:8px;">
+      <button class="btn small" id="taskSaveBtn" onclick="saveTaskForm()">Save task</button>
+      <button class="btn secondary small" id="taskCancelEditBtn" style="display:none;" onclick="cancelTaskEdit()">Cancel edit</button>
+    </div>
   </div>
 
   <div id="taskListWrap"></div>
@@ -2299,21 +2331,34 @@ async function renderCoachingLog(){
   }
 }
 
-// ===================== Task Center (action items from calls — Production / Recruitment / Key Partners) =====================
+// ===================== Task Center (action items from calls — ID prefix tells you the pipeline) =====================
 // NOTE: kept separate from MORTGAGE_GURU_TASKS / TASKS_ENDPOINT below, which is Guru's 90-day curriculum, unrelated.
+// ID prefixes: vikmtg = Mortgage, vikins = Insurance, vikrecm = Recruitment (Mortgage), vikreci = Recruitment (Insurance), vikkp = Key Partners.
 const VIK_ACTION_TASKS_ENDPOINT = "https://fincop-backend.onrender.com/app-data/vik-action-tasks";
-let vikActionTasks = [];
+const TASK_PREFIXES = ['vikmtg','vikins','vikrecm','vikreci','vikkp'];
+let vikTaskState = { tasks: [], counters: { vikmtg:0, vikins:0, vikrecm:0, vikreci:0, vikkp:0 } };
 let currentTaskCategory = 'all';
-
-function vikTaskUid(){ return 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+let currentTaskType = 'followup';
+let editingTaskId = null;
 
 async function loadVikActionTasks(){
   try{
     const res = await fetch(VIK_ACTION_TASKS_ENDPOINT);
     const data = await res.json();
-    vikActionTasks = data && data.value ? JSON.parse(data.value) : [];
+    const parsed = data && data.value ? JSON.parse(data.value) : null;
+    if(Array.isArray(parsed)){
+      // old shape from before the ID-prefix redesign — carry old test tasks forward under vikmtg so nothing is lost
+      vikTaskState = { tasks: parsed.map(function(t,i){
+        return { id: 'vikmtg-' + String(i+1).padStart(6,'0'), firstName: t.relatedName||'', lastName:'', taskType:'todo', relatedType:'unrelated', subject:t.subject||'', dueAt:t.dueAt, createdAt:t.createdAt, completed:!!t.completed, completedAt:t.completedAt||null };
+      }), counters: { vikmtg: parsed.length, vikins:0, vikrecm:0, vikreci:0, vikkp:0 } };
+    } else if(parsed && Array.isArray(parsed.tasks)){
+      vikTaskState = parsed;
+      TASK_PREFIXES.forEach(function(p){ if(typeof vikTaskState.counters[p] !== 'number') vikTaskState.counters[p] = 0; });
+    } else {
+      vikTaskState = { tasks: [], counters: { vikmtg:0, vikins:0, vikrecm:0, vikreci:0, vikkp:0 } };
+    }
   }catch(e){
-    vikActionTasks = [];
+    vikTaskState = { tasks: [], counters: { vikmtg:0, vikins:0, vikrecm:0, vikreci:0, vikkp:0 } };
   }
 }
 
@@ -2322,22 +2367,29 @@ async function saveVikActionTasks(){
     await fetch(VIK_ACTION_TASKS_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: JSON.stringify(vikActionTasks) })
+      body: JSON.stringify({ value: JSON.stringify(vikTaskState) })
     });
   }catch(e){
     showToast('Could not save task — try again');
   }
 }
 
+function nextTaskId(prefix){
+  vikTaskState.counters[prefix] = (vikTaskState.counters[prefix]||0) + 1;
+  return prefix + '-' + String(vikTaskState.counters[prefix]).padStart(6,'0');
+}
+
 // Any conversation (client, recruit, or key partner) can call this once Vikram is wired up to auto-create tasks.
-// category: 'production' | 'recruitment' | 'keypartner'. dueAt: ISO string or null (defaults to 48h from now).
-function addVikActionTask(category, relatedName, subject, dueAt){
+// prefix: one of TASK_PREFIXES. dueAt: ISO string or null (defaults to 48h from now).
+function addVikActionTask(prefix, firstName, lastName, taskType, relatedType, subject, dueAt){
   const created = new Date();
   const due = dueAt ? new Date(dueAt) : new Date(created.getTime() + 48*3600*1000);
-  vikActionTasks.push({
-    id: vikTaskUid(),
-    category: category,
-    relatedName: relatedName || '',
+  vikTaskState.tasks.push({
+    id: nextTaskId(prefix),
+    firstName: firstName || '',
+    lastName: lastName || '',
+    taskType: taskType || 'todo',
+    relatedType: relatedType || 'unrelated',
     subject: subject || '',
     createdAt: created.toISOString(),
     dueAt: due.toISOString(),
@@ -2357,38 +2409,102 @@ function vikTaskStatus(t){
   return 'yellow'; // future
 }
 
-function taskCategoryLabel(c){
-  return c==='production' ? 'Production' : c==='recruitment' ? 'Recruitment' : 'Key Partners';
+function taskPrefixOf(id){ return id.split('-')[0]; }
+
+function taskCategoryLabel(prefix){
+  return prefix==='vikmtg' ? 'Mortgage' : prefix==='vikins' ? 'Insurance' : prefix==='vikrecm' ? 'Recruitment (Mortgage)' : prefix==='vikreci' ? 'Recruitment (Insurance)' : 'Key Partners';
+}
+
+function taskTypeLabel(v){
+  return { followup:'Follow Up', todo:'To Do', call:'Call', meetperson:'Meet in Person', meetonline:'Meet Online', note:'Note', text:'Text' }[v] || v;
+}
+
+function relatedTypeLabel(v){
+  return { unrelated:'Unrelated', deal:'Deal', contact:'Contact', partner:'Partner' }[v] || v;
 }
 
 function setTaskCategory(cat){
   currentTaskCategory = cat;
   document.querySelectorAll('#taskSubtabs button').forEach((b,i)=>{
-    const cats = ['all','production','recruitment','keypartner'];
+    const cats = ['all'].concat(TASK_PREFIXES);
     b.classList.toggle('active', cats[i]===cat);
   });
   renderVikActionTasks();
+}
+
+function selectTaskType(v){
+  currentTaskType = v;
+  document.querySelectorAll('#taskTypePills button').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-val')===v);
+  });
 }
 
 function toggleTaskAddForm(){
   document.getElementById('taskAddForm').classList.toggle('open');
 }
 
-function saveNewTask(){
-  const category = document.getElementById('taskCategoryInput').value;
-  const relatedName = document.getElementById('taskRelatedInput').value.trim();
+function resetTaskForm(){
+  document.getElementById('taskIdTypeInput').value = 'vikmtg';
+  document.getElementById('taskFirstNameInput').value = '';
+  document.getElementById('taskLastNameInput').value = '';
+  document.getElementById('taskRelatedTypeInput').value = 'unrelated';
+  document.getElementById('taskSubjectInput').value = '';
+  document.getElementById('taskDueInput').value = '';
+  selectTaskType('followup');
+  editingTaskId = null;
+  document.getElementById('taskSaveBtn').textContent = 'Save task';
+  document.getElementById('taskCancelEditBtn').style.display = 'none';
+}
+
+function saveTaskForm(){
+  const firstName = document.getElementById('taskFirstNameInput').value.trim();
+  const lastName = document.getElementById('taskLastNameInput').value.trim();
+  const relatedType = document.getElementById('taskRelatedTypeInput').value;
   const subject = document.getElementById('taskSubjectInput').value.trim();
   const dueRaw = document.getElementById('taskDueInput').value;
   if(!subject){ showToast('Add what needs to happen first'); return; }
-  addVikActionTask(category, relatedName, subject, dueRaw ? new Date(dueRaw).toISOString() : null);
-  document.getElementById('taskRelatedInput').value = '';
-  document.getElementById('taskSubjectInput').value = '';
-  document.getElementById('taskDueInput').value = '';
+
+  if(editingTaskId){
+    const t = vikTaskState.tasks.find(x=>x.id===editingTaskId);
+    if(t){
+      t.firstName = firstName; t.lastName = lastName; t.taskType = currentTaskType;
+      t.relatedType = relatedType; t.subject = subject;
+      t.dueAt = dueRaw ? new Date(dueRaw).toISOString() : t.dueAt;
+      saveVikActionTasks();
+      renderVikActionTasks();
+    }
+  } else {
+    const prefix = document.getElementById('taskIdTypeInput').value;
+    addVikActionTask(prefix, firstName, lastName, currentTaskType, relatedType, subject, dueRaw ? new Date(dueRaw).toISOString() : null);
+  }
+  resetTaskForm();
+  document.getElementById('taskAddForm').classList.remove('open');
+}
+
+function editVikTask(id){
+  const t = vikTaskState.tasks.find(x=>x.id===id);
+  if(!t) return;
+  editingTaskId = id;
+  document.getElementById('taskIdTypeInput').value = taskPrefixOf(t.id);
+  document.getElementById('taskFirstNameInput').value = t.firstName;
+  document.getElementById('taskLastNameInput').value = t.lastName;
+  document.getElementById('taskRelatedTypeInput').value = t.relatedType;
+  document.getElementById('taskSubjectInput').value = t.subject;
+  document.getElementById('taskDueInput').value = t.dueAt ? new Date(t.dueAt).toISOString().slice(0,16) : '';
+  selectTaskType(t.taskType);
+  document.getElementById('taskSaveBtn').textContent = 'Update task';
+  document.getElementById('taskCancelEditBtn').style.display = '';
+  document.getElementById('taskAddForm').classList.add('open');
+  window.scrollTo(0,0);
+}
+
+function cancelTaskEdit(){
+  resetTaskForm();
   document.getElementById('taskAddForm').classList.remove('open');
 }
 
 function toggleTaskDone(id){
-  const t = vikActionTasks.find(x=>x.id===id);
+  const t = vikTaskState.tasks.find(x=>x.id===id);
   if(!t) return;
   t.completed = !t.completed;
   t.completedAt = t.completed ? new Date().toISOString() : null;
@@ -2397,16 +2513,16 @@ function toggleTaskDone(id){
 }
 
 function deleteVikTask(id){
-  vikActionTasks = vikActionTasks.filter(x=>x.id!==id);
+  vikTaskState.tasks = vikTaskState.tasks.filter(x=>x.id!==id);
   saveVikActionTasks();
   renderVikActionTasks();
 }
 
 function renderVikActionTasks(){
-  const filtered = currentTaskCategory==='all' ? vikActionTasks : vikActionTasks.filter(t=>t.category===currentTaskCategory);
+  const filtered = currentTaskCategory==='all' ? vikTaskState.tasks : vikTaskState.tasks.filter(t=>taskPrefixOf(t.id)===currentTaskCategory);
   const statsWrap = document.getElementById('taskStats');
   const counts = { green:0, red:0, yellow:0, purple:0 };
-  vikActionTasks.forEach(t=> counts[vikTaskStatus(t)]++ );
+  vikTaskState.tasks.forEach(t=> counts[vikTaskStatus(t)]++ );
   statsWrap.innerHTML =
     '<div class="stat"><div class="num">' + counts.red + '</div><div class="lbl">Due within 24h</div></div>' +
     '<div class="stat"><div class="num">' + counts.yellow + '</div><div class="lbl">Coming up</div></div>' +
@@ -2425,13 +2541,15 @@ function renderVikActionTasks(){
   wrap.innerHTML = sorted.map(t=>{
     const status = vikTaskStatus(t);
     const dueStr = new Date(t.dueAt).toLocaleString();
-    const relatedStr = t.relatedName ? (' &mdash; ' + escapeHtml(t.relatedName)) : '';
+    const fullName = (t.firstName + ' ' + t.lastName).trim();
+    const nameStr = fullName ? (' &mdash; ' + escapeHtml(fullName)) : '';
     return '<div class="task-card status-' + status + '">' +
       '<div>' +
-        '<div class="task-subject"><span class="task-dot status-' + status + '"></span>' + escapeHtml(t.subject) + relatedStr + '</div>' +
-        '<div class="task-meta">' + taskCategoryLabel(t.category) + ' &middot; due ' + dueStr + '</div>' +
+        '<div class="task-subject"><span class="task-dot status-' + status + '"></span><span class="task-id-tag">' + t.id + '</span>' + escapeHtml(taskTypeLabel(t.taskType)) + ': ' + escapeHtml(t.subject) + nameStr + '</div>' +
+        '<div class="task-meta">' + taskCategoryLabel(taskPrefixOf(t.id)) + ' &middot; ' + relatedTypeLabel(t.relatedType) + ' &middot; due ' + dueStr + '</div>' +
       '</div>' +
       '<div class="task-actions">' +
+        '<button onclick="editVikTask(\'' + t.id + '\')">Edit</button>' +
         '<button onclick="toggleTaskDone(\'' + t.id + '\')">' + (t.completed ? 'Undo' : 'Done') + '</button>' +
         '<button onclick="deleteVikTask(\'' + t.id + '\')">Delete</button>' +
       '</div>' +
