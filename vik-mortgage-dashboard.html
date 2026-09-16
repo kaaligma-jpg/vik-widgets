@@ -457,6 +457,10 @@
       <option value="other">Other</option>
     </select>
     <input type="text" id="kpOtherProfessionInput" placeholder="What kind of profession?" style="display:none;">
+    <label style="width:100%; display:flex; align-items:center; gap:6px; font-size:13px;">
+      <input type="checkbox" id="kpSendGreetingNow" checked>
+      Send greeting message now
+    </label>
     <div style="width:100%; display:flex; gap:8px;">
       <button class="btn small" id="kpSaveBtn" onclick="saveKeyPartner()">Save &amp; send greeting</button>
       <button class="btn secondary small" id="kpCancelEditBtn" style="display:none;" onclick="cancelKpEdit()">Cancel edit</button>
@@ -2776,9 +2780,25 @@ function resetKpForm(){
   document.getElementById('kpCancelEditBtn').style.display = 'none';
 }
 
-// Placeholder until Sasha/Vikram's backend send is wired up — logs what WOULD go out on all three channels.
-function sendKpGreeting(p){
-  console.log('[Key Partners] Would send WhatsApp + SMS + email greeting to', p.firstName, p.phone, p.email);
+// Sends the real greeting (SMS + email) via the backend. WhatsApp isn't included yet —
+// first-contact WhatsApp needs an approved template, and this wording isn't one.
+async function sendKpGreeting(p){
+  try{
+    const res = await fetch('https://fincop-backend.onrender.com/kp-send-greeting', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ firstName: p.firstName, phone: p.phone, email: p.email })
+    });
+    const data = await res.json();
+    if(!res.ok || !data.ok){
+      showToast('Greeting failed to send: ' + (data.error || 'unknown error'));
+      return;
+    }
+    showToast('Greeting sent — SMS: ' + data.results.sms + ', Email: ' + data.results.email);
+  }catch(err){
+    console.error('sendKpGreeting error:', err);
+    showToast('Greeting failed to send (network error)');
+  }
 }
 
 function saveKeyPartner(){
@@ -2808,8 +2828,12 @@ function saveKeyPartner(){
     };
     vikKeyPartners.push(p);
     saveKeyPartnersToServer();
-    sendKpGreeting(p);
-    showToast('Saved — greeting queued on WhatsApp, SMS and email');
+    if(document.getElementById('kpSendGreetingNow').checked){
+      sendKpGreeting(p);
+      showToast('Saved — sending greeting...');
+    } else {
+      showToast('Saved');
+    }
     renderKeyPartners();
   }
   resetKpForm();
