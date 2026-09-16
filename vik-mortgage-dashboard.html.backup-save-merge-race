@@ -588,34 +588,8 @@ clients = [];
 render();
 }
 
-function mergeBackgroundNotes(freshServerList){
-  if (!Array.isArray(freshServerList)) return;
-  freshServerList.forEach(serverClient => {
-    const localClient = clients.find(c => c.id === serverClient.id);
-    if (!localClient) return;
-    ['agentNotes','commHistory'].forEach(field => {
-      const serverItems = Array.isArray(serverClient[field]) ? serverClient[field] : [];
-      if (!Array.isArray(localClient[field])) localClient[field] = [];
-      const localTimestamps = new Set(localClient[field].map(n => n && n.ts));
-      serverItems.forEach(item => {
-        if (item && !localTimestamps.has(item.ts)) {
-          localClient[field].push(item);
-          localTimestamps.add(item.ts);
-        }
-      });
-    });
-  });
-}
-
 async function saveClients(){
 try{
-  try {
-    const freshRes = await fetch('https://fincop-backend.onrender.com/app-data/mortgage-clients');
-    const freshData = await freshRes.json();
-    const freshList = freshData && freshData.value ? JSON.parse(freshData.value) : null;
-    mergeBackgroundNotes(freshList);
-  } catch (mergeErr) { /* if merge fails, still proceed with the save below */ }
-
 await fetch('https://fincop-backend.onrender.com/app-data/mortgage-clients', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
