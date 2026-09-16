@@ -231,7 +231,7 @@
   .note-add-row textarea{ flex:1; resize:vertical; }
   .note-empty{ font-size:13px; color:var(--slate); }
 
-  .call-icon-btn{ all:unset; cursor:pointer; width:30px; height:30px; border-radius:50%; background:#FBE4E4; color:#C62828; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .call-icon-btn{ all:unset; cursor:pointer; width:30px; height:30px; border-radius:50%; background:#EAF4EC; color:#2E7D32; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
   .call-icon-btn:hover{ background:#D7EBDA; }
   .row1 .call-icon-btn{ margin-left:8px; }
   .name-cell-row{ display:flex; align-items:center; gap:6px; }
@@ -848,7 +848,7 @@ function renderReminders(){
       <span>${escapeHtml(it.type)}: ${escapeHtml(it.label)}</span>
       <span class="rtag-wrap">
         <span class="rtag ${tagClass}">${tagText}</span>
-        <button class="call-icon-btn" title="Call now from browser" onclick="event.stopPropagation(); startBrowserCall('${it.id}')">☎️</button>
+        <button class="call-icon-btn" title="Log a call for this deal" onclick="event.stopPropagation(); openLogCall('${it.id}')">📞</button>
       </span>
     </div>`;
   }).join('');
@@ -885,7 +885,7 @@ function render(){
       <td><span class="badge ${c.stage}">${STAGE_LABELS[c.stage]||c.stage}</span></td>
       <td>${c.closingDate||'—'}</td>
       <td>${escapeHtml(c.referralName||c.referralType||'—')}</td>
-      <td><button class="call-icon-btn" title="Call now from browser" onclick="event.stopPropagation(); startBrowserCall('${c.id}')">☎️</button></td>
+      <td><button class="call-icon-btn" title="Log a call for this deal" onclick="event.stopPropagation(); openLogCall('${c.id}')">📞</button> <button class="call-icon-btn" title="Call now from browser" onclick="event.stopPropagation(); startBrowserCall('${c.id}')">☎️</button></td>
     </tr>
   `;}).join('');
 
@@ -898,7 +898,7 @@ function render(){
         </div>
         <div class="rtag-wrap">
           <span class="badge ${c.stage}">${STAGE_LABELS[c.stage]||c.stage}</span>
-          ${c.archived ? '<button class="btn small secondary" title="Restore to active pipeline" onclick="event.stopPropagation(); restoreClient(\''+c.id+'\')">Restore</button>' : '<button class="call-icon-btn" title="Call now from browser" onclick="event.stopPropagation(); startBrowserCall(\''+c.id+'\')">☎️</button>'}
+          ${c.archived ? '<button class="btn small secondary" title="Restore to active pipeline" onclick="event.stopPropagation(); restoreClient(\''+c.id+'\')">Restore</button>' : '<button class="call-icon-btn" title="Log a call for this deal" onclick="event.stopPropagation(); openLogCall(\''+c.id+'\')">📞</button>'}
         </div>
       </div>
     </div>
@@ -1241,7 +1241,7 @@ async function saveForm(){
     name,
     firstName,
     lastName,
-    phone: normalizePhone(document.getElementById('f_phone').value.trim()),
+    phone: document.getElementById('f_phone').value.trim(),
     email: document.getElementById('f_email').value.trim(),
     city: document.getElementById('f_city').value.trim(),
     dob,
@@ -1827,23 +1827,10 @@ function hideCallStatusOverlay(){
   if (box) box.style.display = 'none';
 }
 
-function normalizePhone(raw){
-  if (!raw) return '';
-  let digits = raw.toString().replace(/[^0-9+]/g, '');
-  const hasPlus = digits.startsWith('+');
-  digits = digits.replace(/\+/g, '');
-  if (hasPlus) return '+' + digits;
-  if (digits.length === 10) return '+1' + digits;
-  if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
-  return digits ? ('+' + digits) : '';
-}
-
 async function startBrowserCall(id){
   const c = clients.find(x=>x.id===id);
   if (!c) return;
-    if (!c.phone) { showToast('No phone number on file for this client'); return; }
-  const dialNumber = normalizePhone(c.phone);
-  if (!dialNumber) { showToast('This client\'s phone number looks invalid'); return; }
+  if (!c.phone) { showToast('No phone number on file for this client'); return; }
 
   activeCallClientId = id;
   showCallStatusOverlay(c.name, 'Connecting…');
@@ -1856,12 +1843,12 @@ async function startBrowserCall(id){
         device.register();
       });
     }
-    const conn = await device.connect({ params: { To: dialNumber } });
+    const conn = await device.connect({ params: { To: c.phone } });
     activeCallConn = conn;
     conn.on('accept', () => updateCallStatusText('In call — recording'));
     conn.on('disconnect', () => {
       updateCallStatusText('Call ended');
-      setTimeout(() => { hideCallStatusOverlay(); openLogCall(activeCallClientId); }, 1200);
+      setTimeout(hideCallStatusOverlay, 1500);
       activeCallConn = null;
     });
     conn.on('cancel', () => hideCallStatusOverlay());
