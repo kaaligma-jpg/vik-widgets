@@ -1860,8 +1860,8 @@ async function startBrowserCall(id){
     activeCallConn = conn;
     conn.on('accept', () => updateCallStatusText('In call — recording'));
     conn.on('disconnect', () => {
-      updateCallStatusText('Call ended — Vikram is reviewing the recording');
-      setTimeout(hideCallStatusOverlay, 2000);
+      updateCallStatusText('Call ended');
+      setTimeout(() => { hideCallStatusOverlay(); openLogCall(activeCallClientId); }, 1200);
       activeCallConn = null;
     });
     conn.on('cancel', () => hideCallStatusOverlay());
