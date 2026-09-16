@@ -423,7 +423,7 @@
   <div class="task-subtabs" id="kpOtherSubTabs" style="display:none;"></div>
 
   <div class="toolbar">
-    <button class="btn" id="kpScanToggleBtn" onclick="toggleKpScan()">📇 Scan business card</button>
+    <label class="btn" id="kpScanToggleBtn" for="kpCardPhotoInput" onclick="document.getElementById('kpScanForm').classList.add('open'); document.getElementById('kpAddForm').classList.remove('open');">📇 Scan business card</label>
     <button class="btn secondary" id="kpAddToggleBtn" onclick="toggleKpForm()">+ Add manually</button>
   </div>
 
