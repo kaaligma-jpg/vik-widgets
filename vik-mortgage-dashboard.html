@@ -201,6 +201,9 @@
   .task-type-pills button{ padding:6px 12px; border-radius:16px; border:1px solid var(--line); background:var(--paper); color:var(--slate); font-size:12px; cursor:pointer; font-family:var(--sans); }
   .task-type-pills button.active{ background:var(--brass); color:#fff; border-color:var(--brass); }
   .task-id-tag{ font-family:monospace; font-size:11px; color:var(--brass); background:#EDE8DD; padding:1px 6px; border-radius:4px; margin-right:6px; }
+  .kp-card{ background:var(--paper-2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .kp-photo{ width:44px; height:44px; border-radius:6px; object-fit:cover; margin-right:10px; flex-shrink:0; }
+  .kp-card-main{ display:flex; align-items:center; }
 
   .cards{ display:none; }
   @media (max-width: 720px){
@@ -314,6 +317,7 @@
       <button id="navVikramBtn" onclick="showView('vikram')">Ask Vikram</button>
       <button id="navCoachingBtn" onclick="showView('coaching')">My Coaching</button>
       <button id="navTasksBtn" onclick="showView('tasks')">Tasks</button>
+      <button id="navKeyPartnersBtn" onclick="showView('keypartners')">Key Partners</button>
       <a href="vik-insurance-dashboard.html" style="all:unset;cursor:pointer;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9D0DC;display:block;">Insurance Pipeline</a>
     </div>
   </div>
@@ -398,6 +402,60 @@
   <div class="empty" id="taskEmptyState" style="display:none;">
     <div class="big">No tasks yet</div>
     <div>Action items from your calls will appear here automatically.</div>
+  </div>
+</div>
+
+<div id="view-keypartners" style="display:none;">
+  <h1>Key Partners</h1>
+  <p class="sub">People you meet networking — realtors, accountants, other referral sources — plus clients and recruits you scan on the spot. Scan a business card or fill it in by hand, and a warm "great meeting you" message goes out on WhatsApp, SMS and email right away.</p>
+
+  <div class="stats" id="kpStats"></div>
+
+  <div class="toolbar">
+    <button class="btn" id="kpScanToggleBtn" onclick="toggleKpScan()">📇 Scan business card</button>
+    <button class="btn secondary" id="kpAddToggleBtn" onclick="toggleKpForm()">+ Add manually</button>
+  </div>
+
+  <div class="task-add-form" id="kpScanForm">
+    <div style="width:100%;">
+      <label style="font-size:12px; color:var(--slate); display:block; margin-bottom:6px;">Take a photo of the card, then fill in what it says below (reading the card automatically comes later).</label>
+      <input type="file" id="kpCardPhotoInput" accept="image/*" capture="environment" onchange="handleKpCardPhoto(event)">
+      <div id="kpCardPreviewWrap" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div class="task-add-form" id="kpAddForm">
+    <input type="text" id="kpFirstNameInput" placeholder="First name">
+    <input type="text" id="kpLastNameInput" placeholder="Last name">
+    <input type="text" id="kpCompanyInput" placeholder="Company">
+    <input type="text" id="kpPhoneInput" placeholder="Phone">
+    <input type="text" id="kpEmailInput" placeholder="Email">
+    <div style="width:100%;">
+      <div style="font-size:12px; color:var(--slate); margin-bottom:6px;">Category</div>
+      <div class="task-type-pills" id="kpCategoryPills">
+        <button type="button" class="active" data-val="referral" onclick="selectKpCategory('referral')">Referral Source</button>
+        <button type="button" data-val="client" onclick="selectKpCategory('client')">Client</button>
+        <button type="button" data-val="recruit" onclick="selectKpCategory('recruit')">Recruit</button>
+      </div>
+    </div>
+    <select id="kpProfessionInput">
+      <option value="">Profession — Realtor</option>
+      <option value="realtor">Realtor</option>
+      <option value="accountant">Accountant</option>
+      <option value="insurance_agent">Insurance Agent</option>
+      <option value="lawyer">Lawyer</option>
+      <option value="other">Other</option>
+    </select>
+    <div style="width:100%; display:flex; gap:8px;">
+      <button class="btn small" id="kpSaveBtn" onclick="saveKeyPartner()">Save &amp; send greeting</button>
+      <button class="btn secondary small" id="kpCancelEditBtn" style="display:none;" onclick="cancelKpEdit()">Cancel edit</button>
+    </div>
+  </div>
+
+  <div id="kpListWrap"></div>
+  <div class="empty" id="kpEmptyState" style="display:none;">
+    <div class="big">No Key Partners yet</div>
+    <div>Scan a card at your next event, or add one by hand.</div>
   </div>
 </div>
 
@@ -2323,10 +2381,13 @@ function showView(view){
   document.getElementById('navCoachingBtn').classList.toggle('active', view==='coaching');
   document.getElementById('view-tasks').style.display = (view==='tasks') ? '' : 'none';
   document.getElementById('navTasksBtn').classList.toggle('active', view==='tasks');
+  document.getElementById('view-keypartners').style.display = (view==='keypartners') ? '' : 'none';
+  document.getElementById('navKeyPartnersBtn').classList.toggle('active', view==='keypartners');
   if(view==='vikram') renderVikramChat();
   if(view==='recruits'){ closeRecruitDetail(); renderRecruits(); }
   if(view==='coaching') renderCoachingLog();
   if(view==='tasks'){ loadVikActionTasks().then(renderVikActionTasks); }
+  if(view==='keypartners'){ loadKeyPartners().then(renderKeyPartners); }
 }
 
 async function renderCoachingLog(){
@@ -2570,6 +2631,198 @@ function renderVikActionTasks(){
         '<button onclick="editVikTask(\'' + t.id + '\')">Edit</button>' +
         '<button onclick="toggleTaskDone(\'' + t.id + '\')">' + (t.completed ? 'Undo' : 'Done') + '</button>' +
         '<button onclick="deleteVikTask(\'' + t.id + '\')">Delete</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ===================== Key Partners (networking captures — referral sources, plus clients/recruits met in the field) =====================
+const VIK_KEY_PARTNERS_ENDPOINT = "https://fincop-backend.onrender.com/app-data/vik-key-partners";
+let vikKeyPartners = [];
+let currentKpCategory = 'referral';
+let kpCardPhotoData = null; // base64 of the scanned card photo, not yet OCR'd
+let editingKpId = null;
+
+function kpUid(){ return 'kp_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+
+async function loadKeyPartners(){
+  try{
+    const res = await fetch(VIK_KEY_PARTNERS_ENDPOINT);
+    const data = await res.json();
+    vikKeyPartners = data && data.value ? JSON.parse(data.value) : [];
+  }catch(e){
+    vikKeyPartners = [];
+  }
+}
+
+async function saveKeyPartnersToServer(){
+  try{
+    await fetch(VIK_KEY_PARTNERS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: JSON.stringify(vikKeyPartners) })
+    });
+  }catch(e){
+    showToast('Could not save Key Partner — try again');
+  }
+}
+
+function toggleKpScan(){
+  document.getElementById('kpScanForm').classList.toggle('open');
+  document.getElementById('kpAddForm').classList.remove('open');
+}
+
+function toggleKpForm(){
+  document.getElementById('kpAddForm').classList.toggle('open');
+  document.getElementById('kpScanForm').classList.remove('open');
+}
+
+function handleKpCardPhoto(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    kpCardPhotoData = e.target.result;
+    document.getElementById('kpCardPreviewWrap').innerHTML =
+      '<img src="' + kpCardPhotoData + '" style="max-width:220px; border-radius:8px; border:1px solid var(--line);">' +
+      '<p style="font-size:12px; color:var(--slate); margin-top:6px;">Photo captured. Now fill in the details below and save.</p>';
+    document.getElementById('kpAddForm').classList.add('open');
+  };
+  reader.readAsDataURL(file);
+}
+
+function selectKpCategory(v){
+  currentKpCategory = v;
+  document.querySelectorAll('#kpCategoryPills button').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-val')===v);
+  });
+  document.getElementById('kpProfessionInput').style.display = (v==='referral') ? '' : 'none';
+}
+
+function resetKpForm(){
+  document.getElementById('kpFirstNameInput').value = '';
+  document.getElementById('kpLastNameInput').value = '';
+  document.getElementById('kpCompanyInput').value = '';
+  document.getElementById('kpPhoneInput').value = '';
+  document.getElementById('kpEmailInput').value = '';
+  document.getElementById('kpProfessionInput').value = '';
+  selectKpCategory('referral');
+  kpCardPhotoData = null;
+  document.getElementById('kpCardPreviewWrap').innerHTML = '';
+  editingKpId = null;
+  document.getElementById('kpSaveBtn').textContent = 'Save & send greeting';
+  document.getElementById('kpCancelEditBtn').style.display = 'none';
+}
+
+// Placeholder until Sasha/Vikram's backend send is wired up — logs what WOULD go out on all three channels.
+function sendKpGreeting(p){
+  console.log('[Key Partners] Would send WhatsApp + SMS + email greeting to', p.firstName, p.phone, p.email);
+}
+
+function saveKeyPartner(){
+  const firstName = document.getElementById('kpFirstNameInput').value.trim();
+  const lastName = document.getElementById('kpLastNameInput').value.trim();
+  const company = document.getElementById('kpCompanyInput').value.trim();
+  const phone = document.getElementById('kpPhoneInput').value.trim();
+  const email = document.getElementById('kpEmailInput').value.trim();
+  const profession = currentKpCategory==='referral' ? document.getElementById('kpProfessionInput').value : '';
+  if(!firstName){ showToast('First name required'); return; }
+
+  if(editingKpId){
+    const p = vikKeyPartners.find(x=>x.id===editingKpId);
+    if(p){
+      p.firstName=firstName; p.lastName=lastName; p.company=company; p.phone=phone; p.email=email;
+      p.category=currentKpCategory; p.profession=profession;
+      if(kpCardPhotoData) p.cardPhoto = kpCardPhotoData;
+      saveKeyPartnersToServer();
+      renderKeyPartners();
+    }
+  } else {
+    const p = {
+      id: kpUid(), firstName, lastName, company, phone, email,
+      category: currentKpCategory, profession, cardPhoto: kpCardPhotoData,
+      createdAt: new Date().toISOString()
+    };
+    vikKeyPartners.push(p);
+    saveKeyPartnersToServer();
+    sendKpGreeting(p);
+    showToast('Saved — greeting queued on WhatsApp, SMS and email');
+    renderKeyPartners();
+  }
+  resetKpForm();
+  document.getElementById('kpAddForm').classList.remove('open');
+  document.getElementById('kpScanForm').classList.remove('open');
+}
+
+function editKeyPartner(id){
+  const p = vikKeyPartners.find(x=>x.id===id);
+  if(!p) return;
+  editingKpId = id;
+  document.getElementById('kpFirstNameInput').value = p.firstName;
+  document.getElementById('kpLastNameInput').value = p.lastName;
+  document.getElementById('kpCompanyInput').value = p.company;
+  document.getElementById('kpPhoneInput').value = p.phone;
+  document.getElementById('kpEmailInput').value = p.email;
+  selectKpCategory(p.category);
+  document.getElementById('kpProfessionInput').value = p.profession || '';
+  document.getElementById('kpSaveBtn').textContent = 'Update';
+  document.getElementById('kpCancelEditBtn').style.display = '';
+  document.getElementById('kpAddForm').classList.add('open');
+  window.scrollTo(0,0);
+}
+
+function cancelKpEdit(){
+  resetKpForm();
+  document.getElementById('kpAddForm').classList.remove('open');
+}
+
+function deleteKeyPartner(id){
+  vikKeyPartners = vikKeyPartners.filter(x=>x.id!==id);
+  saveKeyPartnersToServer();
+  renderKeyPartners();
+}
+
+function kpCategoryLabel(c){
+  return c==='client' ? 'Client' : c==='recruit' ? 'Recruit' : 'Referral Source';
+}
+
+function kpProfessionLabel(p){
+  return { realtor:'Realtor', accountant:'Accountant', insurance_agent:'Insurance Agent', lawyer:'Lawyer', other:'Other' }[p] || '';
+}
+
+function renderKeyPartners(){
+  const statsWrap = document.getElementById('kpStats');
+  const counts = { referral:0, client:0, recruit:0 };
+  vikKeyPartners.forEach(function(p){ counts[p.category] = (counts[p.category]||0) + 1; });
+  statsWrap.innerHTML =
+    '<div class="stat"><div class="num">' + vikKeyPartners.length + '</div><div class="lbl">Total</div></div>' +
+    '<div class="stat"><div class="num">' + (counts.referral||0) + '</div><div class="lbl">Referral sources</div></div>' +
+    '<div class="stat"><div class="num">' + (counts.client||0) + '</div><div class="lbl">Clients met</div></div>' +
+    '<div class="stat"><div class="num">' + (counts.recruit||0) + '</div><div class="lbl">Recruits met</div></div>';
+
+  const wrap = document.getElementById('kpListWrap');
+  const empty = document.getElementById('kpEmptyState');
+  if(vikKeyPartners.length === 0){
+    wrap.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  const sorted = vikKeyPartners.slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+  wrap.innerHTML = sorted.map(function(p){
+    const fullName = (p.firstName + ' ' + p.lastName).trim();
+    const photoHtml = p.cardPhoto ? '<img class="kp-photo" src="' + p.cardPhoto + '">' : '';
+    const profStr = p.profession ? (' &middot; ' + escapeHtml(kpProfessionLabel(p.profession))) : '';
+    return '<div class="kp-card">' +
+      '<div class="kp-card-main">' + photoHtml +
+        '<div>' +
+          '<div class="task-subject">' + escapeHtml(fullName) + (p.company ? (' &mdash; ' + escapeHtml(p.company)) : '') + '</div>' +
+          '<div class="task-meta">' + kpCategoryLabel(p.category) + profStr + (p.phone?(' &middot; '+escapeHtml(p.phone)):'') + (p.email?(' &middot; '+escapeHtml(p.email)):'') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="task-actions">' +
+        '<button onclick="editKeyPartner(\'' + p.id + '\')">Edit</button>' +
+        '<button onclick="deleteKeyPartner(\'' + p.id + '\')">Delete</button>' +
       '</div>' +
     '</div>';
   }).join('');
