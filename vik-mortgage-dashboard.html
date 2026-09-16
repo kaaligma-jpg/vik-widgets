@@ -2281,6 +2281,7 @@ function recruitUid(){ return 'r_' + Date.now() + '_' + Math.random().toString(3
 
 function ensureRecruitDefaults(r){
   if(!r.id) r.id = recruitUid();
+  if(typeof r.displayId !== 'string') r.displayId = '';
   if(typeof r.firstName !== 'string') r.firstName = '';
   if(typeof r.lastName !== 'string') r.lastName = '';
   if(typeof r.email !== 'string') r.email = '';
@@ -2292,6 +2293,23 @@ function ensureRecruitDefaults(r){
   if(!r.dailyReplies || typeof r.dailyReplies !== 'object') r.dailyReplies = {}; // { "1": "done" | "not_done" }
   if(!Array.isArray(r.prospects)) r.prospects = [];
   return r;
+}
+
+// vikrecm-###### — matches the Task Center's ID-prefix system (this dashboard is mortgage-side, so recruits here are always vikrecm).
+function assignMissingRecruitDisplayIds(list){
+  let maxNum = 0;
+  list.forEach(function(r){
+    if(r.displayId){
+      const n = parseInt(r.displayId.split('-')[1], 10);
+      if(!isNaN(n) && n > maxNum) maxNum = n;
+    }
+  });
+  list.forEach(function(r){
+    if(!r.displayId){
+      maxNum++;
+      r.displayId = 'vikrecm-' + String(maxNum).padStart(6,'0');
+    }
+  });
 }
 
 function showView(view){
@@ -2573,6 +2591,7 @@ const res = await fetch(RECRUIT_ENDPOINT);
 const data = await res.json();
 mortgageRecruits = data && data.value ? JSON.parse(data.value) : [];
 mortgageRecruits.forEach(ensureRecruitDefaults);
+assignMissingRecruitDisplayIds(mortgageRecruits);
 syncGuruTasks();
 }catch(e){
 mortgageRecruits = [];
@@ -2746,7 +2765,7 @@ function renderRecruits(){
       dayLabel = cur===0 ? 'Starts ' + r.startDate : (cur===90 ? 'Day 90 — done' : 'Day ' + cur + ' of 90');
     }
     return `<tr onclick="openRecruitDetail('${r.id}')">
-      <td class="name-cell">${escapeHtml(r.firstName+' '+r.lastName)}</td>
+      <td class="name-cell"><span class="task-id-tag">${escapeHtml(r.displayId||'')}</span>${escapeHtml(r.firstName+' '+r.lastName)}</td>
       <td>${escapeHtml(r.email)||'—'}<div class="meta">${escapeHtml(r.phone)||''}</div></td>
       <td onclick="event.stopPropagation()"><label class="checkbox-row" style="margin:0;"><input type="checkbox" ${r.guruAssigned?'checked':''} onchange="toggleGuruAssigned('${r.id}', this.checked)"> ${r.guruAssigned?'Yes':'No'}</label></td>
       <td>${dayLabel}</td>
@@ -2766,7 +2785,7 @@ function renderRecruits(){
     return `<div class="card" onclick="openRecruitDetail('${r.id}')">
       <div class="row1">
         <div>
-          <div class="name-cell">${escapeHtml(r.firstName+' '+r.lastName)}</div>
+          <div class="name-cell"><span class="task-id-tag">${escapeHtml(r.displayId||'')}</span>${escapeHtml(r.firstName+' '+r.lastName)}</div>
           <div class="meta">${escapeHtml(r.email)||''} ${escapeHtml(r.phone)||''}</div>
           <div class="meta">${dayLabel} · Top 100: ${r.prospects.length}/100</div>
         </div>
@@ -3007,7 +3026,7 @@ function openRecruitDetail(id){
     <button class="btn secondary small" onclick="openEditRecruitForm('${r.id}')" style="margin-bottom:16px; margin-left:8px;">Edit details</button>
     <button class="btn secondary small" style="margin-bottom:16px;margin-left:8px;" onclick="startBrowserCallRecruit('${r.id}')">☎️ Call now</button>
     <button class="btn secondary small" style="margin-bottom:16px;margin-left:8px;" onclick="openRecruitLogin('${r.id}')">&#128273; Login link</button>
-    <h1 style="margin-bottom:4px;">${escapeHtml(r.firstName+' '+r.lastName)}</h1>
+    <h1 style="margin-bottom:4px;"><span class="task-id-tag" style="font-size:13px;">${escapeHtml(r.displayId||'')}</span>${escapeHtml(r.firstName+' '+r.lastName)}</h1>
     <dl class="detail">
       <dt>Email</dt><dd>${escapeHtml(r.email)||'—'}</dd>
       <dt>Phone</dt><dd>${escapeHtml(r.phone)||'—'}</dd>
@@ -3121,6 +3140,7 @@ function submitAddRecruit(){
   });
   if(!r.firstName){ showToast('First name required'); return; }
   mortgageRecruits.push(r);
+  assignMissingRecruitDisplayIds(mortgageRecruits);
   saveRecruits();
   document.getElementById('addRecruitOverlay').classList.remove('show');
   renderRecruits();
