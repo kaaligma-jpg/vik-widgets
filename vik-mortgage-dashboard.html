@@ -438,14 +438,15 @@
         <button type="button" data-val="recruit" onclick="selectKpCategory('recruit')">Recruit</button>
       </div>
     </div>
-    <select id="kpProfessionInput">
-      <option value="">Profession — Realtor</option>
+    <select id="kpProfessionInput" onchange="toggleKpOtherProfession()">
+      <option value="">Profession</option>
       <option value="realtor">Realtor</option>
       <option value="accountant">Accountant</option>
       <option value="insurance_agent">Insurance Agent</option>
       <option value="lawyer">Lawyer</option>
       <option value="other">Other</option>
     </select>
+    <input type="text" id="kpOtherProfessionInput" placeholder="What kind of profession?" style="display:none;">
     <div style="width:100%; display:flex; gap:8px;">
       <button class="btn small" id="kpSaveBtn" onclick="saveKeyPartner()">Save &amp; send greeting</button>
       <button class="btn secondary small" id="kpCancelEditBtn" style="display:none;" onclick="cancelKpEdit()">Cancel edit</button>
@@ -2697,6 +2698,13 @@ function selectKpCategory(v){
     b.classList.toggle('active', b.getAttribute('data-val')===v);
   });
   document.getElementById('kpProfessionInput').style.display = (v==='referral') ? '' : 'none';
+  if(v!=='referral') document.getElementById('kpOtherProfessionInput').style.display = 'none';
+  else toggleKpOtherProfession();
+}
+
+function toggleKpOtherProfession(){
+  const isOther = document.getElementById('kpProfessionInput').value === 'other';
+  document.getElementById('kpOtherProfessionInput').style.display = isOther ? '' : 'none';
 }
 
 function resetKpForm(){
@@ -2706,6 +2714,7 @@ function resetKpForm(){
   document.getElementById('kpPhoneInput').value = '';
   document.getElementById('kpEmailInput').value = '';
   document.getElementById('kpProfessionInput').value = '';
+  document.getElementById('kpOtherProfessionInput').value = '';
   selectKpCategory('referral');
   kpCardPhotoData = null;
   document.getElementById('kpCardPreviewWrap').innerHTML = '';
@@ -2726,13 +2735,14 @@ function saveKeyPartner(){
   const phone = document.getElementById('kpPhoneInput').value.trim();
   const email = document.getElementById('kpEmailInput').value.trim();
   const profession = currentKpCategory==='referral' ? document.getElementById('kpProfessionInput').value : '';
+  const otherProfession = (profession==='other') ? document.getElementById('kpOtherProfessionInput').value.trim() : '';
   if(!firstName){ showToast('First name required'); return; }
 
   if(editingKpId){
     const p = vikKeyPartners.find(x=>x.id===editingKpId);
     if(p){
       p.firstName=firstName; p.lastName=lastName; p.company=company; p.phone=phone; p.email=email;
-      p.category=currentKpCategory; p.profession=profession;
+      p.category=currentKpCategory; p.profession=profession; p.otherProfession=otherProfession;
       if(kpCardPhotoData) p.cardPhoto = kpCardPhotoData;
       saveKeyPartnersToServer();
       renderKeyPartners();
@@ -2740,7 +2750,7 @@ function saveKeyPartner(){
   } else {
     const p = {
       id: kpUid(), firstName, lastName, company, phone, email,
-      category: currentKpCategory, profession, cardPhoto: kpCardPhotoData,
+      category: currentKpCategory, profession, otherProfession, cardPhoto: kpCardPhotoData,
       createdAt: new Date().toISOString()
     };
     vikKeyPartners.push(p);
@@ -2765,6 +2775,8 @@ function editKeyPartner(id){
   document.getElementById('kpEmailInput').value = p.email;
   selectKpCategory(p.category);
   document.getElementById('kpProfessionInput').value = p.profession || '';
+  toggleKpOtherProfession();
+  document.getElementById('kpOtherProfessionInput').value = p.otherProfession || '';
   document.getElementById('kpSaveBtn').textContent = 'Update';
   document.getElementById('kpCancelEditBtn').style.display = '';
   document.getElementById('kpAddForm').classList.add('open');
@@ -2792,13 +2804,32 @@ function kpProfessionLabel(p){
 
 function renderKeyPartners(){
   const statsWrap = document.getElementById('kpStats');
-  const counts = { referral:0, client:0, recruit:0 };
-  vikKeyPartners.forEach(function(p){ counts[p.category] = (counts[p.category]||0) + 1; });
-  statsWrap.innerHTML =
-    '<div class="stat"><div class="num">' + vikKeyPartners.length + '</div><div class="lbl">Total</div></div>' +
-    '<div class="stat"><div class="num">' + (counts.referral||0) + '</div><div class="lbl">Referral sources</div></div>' +
-    '<div class="stat"><div class="num">' + (counts.client||0) + '</div><div class="lbl">Clients met</div></div>' +
-    '<div class="stat"><div class="num">' + (counts.recruit||0) + '</div><div class="lbl">Recruits met</div></div>';
+  const fixedProfs = [
+    ['realtor','Realtor'],
+    ['accountant','Accountant'],
+    ['insurance_agent','Insurance Agent'],
+    ['lawyer','Lawyer']
+  ];
+  const fixedCounts = {};
+  fixedProfs.forEach(function(fp){ fixedCounts[fp[0]] = 0; });
+  const otherCounts = {}; // key: lowercase trimmed custom text -> { label, count }
+  vikKeyPartners.forEach(function(p){
+    if(p.category !== 'referral' || !p.profession) return;
+    if(fixedCounts.hasOwnProperty(p.profession)){
+      fixedCounts[p.profession]++;
+    } else if(p.profession === 'other' && p.otherProfession){
+      const key = p.otherProfession.trim().toLowerCase();
+      if(!otherCounts[key]) otherCounts[key] = { label: p.otherProfession.trim(), count: 0 };
+      otherCounts[key].count++;
+    }
+  });
+  let statsHtml = fixedProfs.map(function(fp){
+    return '<div class="stat"><div class="num">' + fixedCounts[fp[0]] + '</div><div class="lbl">' + fp[1] + '</div></div>';
+  }).join('');
+  statsHtml += Object.values(otherCounts).map(function(oc){
+    return '<div class="stat"><div class="num">' + oc.count + '</div><div class="lbl">' + escapeHtml(oc.label) + '</div></div>';
+  }).join('');
+  statsWrap.innerHTML = statsHtml;
 
   const wrap = document.getElementById('kpListWrap');
   const empty = document.getElementById('kpEmptyState');
@@ -2812,7 +2843,8 @@ function renderKeyPartners(){
   wrap.innerHTML = sorted.map(function(p){
     const fullName = (p.firstName + ' ' + p.lastName).trim();
     const photoHtml = p.cardPhoto ? '<img class="kp-photo" src="' + p.cardPhoto + '">' : '';
-    const profStr = p.profession ? (' &middot; ' + escapeHtml(kpProfessionLabel(p.profession))) : '';
+    const profLabel = (p.profession==='other' && p.otherProfession) ? p.otherProfession : kpProfessionLabel(p.profession);
+    const profStr = p.profession ? (' &middot; ' + escapeHtml(profLabel)) : '';
     return '<div class="kp-card">' +
       '<div class="kp-card-main">' + photoHtml +
         '<div>' +
