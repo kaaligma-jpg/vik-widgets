@@ -409,7 +409,8 @@
   <h1>Key Partners</h1>
   <p class="sub">People you meet networking — realtors, accountants, other referral sources — plus clients and recruits you scan on the spot. Scan a business card or fill it in by hand, and a warm "great meeting you" message goes out on WhatsApp, SMS and email right away.</p>
 
-  <div class="stats" id="kpStats"></div>
+  <div class="task-subtabs" id="kpFilterTabs"></div>
+  <div class="task-subtabs" id="kpOtherSubTabs" style="display:none;"></div>
 
   <div class="toolbar">
     <button class="btn" id="kpScanToggleBtn" onclick="toggleKpScan()">📇 Scan business card</button>
@@ -442,7 +443,6 @@
       <option value="">Profession</option>
       <option value="realtor">Realtor</option>
       <option value="accountant">Accountant</option>
-      <option value="insurance_agent">Insurance Agent</option>
       <option value="lawyer">Lawyer</option>
       <option value="other">Other</option>
     </select>
@@ -2799,47 +2799,77 @@ function kpCategoryLabel(c){
 }
 
 function kpProfessionLabel(p){
-  return { realtor:'Realtor', accountant:'Accountant', insurance_agent:'Insurance Agent', lawyer:'Lawyer', other:'Other' }[p] || '';
+  return { realtor:'Realtor', accountant:'Accountant', lawyer:'Lawyer', other:'Other' }[p] || '';
+}
+
+let currentKpFilter = 'all';
+let currentKpOtherFilter = null; // specific custom profession text, only used when currentKpFilter === 'others'
+
+function setKpFilter(f){
+  currentKpFilter = f;
+  currentKpOtherFilter = null;
+  renderKeyPartners();
+}
+
+function setKpOtherFilter(text){
+  currentKpOtherFilter = text;
+  renderKeyPartners();
+}
+
+function kpMatchesFilter(p, filter, otherFilter){
+  if(filter === 'all') return true;
+  if(filter === 'others'){
+    if(!(p.category === 'referral' && p.profession === 'other')) return false;
+    if(!otherFilter) return true;
+    return p.otherProfession && p.otherProfession.trim().toLowerCase() === otherFilter;
+  }
+  return p.category === 'referral' && p.profession === filter; // realtor / accountant / lawyer
 }
 
 function renderKeyPartners(){
-  const statsWrap = document.getElementById('kpStats');
-  const fixedProfs = [
-    ['realtor','Realtor'],
-    ['accountant','Accountant'],
-    ['insurance_agent','Insurance Agent'],
-    ['lawyer','Lawyer']
+  const tabsWrap = document.getElementById('kpFilterTabs');
+  const filters = [
+    ['all','All'], ['realtor','Realtor'], ['accountant','Accountant'], ['lawyer','Lawyer'], ['others','Others']
   ];
-  const fixedCounts = {};
-  fixedProfs.forEach(function(fp){ fixedCounts[fp[0]] = 0; });
-  const otherCounts = {}; // key: lowercase trimmed custom text -> { label, count }
-  vikKeyPartners.forEach(function(p){
-    if(p.category !== 'referral' || !p.profession) return;
-    if(fixedCounts.hasOwnProperty(p.profession)){
-      fixedCounts[p.profession]++;
-    } else if(p.profession === 'other' && p.otherProfession){
-      const key = p.otherProfession.trim().toLowerCase();
-      if(!otherCounts[key]) otherCounts[key] = { label: p.otherProfession.trim(), count: 0 };
-      otherCounts[key].count++;
-    }
-  });
-  let statsHtml = fixedProfs.map(function(fp){
-    return '<div class="stat"><div class="num">' + fixedCounts[fp[0]] + '</div><div class="lbl">' + fp[1] + '</div></div>';
+  tabsWrap.innerHTML = filters.map(function(f){
+    const count = vikKeyPartners.filter(function(p){ return kpMatchesFilter(p, f[0], null); }).length;
+    const activeCls = (currentKpFilter===f[0]) ? ' active' : '';
+    return '<button class="' + activeCls.trim() + '" onclick="setKpFilter(\'' + f[0] + '\')">' + f[1] + ' (' + count + ')</button>';
   }).join('');
-  statsHtml += Object.values(otherCounts).map(function(oc){
-    return '<div class="stat"><div class="num">' + oc.count + '</div><div class="lbl">' + escapeHtml(oc.label) + '</div></div>';
-  }).join('');
-  statsWrap.innerHTML = statsHtml;
+
+  const otherTabsWrap = document.getElementById('kpOtherSubTabs');
+  if(currentKpFilter === 'others'){
+    const otherCounts = {}; // key: lowercase trimmed custom text -> { label, count }
+    vikKeyPartners.forEach(function(p){
+      if(p.category === 'referral' && p.profession === 'other' && p.otherProfession){
+        const key = p.otherProfession.trim().toLowerCase();
+        if(!otherCounts[key]) otherCounts[key] = { label: p.otherProfession.trim(), count: 0 };
+        otherCounts[key].count++;
+      }
+    });
+    let subHtml = '<button class="' + (currentKpOtherFilter===null?'active':'') + '" onclick="setKpOtherFilter(null)">All Others</button>';
+    subHtml += Object.keys(otherCounts).map(function(key){
+      const oc = otherCounts[key];
+      const activeCls = (currentKpOtherFilter===key) ? 'active' : '';
+      return '<button class="' + activeCls + '" onclick="setKpOtherFilter(\'' + key.replace(/'/g,"\\'") + '\')">' + escapeHtml(oc.label) + ' (' + oc.count + ')</button>';
+    }).join('');
+    otherTabsWrap.innerHTML = subHtml;
+    otherTabsWrap.style.display = '';
+  } else {
+    otherTabsWrap.innerHTML = '';
+    otherTabsWrap.style.display = 'none';
+  }
 
   const wrap = document.getElementById('kpListWrap');
   const empty = document.getElementById('kpEmptyState');
-  if(vikKeyPartners.length === 0){
+  const filtered = vikKeyPartners.filter(function(p){ return kpMatchesFilter(p, currentKpFilter, currentKpOtherFilter); });
+  if(filtered.length === 0){
     wrap.innerHTML = '';
     empty.style.display = '';
     return;
   }
   empty.style.display = 'none';
-  const sorted = vikKeyPartners.slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+  const sorted = filtered.slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
   wrap.innerHTML = sorted.map(function(p){
     const fullName = (p.firstName + ' ' + p.lastName).trim();
     const photoHtml = p.cardPhoto ? '<img class="kp-photo" src="' + p.cardPhoto + '">' : '';
