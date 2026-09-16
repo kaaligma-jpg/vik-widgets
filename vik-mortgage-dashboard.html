@@ -17,6 +17,8 @@
     --good:#3C6E47;
     --warn:#B4762E;
     --danger:#A23B34;
+    --stale:#6B4C8A;
+    --future:#C9A227;
     --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
     --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
@@ -173,6 +175,29 @@
   .badge.flag{ background:#F0E1C8; color:var(--warn); }
   .badge.soft{ background:#EDE8DD; color:var(--slate); }
 
+  /* ---- Task Center ---- */
+  .task-subtabs{ display:flex; gap:8px; margin:14px 0 18px; flex-wrap:wrap; }
+  .task-subtabs button{ padding:8px 16px; border-radius:20px; border:1px solid var(--line); background:var(--paper-2); color:var(--slate); font-size:13px; cursor:pointer; font-family:var(--sans); }
+  .task-subtabs button.active{ background:var(--ink-2); color:#fff; border-color:var(--ink-2); }
+  .task-card{ background:var(--paper-2); border:1px solid var(--line); border-left:6px solid var(--slate); border-radius:8px; padding:12px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .task-card.status-green{ border-left-color:var(--good); }
+  .task-card.status-red{ border-left-color:var(--danger); }
+  .task-card.status-yellow{ border-left-color:var(--future); }
+  .task-card.status-purple{ border-left-color:var(--stale); }
+  .task-dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; }
+  .task-dot.status-green{ background:var(--good); }
+  .task-dot.status-red{ background:var(--danger); }
+  .task-dot.status-yellow{ background:var(--future); }
+  .task-dot.status-purple{ background:var(--stale); }
+  .task-subject{ font-size:15px; color:var(--ink); margin-bottom:3px; }
+  .task-meta{ font-size:12px; color:var(--slate); }
+  .task-actions{ display:flex; gap:8px; flex-shrink:0; }
+  .task-actions button{ padding:5px 10px; font-size:12px; border-radius:6px; border:1px solid var(--line); background:var(--paper-2); cursor:pointer; }
+  .task-add-form{ background:var(--paper-2); border:1px solid var(--line); border-radius:8px; padding:14px; margin-bottom:18px; display:none; gap:10px; flex-wrap:wrap; }
+  .task-add-form.open{ display:flex; }
+  .task-add-form input, .task-add-form select{ padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--sans); font-size:13px; }
+  .task-add-form input[type=text]{ flex:1; min-width:160px; }
+
   .cards{ display:none; }
   @media (max-width: 720px){
     table{ display:none; }
@@ -284,6 +309,7 @@
       <button id="navRecruitsBtn" onclick="showView('recruits')">Recruits (Guru)</button>
       <button id="navVikramBtn" onclick="showView('vikram')">Ask Vikram</button>
       <button id="navCoachingBtn" onclick="showView('coaching')">My Coaching</button>
+      <button id="navTasksBtn" onclick="showView('tasks')">Tasks</button>
       <a href="vik-insurance-dashboard.html" style="all:unset;cursor:pointer;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9D0DC;display:block;">Insurance Pipeline</a>
     </div>
   </div>
@@ -305,6 +331,42 @@
   <h1>My Coaching</h1>
   <p class="sub">Vikram's honest feedback on your calls — tone, clarity, and what to improve. Private to you, never shown to any client.</p>
   <div id="coachingListWrap"><p style="color:var(--slate);">Loading...</p></div>
+</div>
+
+<div id="view-tasks" style="display:none;">
+  <h1>Tasks</h1>
+  <p class="sub">Every action item from your calls — clients, recruits, and key partners — lands here on its own. Green means done, red is due within 24 hours, yellow is coming up, purple means the deadline passed with nothing done.</p>
+
+  <div class="stats" id="taskStats"></div>
+
+  <div class="task-subtabs" id="taskSubtabs">
+    <button class="active" onclick="setTaskCategory('all')">All</button>
+    <button onclick="setTaskCategory('production')">Production</button>
+    <button onclick="setTaskCategory('recruitment')">Recruitment</button>
+    <button onclick="setTaskCategory('keypartner')">Key Partners</button>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn" id="taskAddToggleBtn" onclick="toggleTaskAddForm()">+ Add task</button>
+  </div>
+
+  <div class="task-add-form" id="taskAddForm">
+    <select id="taskCategoryInput">
+      <option value="production">Production</option>
+      <option value="recruitment">Recruitment</option>
+      <option value="keypartner">Key Partners</option>
+    </select>
+    <input type="text" id="taskRelatedInput" placeholder="Related to (name)">
+    <input type="text" id="taskSubjectInput" placeholder="What needs to happen?">
+    <input type="datetime-local" id="taskDueInput">
+    <button class="btn small" onclick="saveNewTask()">Save task</button>
+  </div>
+
+  <div id="taskListWrap"></div>
+  <div class="empty" id="taskEmptyState" style="display:none;">
+    <div class="big">No tasks yet</div>
+    <div>Action items from your calls will appear here automatically.</div>
+  </div>
 </div>
 
 <div id="view-clients">
@@ -2209,9 +2271,12 @@ function showView(view){
   document.getElementById('navVikramBtn').classList.toggle('active', view==='vikram');
   document.getElementById('view-coaching').style.display = (view==='coaching') ? '' : 'none';
   document.getElementById('navCoachingBtn').classList.toggle('active', view==='coaching');
+  document.getElementById('view-tasks').style.display = (view==='tasks') ? '' : 'none';
+  document.getElementById('navTasksBtn').classList.toggle('active', view==='tasks');
   if(view==='vikram') renderVikramChat();
   if(view==='recruits'){ closeRecruitDetail(); renderRecruits(); }
   if(view==='coaching') renderCoachingLog();
+  if(view==='tasks'){ loadVikActionTasks().then(renderVikActionTasks); }
 }
 
 async function renderCoachingLog(){
@@ -2232,6 +2297,146 @@ async function renderCoachingLog(){
   } catch (e) {
     wrap.innerHTML = '<p style="color:var(--slate);">Could not load coaching log — try again.</p>';
   }
+}
+
+// ===================== Task Center (action items from calls — Production / Recruitment / Key Partners) =====================
+// NOTE: kept separate from MORTGAGE_GURU_TASKS / TASKS_ENDPOINT below, which is Guru's 90-day curriculum, unrelated.
+const VIK_ACTION_TASKS_ENDPOINT = "https://fincop-backend.onrender.com/app-data/vik-action-tasks";
+let vikActionTasks = [];
+let currentTaskCategory = 'all';
+
+function vikTaskUid(){ return 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+
+async function loadVikActionTasks(){
+  try{
+    const res = await fetch(VIK_ACTION_TASKS_ENDPOINT);
+    const data = await res.json();
+    vikActionTasks = data && data.value ? JSON.parse(data.value) : [];
+  }catch(e){
+    vikActionTasks = [];
+  }
+}
+
+async function saveVikActionTasks(){
+  try{
+    await fetch(VIK_ACTION_TASKS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: JSON.stringify(vikActionTasks) })
+    });
+  }catch(e){
+    showToast('Could not save task — try again');
+  }
+}
+
+// Any conversation (client, recruit, or key partner) can call this once Vikram is wired up to auto-create tasks.
+// category: 'production' | 'recruitment' | 'keypartner'. dueAt: ISO string or null (defaults to 48h from now).
+function addVikActionTask(category, relatedName, subject, dueAt){
+  const created = new Date();
+  const due = dueAt ? new Date(dueAt) : new Date(created.getTime() + 48*3600*1000);
+  vikActionTasks.push({
+    id: vikTaskUid(),
+    category: category,
+    relatedName: relatedName || '',
+    subject: subject || '',
+    createdAt: created.toISOString(),
+    dueAt: due.toISOString(),
+    completed: false,
+    completedAt: null
+  });
+  saveVikActionTasks();
+  if(document.getElementById('view-tasks').style.display !== 'none') renderVikActionTasks();
+}
+
+function vikTaskStatus(t){
+  if(t.completed) return 'green';
+  const now = Date.now();
+  const due = new Date(t.dueAt).getTime();
+  if(now > due) return 'purple'; // stale — deadline passed, nothing done
+  if(due - now <= 24*3600*1000) return 'red'; // pending, due within 24 hours
+  return 'yellow'; // future
+}
+
+function taskCategoryLabel(c){
+  return c==='production' ? 'Production' : c==='recruitment' ? 'Recruitment' : 'Key Partners';
+}
+
+function setTaskCategory(cat){
+  currentTaskCategory = cat;
+  document.querySelectorAll('#taskSubtabs button').forEach((b,i)=>{
+    const cats = ['all','production','recruitment','keypartner'];
+    b.classList.toggle('active', cats[i]===cat);
+  });
+  renderVikActionTasks();
+}
+
+function toggleTaskAddForm(){
+  document.getElementById('taskAddForm').classList.toggle('open');
+}
+
+function saveNewTask(){
+  const category = document.getElementById('taskCategoryInput').value;
+  const relatedName = document.getElementById('taskRelatedInput').value.trim();
+  const subject = document.getElementById('taskSubjectInput').value.trim();
+  const dueRaw = document.getElementById('taskDueInput').value;
+  if(!subject){ showToast('Add what needs to happen first'); return; }
+  addVikActionTask(category, relatedName, subject, dueRaw ? new Date(dueRaw).toISOString() : null);
+  document.getElementById('taskRelatedInput').value = '';
+  document.getElementById('taskSubjectInput').value = '';
+  document.getElementById('taskDueInput').value = '';
+  document.getElementById('taskAddForm').classList.remove('open');
+}
+
+function toggleTaskDone(id){
+  const t = vikActionTasks.find(x=>x.id===id);
+  if(!t) return;
+  t.completed = !t.completed;
+  t.completedAt = t.completed ? new Date().toISOString() : null;
+  saveVikActionTasks();
+  renderVikActionTasks();
+}
+
+function deleteVikTask(id){
+  vikActionTasks = vikActionTasks.filter(x=>x.id!==id);
+  saveVikActionTasks();
+  renderVikActionTasks();
+}
+
+function renderVikActionTasks(){
+  const filtered = currentTaskCategory==='all' ? vikActionTasks : vikActionTasks.filter(t=>t.category===currentTaskCategory);
+  const statsWrap = document.getElementById('taskStats');
+  const counts = { green:0, red:0, yellow:0, purple:0 };
+  vikActionTasks.forEach(t=> counts[vikTaskStatus(t)]++ );
+  statsWrap.innerHTML =
+    '<div class="stat"><div class="num">' + counts.red + '</div><div class="lbl">Due within 24h</div></div>' +
+    '<div class="stat"><div class="num">' + counts.yellow + '</div><div class="lbl">Coming up</div></div>' +
+    '<div class="stat"><div class="num">' + counts.purple + '</div><div class="lbl">Stale</div></div>' +
+    '<div class="stat"><div class="num">' + counts.green + '</div><div class="lbl">Completed</div></div>';
+
+  const wrap = document.getElementById('taskListWrap');
+  const empty = document.getElementById('taskEmptyState');
+  if(filtered.length === 0){
+    wrap.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  const sorted = filtered.slice().sort((a,b)=> new Date(a.dueAt) - new Date(b.dueAt));
+  wrap.innerHTML = sorted.map(t=>{
+    const status = vikTaskStatus(t);
+    const dueStr = new Date(t.dueAt).toLocaleString();
+    const relatedStr = t.relatedName ? (' &mdash; ' + escapeHtml(t.relatedName)) : '';
+    return '<div class="task-card status-' + status + '">' +
+      '<div>' +
+        '<div class="task-subject"><span class="task-dot status-' + status + '"></span>' + escapeHtml(t.subject) + relatedStr + '</div>' +
+        '<div class="task-meta">' + taskCategoryLabel(t.category) + ' &middot; due ' + dueStr + '</div>' +
+      '</div>' +
+      '<div class="task-actions">' +
+        '<button onclick="toggleTaskDone(\'' + t.id + '\')">' + (t.completed ? 'Undo' : 'Done') + '</button>' +
+        '<button onclick="deleteVikTask(\'' + t.id + '\')">Delete</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
 const TASKS_ENDPOINT = "https://fincop-backend.onrender.com/app-data/mortgage-guru-tasks";
