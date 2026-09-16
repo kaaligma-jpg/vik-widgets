@@ -1786,7 +1786,7 @@ async function addAgentNote(id){
   showToast('Agent note added');
 }
 
-// Deal-tagged calling: the ☏️ icon on a card, table row, or reminder opens this
+// Deal-tagged calling: the 📞 icon on a card, table row, or reminder opens this
 // modal already scoped to that specific deal, so every logged call auto-saves
 // into that deal's communication-history layer — no manual re-tagging needed.
 let callLogClientId = null;
@@ -2035,7 +2035,7 @@ function openDetail(id){
         ${renderResearchNotes(c)}
       </div>
       <div class="layer-pane" id="pane-comm">
-        <div class="hint" style="margin:6px 0;">Use the ☏️ icon on the client card or a follow-up reminder to log a call — it lands here automatically, tagged to this deal.</div>
+        <div class="hint" style="margin:6px 0;">Use the 📞 icon on the client card or a follow-up reminder to log a call — it lands here automatically, tagged to this deal.</div>
         ${renderCommHistory(c)}
       </div>
       <div class="layer-pane" id="pane-manual">

@@ -350,7 +350,6 @@
             <th>Licensing</th>
             <th>Risk</th>
             <th></th>
-            <th></th>
           </tr>
         </thead>
         <tbody id="recruitTbody"></tbody>
@@ -704,7 +703,7 @@ function renderResearchNotes(c){
 
 function renderCommHistory(c){
   const items = (c.commHistory||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-  if(items.length===0) return `<div class="note-empty">No calls or messages logged yet. Use the ☏️ icon on the lead's row to log one.</div>`;
+  if(items.length===0) return `<div class="note-empty">No calls or messages logged yet. Use the 📞 icon on the lead's row to log one.</div>`;
   return items.map(n=>`
     <div class="comm-item">
       <div class="item-meta">${escapeHtml(formatNoteTs(n.ts))}${n.direction?' · '+escapeHtml(n.direction):''}${n.author?' · '+escapeHtml(n.author):''}</div>
@@ -858,7 +857,7 @@ async function addAgentNote(id){
   showToast('Agent note added');
 }
 
-// Deal-tagged calling, mirrored from the mortgage dashboard — the ☏️ icon on
+// Deal-tagged calling, mirrored from the mortgage dashboard — the 📞 icon on
 // a table row opens this modal already scoped to that lead, so the logged
 // call auto-saves into that lead's communication-history layer.
 let callLogClientId = null;
@@ -1033,7 +1032,7 @@ function openDetail(id){
         ${renderResearchNotes(c)}
       </div>
       <div class="layer-pane" id="pane-comm">
-        <div class="item-meta" style="margin:6px 0;">Use the ☏️ icon on this lead's row to log a call — it lands here automatically.</div>
+        <div class="item-meta" style="margin:6px 0;">Use the 📞 icon on this lead's row to log a call — it lands here automatically.</div>
         ${renderCommHistory(c)}
       </div>
       <div class="layer-pane" id="pane-manual">
@@ -1505,8 +1504,7 @@ function renderRecruits(){
         <td>${pct}%</td>
         <td>${recruitLicensingLabel(r)}</td>
         <td>${recruitRiskBadge(r)}</td>
-        <td onclick="event.stopPropagation()">${r.phone ? `<button class="call-icon-btn" title="Call now from browser" onclick="startBrowserCallRecruit('${r.id}')">☎️</button>` : ''}</td>
-        <td><button class="btn ghost small" type="button" onclick="event.stopPropagation(); openRecruitDetail('${r.id}')">Edit</button></td>
+        <td onclick="event.stopPropagation()">${r.phone ? `<button class="call-icon-btn" title="Call now from browser" onclick="startBrowserCallRecruit('${r.id}')">☎️</button>` : ''} <button class="btn ghost small" type="button" onclick="openRecruitDetail('${r.id}')">Edit</button></td>
       </tr>`;
     }).join('');
 

@@ -1786,7 +1786,7 @@ async function addAgentNote(id){
   showToast('Agent note added');
 }
 
-// Deal-tagged calling: the ☏️ icon on a card, table row, or reminder opens this
+// Deal-tagged calling: the 📞 icon on a card, table row, or reminder opens this
 // modal already scoped to that specific deal, so every logged call auto-saves
 // into that deal's communication-history layer — no manual re-tagging needed.
 let callLogClientId = null;
@@ -1871,40 +1871,6 @@ function normalizePhone(raw){
   return digits ? ('+' + digits) : '';
 }
 
-async function startBrowserCallRecruit(id){
-  const r = mortgageRecruits.find(x=>x.id===id);
-  if (!r) return;
-  if (!r.phone) { showToast('No phone number on file for this recruit'); return; }
-  const dialNumber = normalizePhone(r.phone);
-  if (!dialNumber) { showToast('This recruit\'s phone number looks invalid'); return; }
-
-  const displayName = (r.firstName||'') + ' ' + (r.lastName||'');
-  showCallStatusOverlay(displayName.trim(), 'Connecting…');
-
-  try {
-    const device = await ensureTwilioDevice();
-    if (device.state !== 'registered') {
-      await new Promise((resolve) => {
-        device.once('registered', resolve);
-        device.register();
-      });
-    }
-    const conn = await device.connect({ params: { To: dialNumber } });
-    activeCallConn = conn;
-    conn.on('accept', () => updateCallStatusText('In call — recording'));
-    conn.on('disconnect', () => {
-      updateCallStatusText('Call ended — Vikram is reviewing the recording');
-      setTimeout(hideCallStatusOverlay, 2000);
-      activeCallConn = null;
-    });
-    conn.on('cancel', () => hideCallStatusOverlay());
-    conn.on('reject', () => hideCallStatusOverlay());
-  } catch (err) {
-    console.error('Call failed:', err);
-    showToast('Could not place call: ' + (err.message || 'unknown error'));
-    hideCallStatusOverlay();
-  }
-}
 async function startBrowserCall(id){
   const c = clients.find(x=>x.id===id);
   if (!c) return;
@@ -2035,7 +2001,7 @@ function openDetail(id){
         ${renderResearchNotes(c)}
       </div>
       <div class="layer-pane" id="pane-comm">
-        <div class="hint" style="margin:6px 0;">Use the ☏️ icon on the client card or a follow-up reminder to log a call — it lands here automatically, tagged to this deal.</div>
+        <div class="hint" style="margin:6px 0;">Use the 📞 icon on the client card or a follow-up reminder to log a call — it lands here automatically, tagged to this deal.</div>
         ${renderCommHistory(c)}
       </div>
       <div class="layer-pane" id="pane-manual">
@@ -2429,7 +2395,7 @@ function renderRecruits(){
       <td>${dayLabel}</td>
       <td>${r.guruAssigned && r.startDate ? '<span class="badge Approved">'+prog.green+' green</span> <span class="badge Declined">'+prog.red+' red</span>' : '—'}</td>
       <td>${r.prospects.length} / 100</td>
-      <td onclick="event.stopPropagation()"><button class="call-icon-btn" title="Call now from browser" onclick="startBrowserCallRecruit('${r.id}')">☎️</button></td>
+      <td onclick="event.stopPropagation()"><button class="call-icon-btn" title="Log a call" onclick="openRecruitCall('${r.id}')">&#128222;</button></td>
     </tr>`;
   }).join('');
 
@@ -2682,7 +2648,7 @@ function openRecruitDetail(id){
   wrap.innerHTML = `
     <button class="btn secondary small" onclick="closeRecruitDetail()" style="margin-bottom:16px;">← Back to recruits</button>
     <button class="btn secondary small" onclick="openEditRecruitForm('${r.id}')" style="margin-bottom:16px; margin-left:8px;">Edit details</button>
-    <button class="btn secondary small" style="margin-bottom:16px;margin-left:8px;" onclick="startBrowserCallRecruit('${r.id}')">☎️ Call now</button>
+    <button class="btn secondary small" style="margin-bottom:16px;margin-left:8px;" onclick="openRecruitCall('${r.id}')">&#128222; Log a call</button>
     <button class="btn secondary small" style="margin-bottom:16px;margin-left:8px;" onclick="openRecruitLogin('${r.id}')">&#128273; Login link</button>
     <h1 style="margin-bottom:4px;">${escapeHtml(r.firstName+' '+r.lastName)}</h1>
     <dl class="detail">

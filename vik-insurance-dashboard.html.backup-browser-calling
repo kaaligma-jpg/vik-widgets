@@ -156,7 +156,7 @@
   .detail .sechead{ font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--brass); font-weight:700; margin:20px 0 4px; border-top:1px solid var(--line); padding-top:14px; }
   .detail .sechead:first-of-type{ border-top:none; padding-top:0; margin-top:14px; }
 
-  .call-icon-btn{ all:unset; cursor:pointer; width:30px; height:30px; border-radius:50%; background:#FBE4E4; color:#C62828; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; text-decoration:none; }
+  .call-icon-btn{ all:unset; cursor:pointer; width:30px; height:30px; border-radius:50%; background:#EAF4EC; color:#2E7D32; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; text-decoration:none; }
   .call-icon-btn:hover{ background:#D7EBDA; }
 
   /* ---- Notes & history layers (mirrors the mortgage dashboard's detail panel) ---- */
@@ -350,7 +350,6 @@
             <th>Licensing</th>
             <th>Risk</th>
             <th></th>
-            <th></th>
           </tr>
         </thead>
         <tbody id="recruitTbody"></tbody>
@@ -363,7 +362,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="twilio-voice-sdk.min.js"></script>
 <script>
 const ENDPOINT = 'https://fincop-backend.onrender.com/app-data/insurance-clients';
 const RECRUIT_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/insurance-recruits';
@@ -704,7 +702,7 @@ function renderResearchNotes(c){
 
 function renderCommHistory(c){
   const items = (c.commHistory||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-  if(items.length===0) return `<div class="note-empty">No calls or messages logged yet. Use the ☏️ icon on the lead's row to log one.</div>`;
+  if(items.length===0) return `<div class="note-empty">No calls or messages logged yet. Use the 📞 icon on the lead's row to log one.</div>`;
   return items.map(n=>`
     <div class="comm-item">
       <div class="item-meta">${escapeHtml(formatNoteTs(n.ts))}${n.direction?' · '+escapeHtml(n.direction):''}${n.author?' · '+escapeHtml(n.author):''}</div>
@@ -858,7 +856,7 @@ async function addAgentNote(id){
   showToast('Agent note added');
 }
 
-// Deal-tagged calling, mirrored from the mortgage dashboard — the ☏️ icon on
+// Deal-tagged calling, mirrored from the mortgage dashboard — the 📞 icon on
 // a table row opens this modal already scoped to that lead, so the logged
 // call auto-saves into that lead's communication-history layer.
 let callLogClientId = null;
@@ -956,7 +954,7 @@ function render(){
       <td>${escapeHtml(c.insuranceStatus)||'—'}</td>
       <td>${escapeHtml(c.retirementStatus)||'—'}</td>
       <td>${escapeHtml(c.stage)||'—'}</td>
-      <td>${c.phone ? `<button class="call-icon-btn" title="Call now from browser" onclick="event.stopPropagation(); startBrowserCall('${c.id}')">☎️</button>` : '—'}</td>
+      <td>${c.phone ? `<button class="call-icon-btn" title="Log a call for this lead" onclick="event.stopPropagation(); openLogCall('${c.id}')">📞</button>` : '—'}</td>
     </tr>`;
   }).join('');
 
@@ -1033,7 +1031,7 @@ function openDetail(id){
         ${renderResearchNotes(c)}
       </div>
       <div class="layer-pane" id="pane-comm">
-        <div class="item-meta" style="margin:6px 0;">Use the ☏️ icon on this lead's row to log a call — it lands here automatically.</div>
+        <div class="item-meta" style="margin:6px 0;">Use the 📞 icon on this lead's row to log a call — it lands here automatically.</div>
         ${renderCommHistory(c)}
       </div>
       <div class="layer-pane" id="pane-manual">
@@ -1505,7 +1503,6 @@ function renderRecruits(){
         <td>${pct}%</td>
         <td>${recruitLicensingLabel(r)}</td>
         <td>${recruitRiskBadge(r)}</td>
-        <td onclick="event.stopPropagation()">${r.phone ? `<button class="call-icon-btn" title="Call now from browser" onclick="startBrowserCallRecruit('${r.id}')">☎️</button>` : ''}</td>
         <td><button class="btn ghost small" type="button" onclick="event.stopPropagation(); openRecruitDetail('${r.id}')">Edit</button></td>
       </tr>`;
     }).join('');
@@ -2038,136 +2035,6 @@ populateFilters();
 loadClients();
 loadRecruits();
 renderGuruChat();
-
-// ===== Browser voice calling (added by fix-insurance-browser-calling.js) =====
-let twilioDevice = null;
-let activeCallConn = null;
-let activeCallClientId = null;
-
-async function ensureTwilioDevice(){
-  if (twilioDevice) return twilioDevice;
-  const res = await fetch('https://fincop-backend.onrender.com/token?identity=vik');
-  const data = await res.json();
-  twilioDevice = new Twilio.Device(data.token, { logLevel: 1 });
-  twilioDevice.on('error', (err) => {
-    console.error('Twilio Device error:', err);
-    showToast('Call error: ' + (err.message || 'unknown error'));
-  });
-  return twilioDevice;
-}
-
-function showCallStatusOverlay(name, status){
-  let box = document.getElementById('browserCallStatusBox');
-  if (!box) {
-    box = document.createElement('div');
-    box.id = 'browserCallStatusBox';
-    box.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#111;color:#fff;padding:16px 20px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:9999;min-width:220px;font-family:inherit;';
-    document.body.appendChild(box);
-  }
-  box.innerHTML = `
-    <div style="font-weight:600;margin-bottom:6px;">${escapeHtml(name)}</div>
-    <div id="browserCallStatusText" style="opacity:.85;margin-bottom:10px;">${escapeHtml(status)}</div>
-    <button class="btn secondary" style="width:100%;" onclick="hangupBrowserCall()">Hang up</button>
-  `;
-  box.style.display = 'block';
-}
-function updateCallStatusText(text){
-  const el = document.getElementById('browserCallStatusText');
-  if (el) el.textContent = text;
-}
-function hideCallStatusOverlay(){
-  const box = document.getElementById('browserCallStatusBox');
-  if (box) box.style.display = 'none';
-}
-
-function normalizePhone(raw){
-  if (!raw) return '';
-  let digits = raw.toString().replace(/[^0-9+]/g, '');
-  const hasPlus = digits.startsWith('+');
-  digits = digits.replace(/\+/g, '');
-  if (hasPlus) return '+' + digits;
-  if (digits.length === 10) return '+1' + digits;
-  if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
-  return digits ? ('+' + digits) : '';
-}
-
-async function startBrowserCall(id){
-  const c = clients.find(x=>x.id===id);
-  if (!c) return;
-  if (!c.phone) { showToast('No phone number on file for this client'); return; }
-  const dialNumber = normalizePhone(c.phone);
-  if (!dialNumber) { showToast('This client\'s phone number looks invalid'); return; }
-
-  activeCallClientId = id;
-  showCallStatusOverlay(c.name, 'Connecting…');
-
-  try {
-    const device = await ensureTwilioDevice();
-    if (device.state !== 'registered') {
-      await new Promise((resolve) => {
-        device.once('registered', resolve);
-        device.register();
-      });
-    }
-    const conn = await device.connect({ params: { To: dialNumber } });
-    activeCallConn = conn;
-    conn.on('accept', () => updateCallStatusText('In call — recording'));
-    conn.on('disconnect', () => {
-      updateCallStatusText('Call ended — Vikram is reviewing the recording');
-      setTimeout(hideCallStatusOverlay, 2000);
-      activeCallConn = null;
-    });
-    conn.on('cancel', () => hideCallStatusOverlay());
-    conn.on('reject', () => hideCallStatusOverlay());
-  } catch (err) {
-    console.error('Call failed:', err);
-    showToast('Could not place call: ' + (err.message || 'unknown error'));
-    hideCallStatusOverlay();
-  }
-}
-
-async function startBrowserCallRecruit(id){
-  const r = recruits.find(x=>x.id===id);
-  if (!r) return;
-  if (!r.phone) { showToast('No phone number on file for this recruit'); return; }
-  const dialNumber = normalizePhone(r.phone);
-  if (!dialNumber) { showToast('This recruit\'s phone number looks invalid'); return; }
-
-  showCallStatusOverlay(r.name || 'Recruit', 'Connecting…');
-
-  try {
-    const device = await ensureTwilioDevice();
-    if (device.state !== 'registered') {
-      await new Promise((resolve) => {
-        device.once('registered', resolve);
-        device.register();
-      });
-    }
-    const conn = await device.connect({ params: { To: dialNumber } });
-    activeCallConn = conn;
-    conn.on('accept', () => updateCallStatusText('In call — recording'));
-    conn.on('disconnect', () => {
-      updateCallStatusText('Call ended — Vikram is reviewing the recording');
-      setTimeout(hideCallStatusOverlay, 2000);
-      activeCallConn = null;
-    });
-    conn.on('cancel', () => hideCallStatusOverlay());
-    conn.on('reject', () => hideCallStatusOverlay());
-  } catch (err) {
-    console.error('Call failed:', err);
-    showToast('Could not place call: ' + (err.message || 'unknown error'));
-    hideCallStatusOverlay();
-  }
-}
-
-function hangupBrowserCall(){
-  if (activeCallConn) {
-    activeCallConn.disconnect();
-  } else if (twilioDevice) {
-    twilioDevice.disconnectAll();
-  }
-  hideCallStatusOverlay();
-}
 </script>
 </body>
 </html>

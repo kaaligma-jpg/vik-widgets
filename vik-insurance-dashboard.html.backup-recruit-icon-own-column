@@ -350,7 +350,6 @@
             <th>Licensing</th>
             <th>Risk</th>
             <th></th>
-            <th></th>
           </tr>
         </thead>
         <tbody id="recruitTbody"></tbody>
@@ -1505,8 +1504,7 @@ function renderRecruits(){
         <td>${pct}%</td>
         <td>${recruitLicensingLabel(r)}</td>
         <td>${recruitRiskBadge(r)}</td>
-        <td onclick="event.stopPropagation()">${r.phone ? `<button class="call-icon-btn" title="Call now from browser" onclick="startBrowserCallRecruit('${r.id}')">☎️</button>` : ''}</td>
-        <td><button class="btn ghost small" type="button" onclick="event.stopPropagation(); openRecruitDetail('${r.id}')">Edit</button></td>
+        <td onclick="event.stopPropagation()">${r.phone ? `<button class="call-icon-btn" title="Call now from browser" onclick="startBrowserCallRecruit('${r.id}')">☎️</button>` : ''} <button class="btn ghost small" type="button" onclick="openRecruitDetail('${r.id}')">Edit</button></td>
       </tr>`;
     }).join('');
 
