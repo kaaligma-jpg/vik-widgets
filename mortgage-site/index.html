@@ -983,7 +983,7 @@
 
     async function pushInsuranceCrossReferral(mortgageDealCode) {
       const needsInsurance = qLife === 'No';
-      const needsRetirement = qRetirement === 'No';
+      const needsRetirement = (qRetirement === 'No' || qEducation === 'No' || qTfsa === 'No');
       if (!needsInsurance && !needsRetirement) return;
       const endpoint = 'https://fincop-backend.onrender.com/app-data/insurance-clients';
       const res = await fetch(endpoint);
@@ -993,6 +993,11 @@
       if (needsInsurance && needsRetirement) gaps.push('Both');
       else if (needsInsurance) gaps.push('Insurance');
       else if (needsRetirement) gaps.push('Investment');
+      const investmentGapList = [
+        qRetirement === 'No' ? 'no retirement plan' : null,
+        qEducation === 'No' ? 'no education plan for children' : null,
+        qTfsa === 'No' ? 'no TFSA/FHSA account' : null
+      ].filter(Boolean).join(', ');
       gaps.forEach((category) => {
         const dealCode = 'vinc 1' + String(insClients.length + 1).padStart(4, '0');
         insClients.push({
@@ -1003,7 +1008,7 @@
           insuranceStatus: (category === 'Insurance' || category === 'Both') ? 'No' : '',
           retirementStatus: (category === 'Investment' || category === 'Both') ? 'No' : '',
           sourceAgent: 'Website Form',
-          sourceNotes: `Cross-referred from a mortgage application (${mortgageDealCode}) — client said they don't have ${category === 'Both' ? 'life insurance or a retirement/investment plan' : (category === 'Insurance' ? 'life insurance' : 'a retirement/investment plan')}. Education plan: ${qEducation || '—'}; TFSA/FHSA: ${qTfsa || '—'}.`,
+          sourceNotes: `Cross-referred from a mortgage application (${mortgageDealCode}) — client said they don't have ${category === 'Both' ? 'life insurance, and ' + investmentGapList : (category === 'Insurance' ? 'life insurance' : investmentGapList)}.`,
           linkedMortgageDealCode: mortgageDealCode
         });
       });
