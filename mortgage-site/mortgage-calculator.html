@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<!--
+  Vikas Sharma / Dream Home + Life — mortgage & insurance premium calculator.
+  Own build, not an embed of CMHC/lender tools. CMHC's official premium table
+  (cmhc-schl.gc.ca) is reproduced factually below with a citation and date.
+  Estimates only — not a rate quote or commitment.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mortgage Payment &amp; Insurance Premium Calculator | Dream Home + Life</title>
+<meta name="description" content="Estimate your mortgage payment, minimum down payment, and CMHC/Sagen/Canada Guaranty default insurance premium — free calculator by Vikas Sharma, Dream Home + Life.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSI5MCA4MCAyNzAgMjIwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMTY1LjY0OSAyNDAuMzE2TDE2NS42NDkgMjkwLjQwNkMxNjUuNjQ5IDI5MC40MDYgMTUwLjUwMyAyOTAuMzgyIDE0OS4xODYgMjc0Ljg4MUwxNDkuMTg2IDI1OS44NjFMMTY1LjY0OSAyNDAuMzE2WiIgZmlsbD0iIzExOEM0RiIvPgo8cGF0aCBkPSJNMjAyLjkxMyAyMTYuMTM2TDIwMi45MTMgMjkwLjQxMUgxODYuMDMzTDE4Ni4wMzMgMjE3Ljk2N0wxOTQuNDc2IDIwNy4xMzJMMjAyLjkxMyAyMTYuMTM2WiIgZmlsbD0iIzQ0QzdGNSIvPgo8cGF0aCBkPSJNMjc2LjIxMSAyMTguOTVMMjc2LjIxMSAyOTAuNDExSDI1OS45MjNMMjU5LjkyMyAyMzIuMzQyTDI3Ni4yMTEgMjE4Ljk1WiIgZmlsbD0iIzAzNTZBMiIvPgo8cGF0aCBkPSJNMjIyLjc1NyAyMjguOTk4TDIyMi43NTcgMjkwLjIyMUgyMzkuMjJMMjM5LjIyIDI0MS44NkwyMjIuNzU3IDIyOC45OThaIiBmaWxsPSIjMjZBOUUwIi8+CjxwYXRoIGQ9Ik0zMTIuNzkxIDE4NC4yMzdMMzEyLjc5MSAyNzQuNTU4QzMxMi43OTEgMjc0LjU1OCAzMTIuMjc2IDI5MC42NyAyOTYuODQyIDI5MC4yMTFMMjk2Ljg0MiAyMDAuMjZMMzEyLjc5MSAxODQuMjM3WiIgZmlsbD0iIzI3M0Q3QyIvPgo8cGF0aCBkPSJNMTM3LjM5OSAxMDUuMzU3SDEyOC4xMzhMMTI4LjEzOCAxMTQuNjE4SDEzNy4zOTlMMTM3LjM5OSAxMDUuMzU3WiIgZmlsbD0iIzQ0QzdGNiIvPgo8cGF0aCBkPSJNMTYzLjkgMTAzLjk3OEgxNTQuNjM5TDE1NC42MzkgMTEzLjIzOUgxNjMuOUwxNjMuOSAxMDMuOTc4WiIgZmlsbD0iIzI3QUFERiIvPgo8cGF0aCBkPSJNMTU5LjgyNSAxMTkuOTQzSDE0My4wMTJMMTQzLjAxMiAxMzYuNzU2SDE1OS44MjVMMTU5LjgyNSAxMTkuOTQzWiIgZmlsbD0iIzI2QTlFMCIvPgo8cGF0aCBkPSJNMTU5LjUzMiAxNDcuNzU1SDEzOS4yMzZMMTM5LjIzNiAxNjguMDUySDE1OS41MzJMMTU5LjUzMiAxNDcuNzU1WiIgZmlsbD0iIzExOEM0RiIvPgo8cGF0aCBkPSJNMTkzLjE1OCAxMTguMTMySDE3Mi43MzNMMTcyLjczMyAxMzguNTU3SDE5My4xNThMMTkzLjE1OCAxMTguMTMyWiIgZmlsbD0iIzAzNTZBMiIvPgo8cGF0aCBkPSJNMTE5Ljg2IDI3OC4zNTdMMTQ5LjQ0OCAyMzMuNTNMMTQ5LjQ0OCAxNzkuODdIMTcwLjcyN0wxNzAuNzI3IDE0OC44NjdIMjA0Ljc1TDIwNC43NSAxMjYuMzM4SDI4Mi41ODFDMjgyLjU4MSAxMjYuMzM4IDMxMS42NzUgMTI3LjIyMyAzMTMuMzUyIDE1Ni40ODZMMzQ0Ljk0NyAxMzMuMTM5TDI5Ny4yOTUgMTgzLjYxNUwyNDEuMzM1IDIzMC41NDFMMTk0LjQ2IDE5MS40NEwxMTkuODYgMjc4LjM1N1oiIGZpbGw9IiMyNzNFN0MiLz4KPG1hc2sgaWQ9Im1hc2swXzExN183IiBzdHlsZT0ibWFzay10eXBlOmFscGhhIiBtYXNrVW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4PSIxMTkiIHk9IjEyNiIgd2lkdGg9IjIyNiIgaGVpZ2h0PSIxNTMiPgo8cGF0aCBkPSJNMTE5Ljg2IDI3OC4xMkwxNDkuNDQ4IDIzMy4yOTNMMTQ5LjQ0OCAxNzkuNjMzSDE3MC43MjdMMTcwLjcyNyAxNDguNjNIMjA0Ljc1TDIwNC43NSAxMjYuMTAxSDI4Mi41ODFDMjgyLjU4MSAxMjYuMTAxIDMxMS42NzUgMTI2Ljk4NiAzMTMuMzUyIDE1Ni4yNUwzNDQuNjg5IDEzMy4wNjdMMjk3LjI5NSAxODMuMzc4TDI0MC43NjQgMjMxLjA3NkwxOTQuNDQgMTkyLjI0OEwxMTkuODYgMjc4LjEyWiIgZmlsbD0iIzI3M0U3QyIvPgo8L21hc2s+CjxnIG1hc2s9InVybCgjbWFzazBfMTE3XzcpIj4KPGVsbGlwc2UgY3g9IjIzOS4zODIiIGN5PSIxODUuMjUiIHJ4PSI1NS41NjQxIiByeT0iNzYuMTQzNCIgdHJhbnNmb3JtPSJyb3RhdGUoLTE2LjM1OTcgMjM5LjM4MiAxODUuMjUpIiBmaWxsPSIjMDM1NkEyIi8+CjxlbGxpcHNlIGN4PSIyMTkuNDg2IiBjeT0iMTkyLjAxMiIgcng9IjU1LjU2NDEiIHJ5PSI3Ni4xNDM0IiB0cmFuc2Zvcm09InJvdGF0ZSgtMTMuMDU2MyAyMTkuNDg2IDE5Mi4wMTIpIiBmaWxsPSIjMjZBOUUwIi8+CjxwYXRoIGQ9Ik0yMTguODk4IDE1My44NjhDMjQ1Ljg5NyAxOTcuNTA3IDI0Ni41OTggMjQ1Ljk5MiAyMjAuNDYyIDI2Mi4xNjJDMTk0LjMyNyAyNzguMzMxIDE1MS41IDI1Ni4wMTkgMTI0LjUwMSAyMTIuMzc5Qzk3LjUwMTggMTY4Ljc0IDk2LjgwMTYgMTIwLjI1NSAxMjIuOTM3IDEwNC4wODZDMTQ5LjA3MiA4Ny45MTYgMTkxLjg5OSAxMTAuMjI4IDIxOC44OTggMTUzLjg2OFoiIGZpbGw9IiM0NEM3RjUiLz4KPGVsbGlwc2UgY3g9IjE0My4zNzgiIGN5PSIxOTkuMjcyIiByeD0iNTUuNTY0MSIgcnk9Ijc2LjE0MzQiIHRyYW5zZm9ybT0icm90YXRlKC0zMS43NDQ0IDE0My4zNzggMTk5LjI3MikiIGZpbGw9IiM4REQ4RjgiLz4KPHBhdGggZD0iTTE0MS43MzEgMjAyLjUyMkMxNDEuNzMxIDIwMi41MjIgMTYzLjUzNSAyMDkuNzE1IDE2NS40NDMgMjMzLjg0OUwxMzguNjc1IDMyOC40MzJDMTM4LjY3NSAzMjguNDMyIDI3LjI1MzIgMzEyLjQ3MiAyNy4yNTMyIDMwNi4yNjNDMjcuMjUzMiAzMDAuMDUzIDUzLjI2MDMgMjMwLjI1OCA1My4yNjAzIDIzMC4yNThMMTIyLjAyNiAyMDkuNDIxTDE0MS43MzEgMjAyLjUyMloiIGZpbGw9IiMxMThDNEYiLz4KPC9nPgo8cGF0aCBkPSJNMTQ5LjE4NiAyNzQuMjcySDE2NS42NDlMMTY1LjY0OSAyOTAuNDc4SDE0OS40NDNMMTQ5LjE4NiAyNzQuMjcyWiIgZmlsbD0iIzExOEM0RiIvPgo8cGF0aCBkPSJNMjk2LjU4NSAyNzQuMjcySDMxMi43OTFMMzEyLjc5MSAyOTAuNDc4SDI5Ni41NDlMMjk2LjU4NSAyNzQuMjcyWiIgZmlsbD0iIzI3M0Q3QyIvPgo8L3N2Zz4K">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --fir-950:#0F1620; --fir-900:#1B2A3F; --fir-700:#48566B; --fir-500:#8593A6;
+    --stone-100:#F2F1EC; --stone-200:#E7E5DD; --stone-50:#FFFFFF;
+    --brass-600:#D98F1E; --brass-500:#E8A63C; --brass-200:#F6D9A3;
+    --line:#E1DFD7; --radius:14px; --teal:#1F8A72;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 1400px 900px at 90% -5%, rgba(217,143,30,0.045), transparent 60%),
+      radial-gradient(ellipse 1200px 800px at -5% 50%, rgba(27,42,63,0.035), transparent 55%),
+      var(--stone-100);
+    background-attachment:fixed;
+    color:var(--fir-900);font-family:'Inter',sans-serif;font-size:16.5px;line-height:1.6}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:-.02em;margin:0}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 28px}
+  @media(max-width:640px){.wrap{padding:0 20px}}
+  header{border-bottom:1px solid var(--line);padding:22px 0}
+  .brand{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.1rem;color:var(--fir-900);text-decoration:none}
+  .brand-logo{height:44px;width:auto;display:block}
+  @media(max-width:640px){.brand-logo{height:36px}}
+
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-600)}
+  main{padding:40px 0 70px}
+  h1.title{font-size:clamp(1.7rem,3.6vw,2.3rem);line-height:1.15;margin:8px 0 10px}
+  p.lede{color:var(--fir-700);max-width:64ch;margin:0 0 32px}
+
+  .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  @media(max-width:860px){.calc-grid{grid-template-columns:1fr}}
+
+  .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px 26px 22px}
+  .panel h2{font-size:1.15rem;margin-bottom:18px}
+  .field{margin-bottom:18px}
+  .field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--fir-500);margin-bottom:6px}
+  .field .hint{font-size:.82rem;color:var(--fir-500);margin-top:5px}
+  .field input[type=number], .field select{
+    width:100%;font:inherit;font-size:1.05rem;padding:11px 13px;
+    border:1px solid var(--line);border-radius:8px;background:var(--stone-100);color:var(--fir-900);
+  }
+  .field input:focus, .field select:focus{outline:2px solid var(--brass-500);outline-offset:1px;background:#fff}
+  .radio-row{display:flex;gap:10px}
+  .radio-row label{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+    border:1px solid var(--line);border-radius:8px;padding:10px 8px;font-size:.92rem;
+    cursor:pointer;background:var(--stone-100);text-transform:none;letter-spacing:0;font-family:'Inter',sans-serif;color:var(--fir-900);
+  }
+  .radio-row input{accent-color:var(--brass-600)}
+  .radio-row label.active{border-color:var(--brass-600);background:var(--brass-200)}
+
+  .results{background:var(--fir-900);color:#fff;border-radius:var(--radius);padding:26px 26px 22px;position:sticky;top:20px}
+  .results h2{color:#fff;font-size:1.15rem;margin-bottom:6px}
+  .results .sub{color:#c9d3de;font-size:.86rem;margin-bottom:20px}
+  .rrow{display:flex;justify-content:space-between;align-items:baseline;padding:11px 0;border-top:1px solid rgba(255,255,255,.12)}
+  .rrow:first-of-type{border-top:none}
+  .rrow .l{color:#c9d3de;font-size:.9rem}
+  .rrow .v{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.05rem}
+  .rrow.big .v{font-size:1.5rem;color:var(--brass-500)}
+  .flag{
+    margin-top:16px;padding:12px 14px;border-radius:8px;font-size:.86rem;line-height:1.5;
+    background:rgba(217,143,30,.14);color:var(--brass-200);
+  }
+  .flag.ok{background:rgba(31,138,114,.16);color:#7fd9c1}
+  .cta{
+    display:block;text-align:center;margin-top:20px;background:var(--brass-600);color:var(--fir-950);
+    font-weight:600;text-decoration:none;padding:13px 18px;border-radius:8px;font-size:.98rem;
+  }
+  .cta:hover{background:var(--brass-500)}
+
+  section.table-section{margin-top:56px;border-top:1px solid var(--line);padding-top:36px}
+  section.table-section h2{font-size:1.35rem;margin-bottom:8px}
+  section.table-section p.lede{margin-bottom:20px}
+  table.premium-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  table.premium-table th, table.premium-table td{padding:12px 16px;text-align:left;font-size:.94rem;border-bottom:1px solid var(--line)}
+  table.premium-table th{background:var(--fir-900);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.74rem;text-transform:uppercase;letter-spacing:.04em}
+  table.premium-table tr:last-child td{border-bottom:none}
+  table.premium-table tr.highlight td{background:var(--brass-200)}
+  .src{font-family:'IBM Plex Mono',monospace;font-size:.76rem;color:var(--fir-500);margin-top:10px;display:block}
+  .src a{color:var(--fir-700)}
+
+  .not-advice{
+    background:#fff;border:1px solid var(--line);border-left:3px solid var(--brass-600);
+    padding:14px 16px;font-size:.88rem;color:var(--fir-700);margin:24px 0;border-radius:4px;
+  }
+  footer{border-top:1px solid var(--line);background:#eaeae5;padding:32px 0 40px;font-size:.85rem;color:var(--fir-700)}
+  footer p{max-width:64ch;margin:0 0 8px}
+
+  .more-resources{border-top:1px solid var(--line);padding:32px 0}
+  .more-resources h2{font-size:1.1rem;margin-bottom:14px}
+  .more-resources .links{display:flex;flex-wrap:wrap;gap:10px}
+  .more-resources a{
+    font-family:'IBM Plex Mono',monospace;font-size:.85rem;color:var(--fir-900);
+    border:1px solid var(--line);border-radius:100px;padding:9px 16px;text-decoration:none;background:#fff;
+  }
+  .more-resources a:hover{border-color:var(--brass-600);color:var(--brass-600)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap"><a href="index.html" class="brand"><svg class="brand-logo" viewBox="0 0 1174 393" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dream Home + Life">
+<path d="M403.623 139.574C411.024 139.574 417.338 141.032 422.565 143.95C427.793 146.868 431.628 150.979 434.07 156.284C436.587 161.522 437.483 167.589 436.758 174.485C436.04 181.315 433.869 187.383 430.244 192.687C426.686 197.992 421.954 202.103 416.046 205.021C410.206 207.939 403.618 209.397 396.284 209.397H369.981L377.32 139.574H403.623ZM396.731 194.677C403.199 194.677 408.417 192.92 412.387 189.405C416.357 185.891 418.68 180.918 419.356 174.485C420.032 168.053 418.758 163.047 415.534 159.466C412.31 155.886 407.464 154.095 400.996 154.095H392.895L388.63 194.677H396.731ZM478.45 209.397L466.619 183.039H462.518L459.748 209.397H442.646L449.985 139.574H478.688C484.222 139.574 488.822 140.535 492.487 142.458C496.218 144.381 498.873 147.033 500.451 150.415C502.036 153.731 502.613 157.444 502.181 161.555C501.693 166.197 499.924 170.341 496.874 173.988C493.89 177.635 489.751 180.221 484.457 181.746L497.753 209.397H478.45ZM463.783 171.004H474.385C477.518 171.004 479.932 170.242 481.626 168.717C483.386 167.191 484.413 165.036 484.706 162.251C484.984 159.599 484.404 157.51 482.964 155.985C481.591 154.46 479.337 153.697 476.204 153.697H465.602L463.783 171.004ZM530.897 153.2L529.412 167.324H552.315L550.935 180.453H528.032L526.422 195.771H552.326L550.893 209.397H507.888L515.227 139.574H558.232L556.8 153.2H530.897ZM606.998 197.064H580.795L575.298 209.397H557.396L590.137 139.574H609.94L628.004 209.397H609.902L606.998 197.064ZM603.977 183.935L597.963 158.372L586.675 183.935H603.977ZM722.584 139.574L715.245 209.397H698.143L702.544 167.523L682.441 209.397H668.639L657.249 167.424L652.838 209.397H635.736L643.074 139.574H663.277L677.898 187.913L702.481 139.574H722.584ZM816.883 139.574L809.545 209.397H792.443L795.464 180.652H768.861L765.839 209.397H748.737L756.076 139.574H773.178L770.303 166.926H796.907L799.781 139.574H816.883ZM855.022 210.094C848.421 210.094 842.514 208.569 837.3 205.518C832.153 202.468 828.232 198.224 825.537 192.787C822.915 187.283 821.963 181.116 822.681 174.287C823.398 167.457 825.643 161.323 829.415 155.886C833.254 150.448 838.067 146.205 843.855 143.154C849.71 140.104 855.937 138.579 862.538 138.579C869.139 138.579 875.013 140.104 880.159 143.154C885.373 146.205 889.261 150.448 891.823 155.886C894.452 161.323 895.407 167.457 894.689 174.287C893.971 181.116 891.723 187.283 887.944 192.787C884.172 198.224 879.392 202.468 873.605 205.518C867.817 208.569 861.622 210.094 855.022 210.094ZM856.652 194.577C862.253 194.577 866.915 192.721 870.639 189.007C874.43 185.294 876.646 180.387 877.287 174.287C877.935 168.12 876.751 163.213 873.734 159.566C870.79 155.853 866.518 153.996 860.918 153.996C855.25 153.996 850.525 155.819 846.741 159.466C843.024 163.113 840.838 168.053 840.183 174.287C839.535 180.453 840.682 185.393 843.626 189.107C846.643 192.754 850.985 194.577 856.652 194.577ZM987.362 139.574L980.023 209.397H962.921L967.322 167.523L947.219 209.397H933.417L922.027 167.424L917.615 209.397H900.513L907.852 139.574H928.055L942.676 187.913L967.259 139.574H987.362ZM1015.33 153.2L1013.85 167.324H1036.75L1035.37 180.453H1012.47L1010.86 195.771H1036.76L1035.33 209.397H992.321L999.66 139.574H1042.67L1041.23 153.2H1015.33Z" fill="#273E7C"/>
+<path d="M956.936 273.352H945.151L942.303 285.807H935.626L938.504 273.352H926.781L928.174 267.416H939.867L942.708 255.022H949.354L946.513 267.416H958.329L956.936 273.352ZM986.34 283.757L984.692 290.948H960.107L970.281 246.545H979.174L970.647 283.757H986.34ZM1004.34 259.398L997.244 290.948H988.875L995.975 259.398H1004.34ZM1007.13 250.432C1007.06 251.146 1006.83 251.809 1006.46 252.421C1006.11 253.033 1005.66 253.574 1005.12 254.043C1004.6 254.512 1004.01 254.879 1003.35 255.144C1002.7 255.41 1002.05 255.542 1001.4 255.542C1000.74 255.542 1000.12 255.41 999.53 255.144C998.963 254.879 998.468 254.512 998.046 254.043C997.644 253.574 997.332 253.033 997.109 252.421C996.906 251.809 996.843 251.146 996.918 250.432C996.991 249.738 997.203 249.085 997.554 248.473C997.908 247.841 998.335 247.29 998.836 246.821C999.357 246.352 999.929 245.984 1000.55 245.719C1001.2 245.434 1001.85 245.291 1002.5 245.291C1003.18 245.291 1003.81 245.423 1004.4 245.689C1005.01 245.954 1005.52 246.321 1005.95 246.79C1006.37 247.26 1006.69 247.81 1006.91 248.443C1007.13 249.055 1007.21 249.718 1007.13 250.432ZM1020.23 265.457L1014.77 289.541L1012.56 295.11C1012.1 296.191 1011.49 297.028 1010.76 297.619C1010.04 298.211 1009.06 298.507 1007.83 298.507H1004.42L1011.89 265.488L1009.75 265.029C1009.23 264.886 1008.82 264.662 1008.53 264.356C1008.23 264.029 1008.16 263.56 1008.31 262.948L1009.09 259.582H1013.25L1013.71 257.501C1014.13 255.706 1014.78 254.084 1015.67 252.635C1016.58 251.166 1017.67 249.932 1018.92 248.932C1020.2 247.912 1021.62 247.127 1023.2 246.576C1024.77 246.025 1026.44 245.75 1028.21 245.75C1028.88 245.75 1029.52 245.801 1030.1 245.903C1030.71 245.984 1031.3 246.117 1031.87 246.301L1030.65 250.646C1030.5 251.115 1030.18 251.421 1029.69 251.564C1029.2 251.687 1028.7 251.748 1028.16 251.748C1027.36 251.748 1026.61 251.85 1025.91 252.054C1025.24 252.258 1024.63 252.605 1024.08 253.094C1023.54 253.563 1023.06 254.186 1022.65 254.961C1022.25 255.716 1021.92 256.644 1021.69 257.746L1021.28 259.582H1028.08L1026.66 265.457H1020.23ZM1043.49 264.753C1042.58 264.753 1041.71 264.947 1040.87 265.335C1040.03 265.702 1039.25 266.232 1038.52 266.926C1037.81 267.599 1037.16 268.415 1036.57 269.374C1035.98 270.333 1035.46 271.404 1035.03 272.587C1037.34 272.261 1039.22 271.914 1040.65 271.547C1042.1 271.159 1043.23 270.751 1044.04 270.323C1044.87 269.874 1045.43 269.395 1045.73 268.885C1046.05 268.375 1046.24 267.824 1046.3 267.232C1046.33 266.946 1046.3 266.661 1046.21 266.375C1046.12 266.069 1045.96 265.804 1045.74 265.58C1045.52 265.335 1045.22 265.141 1044.84 264.998C1044.47 264.835 1044.02 264.753 1043.49 264.753ZM1033.79 278.004C1033.29 282.676 1035.03 285.012 1038.99 285.012C1040.3 285.012 1041.38 284.848 1042.24 284.522C1043.12 284.175 1043.87 283.808 1044.51 283.42C1045.15 283.012 1045.73 282.645 1046.26 282.319C1046.8 281.972 1047.41 281.798 1048.06 281.798C1048.35 281.798 1048.61 281.87 1048.84 282.013C1049.1 282.135 1049.31 282.308 1049.49 282.533L1051.38 285.103C1050.15 286.205 1048.98 287.154 1047.85 287.949C1046.72 288.724 1045.56 289.377 1044.38 289.908C1043.2 290.418 1041.98 290.795 1040.72 291.04C1039.47 291.285 1038.1 291.407 1036.62 291.407C1034.76 291.407 1033.09 291.091 1031.61 290.459C1030.14 289.826 1028.91 288.939 1027.93 287.796C1026.96 286.633 1026.25 285.246 1025.81 283.634C1025.39 282.002 1025.28 280.187 1025.49 278.187C1025.66 276.515 1026.02 274.882 1026.56 273.291C1027.09 271.7 1027.79 270.19 1028.63 268.762C1029.48 267.334 1030.46 266.028 1031.57 264.845C1032.7 263.641 1033.95 262.611 1035.31 261.754C1036.67 260.877 1038.13 260.194 1039.68 259.704C1041.25 259.214 1042.88 258.97 1044.59 258.97C1046.25 258.97 1047.69 259.214 1048.91 259.704C1050.15 260.173 1051.16 260.796 1051.94 261.571C1052.73 262.326 1053.28 263.172 1053.62 264.111C1053.97 265.049 1054.09 265.988 1054 266.926C1053.85 268.334 1053.42 269.629 1052.73 270.812C1052.03 271.996 1050.91 273.057 1049.38 273.995C1047.84 274.913 1045.81 275.709 1043.28 276.382C1040.75 277.035 1037.59 277.545 1033.79 277.912L1033.79 278.004Z" fill="#0356A2"/>
+<path d="M165.649 240.316L165.649 290.406C165.649 290.406 150.503 290.382 149.186 274.881L149.186 259.861L165.649 240.316Z" fill="#118C4F"/>
+<path d="M202.913 216.136L202.913 290.411H186.033L186.033 217.967L194.476 207.132L202.913 216.136Z" fill="#44C7F5"/>
+<path d="M276.211 218.95L276.211 290.411H259.923L259.923 232.342L276.211 218.95Z" fill="#0356A2"/>
+<path d="M222.757 228.998L222.757 290.221H239.22L239.22 241.86L222.757 228.998Z" fill="#26A9E0"/>
+<path d="M312.791 184.237L312.791 274.558C312.791 274.558 312.276 290.67 296.842 290.211L296.842 200.26L312.791 184.237Z" fill="#273D7C"/>
+<path d="M137.399 105.357H128.138L128.138 114.618H137.399L137.399 105.357Z" fill="#44C7F6"/>
+<path d="M163.9 103.978H154.639L154.639 113.239H163.9L163.9 103.978Z" fill="#27AADF"/>
+<path d="M159.825 119.943H143.012L143.012 136.756H159.825L159.825 119.943Z" fill="#26A9E0"/>
+<path d="M159.532 147.755H139.236L139.236 168.052H159.532L159.532 147.755Z" fill="#118C4F"/>
+<path d="M193.158 118.132H172.733L172.733 138.557H193.158L193.158 118.132Z" fill="#0356A2"/>
+<path d="M119.86 278.357L149.448 233.53L149.448 179.87H170.727L170.727 148.867H204.75L204.75 126.338H282.581C282.581 126.338 311.675 127.223 313.352 156.486L344.947 133.139L297.295 183.615L241.335 230.541L194.46 191.44L119.86 278.357Z" fill="#273E7C"/>
+<mask id="mask0_117_7" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="119" y="126" width="226" height="153">
+<path d="M119.86 278.12L149.448 233.293L149.448 179.633H170.727L170.727 148.63H204.75L204.75 126.101H282.581C282.581 126.101 311.675 126.986 313.352 156.25L344.689 133.067L297.295 183.378L240.764 231.076L194.44 192.248L119.86 278.12Z" fill="#273E7C"/>
+</mask>
+<g mask="url(#mask0_117_7)">
+<ellipse cx="239.382" cy="185.25" rx="55.5641" ry="76.1434" transform="rotate(-16.3597 239.382 185.25)" fill="#0356A2"/>
+<ellipse cx="219.486" cy="192.012" rx="55.5641" ry="76.1434" transform="rotate(-13.0563 219.486 192.012)" fill="#26A9E0"/>
+<path d="M218.898 153.868C245.897 197.507 246.598 245.992 220.462 262.162C194.327 278.331 151.5 256.019 124.501 212.379C97.5018 168.74 96.8016 120.255 122.937 104.086C149.072 87.916 191.899 110.228 218.898 153.868Z" fill="#44C7F5"/>
+<ellipse cx="143.378" cy="199.272" rx="55.5641" ry="76.1434" transform="rotate(-31.7444 143.378 199.272)" fill="#8DD8F8"/>
+<path d="M141.731 202.522C141.731 202.522 163.535 209.715 165.443 233.849L138.675 328.432C138.675 328.432 27.2532 312.472 27.2532 306.263C27.2532 300.053 53.2603 230.258 53.2603 230.258L122.026 209.421L141.731 202.522Z" fill="#118C4F"/>
+</g>
+<path d="M149.186 274.272H165.649L165.649 290.478H149.443L149.186 274.272Z" fill="#118C4F"/>
+<path d="M296.585 274.272H312.791L312.791 290.478H296.549L296.585 274.272Z" fill="#273D7C"/>
+</svg></a></div>
+  <nav style="background:#F7F4EE;border-top:1px solid #E4E0D6;border-bottom:1px solid #E4E0D6;">
+    <div class="wrap" style="display:flex;flex-wrap:wrap;gap:18px;padding:12px 24px;font-size:0.92rem;">
+      <a href="index.html" style="text-decoration:none;color:#16233F;font-weight:600;">Home</a>
+      <a href="understanding-mortgages-guide.html" style="text-decoration:none;color:#48566B;">Mortgage Guide</a>
+      <a href="mortgage-calculator.html" style="text-decoration:none;color:#48566B;">Calculator</a>
+      <a href="borrowed-down-payment.html" style="text-decoration:none;color:#48566B;">Borrowed Down Payment</a>
+      <a href="purchase-plus-improvements.html" style="text-decoration:none;color:#48566B;">Purchase Plus Improvements</a>
+    </div>
+  </nav>
+</header>
+
+<main class="wrap">
+  <p class="eyebrow">Free Tool</p>
+  <h1 class="title">Mortgage payment &amp; insurance premium calculator</h1>
+  <p class="lede">Enter a purchase price to see your minimum down payment, estimated monthly payment, and — if your down payment is under 20% — your default insurance premium, calculated the same way CMHC, Sagen, and Canada Guaranty calculate it.</p>
+
+  <div class="not-advice">This tool gives an estimate for illustration only — not a rate quote, pre-approval, or commitment. Your actual payment depends on the rate and terms a lender offers you.</div>
+
+  <div class="calc-grid">
+    <div class="panel">
+      <h2>Your numbers</h2>
+
+      <div class="field">
+        <label for="price">Purchase price</label>
+        <input type="number" id="price" value="600000" min="0" step="1000">
+      </div>
+
+      <div class="field">
+        <label for="downpayment">Down payment ($)</label>
+        <input type="number" id="downpayment" value="30000" min="0" step="500">
+        <div class="hint" id="minDownHint"></div>
+      </div>
+
+      <div class="field">
+        <label>Amortization</label>
+        <div class="radio-row" id="amortRow">
+          <label><input type="radio" name="amort" value="25" checked> 25 years</label>
+          <label><input type="radio" name="amort" value="30"> 30 years</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Rate type</label>
+        <div class="radio-row" id="rateTypeRow">
+          <label class="active"><input type="radio" name="rateType" value="fixed" checked> Fixed</label>
+          <label><input type="radio" name="rateType" value="variable"> Variable</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="rate">Interest rate (%)</label>
+        <input type="number" id="rate" value="4.99" min="0" max="20" step="0.01">
+      </div>
+
+      <div class="field">
+        <label for="compounding">Compounding period</label>
+        <select id="compounding">
+          <option value="semi" selected>Semi-annually (standard for most fixed-rate mortgages)</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="results">
+      <h2>Estimated results</h2>
+      <div class="sub" id="ltvLine">—</div>
+
+      <div class="rrow"><span class="l">Minimum down payment required</span><span class="v" id="rMinDown">—</span></div>
+      <div class="rrow"><span class="l">Base mortgage (price − down payment)</span><span class="v" id="rBaseMortgage">—</span></div>
+      <div class="rrow"><span class="l">Default insurance premium</span><span class="v" id="rPremium">—</span></div>
+      <div class="rrow"><span class="l">Total mortgage (incl. premium)</span><span class="v" id="rTotalMortgage">—</span></div>
+      <div class="rrow big"><span class="l">Estimated monthly payment</span><span class="v" id="rMonthly">—</span></div>
+
+      <div class="flag" id="flagBox"></div>
+
+      <a href="index.html#apply" class="cta">Get a real quote — talk to Vikas</a>
+    </div>
+  </div>
+
+  <section class="table-section">
+    <h2>CMHC mortgage loan insurance premium table</h2>
+    <p class="lede">Sagen and Canada Guaranty premiums are virtually identical. If your amortization is more than 25 years (up to the 30-year maximum), an additional 0.20% surcharge applies on top of the rate below.</p>
+    <table class="premium-table">
+      <thead>
+        <tr><th>Loan-to-value (LTV)</th><th>Premium on total loan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Up to and including 65%</td><td>0.60%</td></tr>
+        <tr><td>65.01% to 75%</td><td>1.70%</td></tr>
+        <tr><td>75.01% to 80%</td><td>2.40%</td></tr>
+        <tr><td>80.01% to 85%</td><td>2.80%</td></tr>
+        <tr class="highlight"><td>85.01% to 90%</td><td>3.10%</td></tr>
+        <tr class="highlight"><td>90.01% to 95%</td><td>4.00%</td></tr>
+        <tr><td>90.01% to 95%, non-traditional down payment</td><td>4.50%</td></tr>
+      </tbody>
+    </table>
+    <span class="src">Source: CMHC — Mortgage Loan Insurance Cost, cmhc-schl.gc.ca. Premiums in Ontario, Quebec, and Saskatchewan are subject to provincial sales tax, payable upfront and not added to the loan. Rules and rates change — always confirm the current table on <a href="https://www.cmhc-schl.gc.ca/consumers/home-buying/mortgage-loan-insurance-for-consumers/cmhc-mortgage-loan-insurance-cost" target="_blank" rel="noopener">cmhc-schl.gc.ca</a> before relying on a number.</span>
+  </section>
+
+
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>This calculator provides estimates for general informational purposes only. It is not a mortgage pre-approval, commitment, or rate guarantee. Actual rates, premiums, and payments depend on lender approval and your individual circumstances.</p>
+    <p>Vikas Sharma is a licensed Mortgage Broker operating under Pineapple Financial Inc. (FSRA Brokerage Licence #12830), personal FSRA Licence #M09001351. Lenders, insurers, and programs named on this page are general market information, not a direct application portal — this page does not represent that Vikas Sharma or Dream Home + Life has an exclusive or endorsed relationship with any named institution. Personalized recommendations and applications are handled directly, one on one, not through self-service on this site.</p>
+    <p>© <span id="year"></span> Dream Home + Life.</p>
+  </div>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+var priceEl = document.getElementById('price');
+var downEl = document.getElementById('downpayment');
+var rateEl = document.getElementById('rate');
+var compEl = document.getElementById('compounding');
+
+function fmt(n){
+  return '$' + Math.round(n).toLocaleString('en-CA');
+}
+function fmtPct(n){
+  return n.toFixed(2) + '%';
+}
+
+// Minimum down payment: 5% up to $500K, plus 10% of the amount over $500K (up to $1.5M cap)
+function minDownPayment(price){
+  if (price <= 500000) return price * 0.05;
+  return 500000 * 0.05 + (price - 500000) * 0.10;
+}
+
+// CMHC/Sagen/Canada Guaranty premium table (see cited table above)
+function premiumRate(ltvPct){
+  if (ltvPct <= 65) return 0.60;
+  if (ltvPct <= 75) return 1.70;
+  if (ltvPct <= 80) return 2.40;
+  if (ltvPct <= 85) return 2.80;
+  if (ltvPct <= 90) return 3.10;
+  if (ltvPct <= 95) return 4.00;
+  return null; // over 95% LTV is not insurable
+}
+
+function getAmort(){
+  var r = document.getElementsByName('amort');
+  for (var i=0;i<r.length;i++){ if (r[i].checked) return parseInt(r[i].value,10); }
+  return 25;
+}
+
+function updateActiveRadio(name){
+  var radios = document.getElementsByName(name);
+  radios.forEach(function(r){
+    var label = r.closest('label');
+    if (r.checked) label.classList.add('active'); else label.classList.remove('active');
+  });
+}
+
+function calculate(){
+  var price = parseFloat(priceEl.value) || 0;
+  var down = parseFloat(downEl.value) || 0;
+  var amortYears = getAmort();
+  var annualRatePct = parseFloat(rateEl.value) || 0;
+  var compounding = compEl.value;
+
+  var minDown = minDownPayment(price);
+  document.getElementById('rMinDown').textContent = fmt(minDown);
+  document.getElementById('minDownHint').textContent =
+    'Minimum required: ' + fmt(minDown) + ' (5% up to $500,000, plus 10% of the amount over $500,000).';
+
+  var flagBox = document.getElementById('flagBox');
+  var effectiveDown = down;
+  if (down < minDown){
+    flagBox.className = 'flag';
+    flagBox.textContent = 'Your entered down payment is below the minimum required (' + fmt(minDown) + ' on a ' + fmt(price) + ' purchase). Using the minimum for this estimate.';
+    effectiveDown = minDown;
+  } else {
+    flagBox.className = 'flag ok';
+    flagBox.textContent = 'Your down payment meets the minimum requirement for this purchase price.';
+  }
+
+  var baseMortgage = Math.max(price - effectiveDown, 0);
+  var ltv = price > 0 ? (baseMortgage / price) * 100 : 0;
+  document.getElementById('ltvLine').textContent = 'Loan-to-value: ' + ltv.toFixed(2) + '%';
+  document.getElementById('rBaseMortgage').textContent = fmt(baseMortgage);
+
+  var premiumAmount = 0;
+  var downPct = price > 0 ? (effectiveDown / price) * 100 : 100;
+
+  if (downPct < 20){
+    var rate = premiumRate(ltv);
+    if (rate === null){
+      document.getElementById('rPremium').textContent = 'Not insurable (LTV > 95%)';
+      flagBox.className = 'flag';
+      flagBox.textContent = 'A down payment under 5% is not eligible for default insurance in Canada. Please increase the down payment.';
+    } else {
+      if (amortYears > 25){ rate += 0.20; }
+      premiumAmount = baseMortgage * (rate / 100);
+      document.getElementById('rPremium').textContent = fmt(premiumAmount) + ' (' + fmtPct(rate) + ' of mortgage)';
+    }
+  } else {
+    document.getElementById('rPremium').textContent = 'Not required (20%+ down payment)';
+  }
+
+  var totalMortgage = baseMortgage + premiumAmount;
+  document.getElementById('rTotalMortgage').textContent = fmt(totalMortgage);
+
+  // Monthly payment calculation
+  var n = amortYears * 12;
+  var monthlyRate;
+  if (compounding === 'semi'){
+    // Canadian standard: nominal annual rate compounded semi-annually, converted to an effective monthly rate
+    var semiRate = (annualRatePct / 100) / 2;
+    var effectiveAnnual = Math.pow(1 + semiRate, 2) - 1;
+    monthlyRate = Math.pow(1 + effectiveAnnual, 1/12) - 1;
+  } else {
+    monthlyRate = (annualRatePct / 100) / 12;
+  }
+
+  var payment;
+  if (monthlyRate === 0){
+    payment = totalMortgage / n;
+  } else {
+    payment = totalMortgage * monthlyRate / (1 - Math.pow(1 + monthlyRate, -n));
+  }
+  document.getElementById('rMonthly').textContent = fmt(payment);
+}
+
+[priceEl, downEl, rateEl, compEl].forEach(function(el){
+  el.addEventListener('input', calculate);
+  el.addEventListener('change', calculate);
+});
+document.getElementsByName('amort').forEach(function(r){
+  r.addEventListener('change', function(){ updateActiveRadio('amort'); calculate(); });
+});
+document.getElementsByName('rateType').forEach(function(r){
+  r.addEventListener('change', function(){
+    updateActiveRadio('rateType');
+    // Nudge compounding convention to match common practice, but leave it user-editable
+    if (r.value === 'variable' && r.checked) compEl.value = 'monthly';
+    if (r.value === 'fixed' && r.checked) compEl.value = 'semi';
+    calculate();
+  });
+});
+
+calculate();
+</script>
+
+<!-- ===== Neo mortgage lead-capture widget ===== -->
+<style>
+.widget-anchor {
+    --navy: #16233F;
+    --navy-deep: #0E1830;
+    --gold: #B98A3E;
+    --gold-light: #D9B677;
+    --cream: #F7F4EE;
+    --paper: #FFFFFF;
+    --ink: #1E2430;
+    --ink-soft: #5B6270;
+    --line: #E4E0D6;
+  }
+
+  * { box-sizing: border-box; }
+
+  
+
+  
+
+  
+
+  
+
+  .widget-anchor {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 14px;
+  }
+
+  .launcher {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--navy);
+    border: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(14, 24, 48, 0.35);
+    transition: transform 0.15s ease;
+  }
+  .launcher:hover { transform: scale(1.05); }
+  .launcher svg { width: 30px; height: 30px; }
+
+  .neopanel {
+    width: 380px;
+    max-width: calc(100vw - 40px);
+    height: 560px;
+    max-height: calc(100vh - 120px);
+    background: var(--paper);
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(14, 24, 48, 0.28);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .neopanel.open { display: flex; }
+
+  .panel-head {
+    background: var(--navy);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--cream);
+  }
+  .panel-head .avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--navy-deep);
+    font-family: Georgia, serif;
+    font-weight: bold;
+    font-size: 17px;
+  }
+  .panel-head .who .name {
+    font-family: Georgia, serif;
+    font-size: 16px;
+  }
+  .panel-head .who .status {
+    font-size: 11.5px;
+    color: var(--gold-light);
+    margin-top: 2px;
+  }
+  .panel-head .close {
+    margin-left: auto;
+    cursor: pointer;
+    color: #C9CEDA;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px;
+  }
+  .panel-head .close:hover { color: white; }
+
+  .thread {
+    flex: 1;
+    padding: 18px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--cream);
+  }
+
+  .bubble {
+    max-width: 82%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .bubble.neo {
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+  }
+  .bubble.user {
+    background: var(--navy);
+    color: var(--cream);
+    border-bottom-right-radius: 4px;
+    align-self: flex-end;
+  }
+
+  .choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .choice {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--navy);
+    background: var(--paper);
+    color: var(--navy);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .choice:hover {
+    background: var(--navy);
+    color: var(--cream);
+  }
+
+  .input-row {
+    border-top: 1px solid var(--line);
+    padding: 12px 14px;
+    display: flex;
+    gap: 8px;
+    background: var(--paper);
+  }
+  .input-row input {
+    flex: 1;
+    border: 1.5px solid var(--line);
+    border-radius: 22px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+  }
+  .input-row input:focus { border-color: var(--gold); }
+  .input-row button {
+    border: none;
+    background: var(--gold);
+    color: var(--navy-deep);
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .input-row button:hover { background: var(--gold-light); }
+  .input-row.hidden { display: none; }
+
+  .lead-card {
+    align-self: stretch;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .lead-card .title {
+    font-family: Georgia, serif;
+    color: var(--ink);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .lead-card .row { display: flex; justify-content: space-between; padding: 3px 0; gap: 10px; }
+  .lead-card .row span:first-child { color: var(--ink-soft); flex-shrink: 0; }
+  .lead-card .row span:last-child { color: var(--ink); font-weight: 600; text-align: right; }
+  .lead-card .flag {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    color: var(--gold);
+    font-size: 12px;
+  }
+
+  .typing {
+    align-self: flex-start;
+    display: flex;
+    gap: 4px;
+    padding: 10px 14px;
+  }
+  .typing span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ink-soft);
+    opacity: 0.4;
+    animation: bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  
+  
+
+  /* Self-serve form */
+  .self-form {
+    align-self: stretch;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .self-form .title {
+    font-family: Georgia, serif;
+    color: var(--ink);
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .self-form label {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: -6px;
+  }
+  .self-form input, .self-form select {
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+  }
+  .self-form input:focus, .self-form select:focus { border-color: var(--gold); }
+  .self-form .submit-btn {
+    margin-top: 6px;
+    border: none;
+    background: var(--navy);
+    color: var(--cream);
+    padding: 10px 14px;
+    border-radius: 22px;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+  .self-form .submit-btn:hover { background: var(--navy-deep); }
+</style>
+<div class="widget-anchor">
+  <div class="neopanel" id="panel">
+    <div class="panel-head">
+      <div class="avatar">N</div>
+      <div class="who">
+        <div class="name">Neo</div>
+        <div class="status">Usually replies in a few seconds</div>
+      </div>
+      <div class="close" id="closeBtn">&times;</div>
+    </div>
+    <div class="thread" id="thread"></div>
+    <div class="input-row hidden" id="inputRow">
+      <input type="text" id="textInput" placeholder="Type here...">
+      <button id="sendBtn">&#10148;</button>
+    </div>
+  </div>
+
+  <div class="launcher" id="launcher">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20H5C4.45 20 4 19.55 4 19V12Z" stroke="#D9B677" stroke-width="1.6"/>
+      <circle cx="9" cy="12" r="1.2" fill="#D9B677"/>
+      <circle cx="12" cy="12" r="1.2" fill="#D9B677"/>
+      <circle cx="15" cy="12" r="1.2" fill="#D9B677"/>
+    </svg>
+  </div>
+</div>
+<script>
+// ---- Ad/campaign attribution capture (runs once on page load) ----
+const _adParams = new URLSearchParams(window.location.search);
+const adAttribution = {
+  source: _adParams.get('utm_source') || '',
+  medium: _adParams.get('utm_medium') || '',
+  campaign: _adParams.get('utm_campaign') || '',
+  content: _adParams.get('utm_content') || '',
+  term: _adParams.get('utm_term') || '',
+  referrer: document.referrer || '',
+  landingPage: window.location.pathname || ''
+};
+function attributionSummary() {
+  const parts = [];
+  if (adAttribution.source) parts.push(`Source: ${adAttribution.source}`);
+  if (adAttribution.medium) parts.push(`Medium: ${adAttribution.medium}`);
+  if (adAttribution.campaign) parts.push(`Campaign: ${adAttribution.campaign}`);
+  if (adAttribution.content) parts.push(`Ad content: ${adAttribution.content}`);
+  if (!adAttribution.source && adAttribution.referrer) parts.push(`Referrer: ${adAttribution.referrer}`);
+  parts.push(`Landed on: ${adAttribution.landingPage || '/'}`);
+  return parts.length ? parts.join('; ') : 'Direct / no campaign parameters';
+}
+
+const thread = document.getElementById('thread');
+const panel = document.getElementById('panel');
+const launcher = document.getElementById('launcher');
+const closeBtn = document.getElementById('closeBtn');
+const inputRow = document.getElementById('inputRow');
+const textInput = document.getElementById('textInput');
+const sendBtn = document.getElementById('sendBtn');
+
+let state = 'greeting';
+let lead = {
+  language: 'English', firstName: '', lastName: '', service: '',
+  phone: '', email: '', life: '', retirement: '', newsletter: ''
+};
+let started = false;
+let pendingField = null; // used for spelling-confirmation loop
+
+const GREETING_TEMPLATES = [
+  "{tod}, welcome! I'm Neo. So glad you stopped by today.",
+  "{tod} and welcome — I'm Neo. Thanks so much for taking a moment to visit.",
+  "{tod}, I'm Neo. It's genuinely nice to have you here.",
+  "{tod}! I'm Neo, and I'll take good care of you from here.",
+  "{tod} — I'm Neo. Thank you for choosing to spend a little time with us.",
+  "{tod}! I'm Neo. I hope your day is off to a good start.",
+  "{tod}, welcome aboard — I'm Neo, here to help however I can.",
+  "{tod}, I'm Neo. It's a pleasure to meet you.",
+  "{tod}! I'm Neo. Thanks for stopping in — let's make this easy for you.",
+  "{tod}, and hello — I'm Neo. Happy to walk you through things at your pace."
+];
+
+function timeOfDayGreeting() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return 'Good morning';
+  if (hour >= 12 && hour < 17) return 'Good afternoon';
+  if (hour >= 17 && hour < 21) return 'Good evening';
+  return 'Good night';
+}
+
+function timeOfDaySignoff() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 17) return 'Have a nice day';
+  return 'Have a nice evening';
+}
+
+function pickGreeting() {
+  const template = GREETING_TEMPLATES[Math.floor(Math.random() * GREETING_TEMPLATES.length)];
+  return template.replace('{tod}', timeOfDayGreeting());
+}
+
+function canadianStatutoryHolidays(year) {
+  const dates = [];
+  const add = (m, d) => dates.push(new Date(year, m - 1, d).toDateString());
+  add(1, 1);
+  add(7, 1);
+  add(12, 25);
+  add(12, 26);
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+  const d2 = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d2 - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m2 = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m2 + 114) / 31);
+  const day = ((h + l - 7 * m2 + 114) % 31) + 1;
+  const easterSunday = new Date(year, month - 1, day);
+  const goodFriday = new Date(easterSunday);
+  goodFriday.setDate(easterSunday.getDate() - 2);
+  dates.push(goodFriday.toDateString());
+  for (let d = 24; d >= 18; d--) {
+    const dt = new Date(year, 4, d);
+    if (dt.getDay() === 1) { dates.push(dt.toDateString()); break; }
+  }
+  for (let d = 1; d <= 7; d++) {
+    const dt = new Date(year, 8, d);
+    if (dt.getDay() === 1) { dates.push(dt.toDateString()); break; }
+  }
+  { let count = 0;
+    for (let d = 1; d <= 31; d++) {
+      const dt = new Date(year, 9, d);
+      if (dt.getDay() === 1) { count++; if (count === 2) { dates.push(dt.toDateString()); break; } }
+    }
+  }
+  add(9, 30);
+  add(11, 11);
+  return dates;
+}
+
+function isCanadianHoliday(date) {
+  const list = canadianStatutoryHolidays(date.getFullYear());
+  return list.includes(date.toDateString());
+}
+
+function isLongWeekend() {
+  const today = new Date();
+  const dow = today.getDay();
+  if (dow === 4) {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    return isCanadianHoliday(tomorrow);
+  }
+  if (dow === 5) {
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + 3);
+    return isCanadianHoliday(monday);
+  }
+  return false;
+}
+
+function signOffMessage() {
+  return isLongWeekend() ? 'Have a great long weekend!' : (timeOfDaySignoff() + '!');
+}
+
+function scrollDown() {
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function addBubble(text, who) {
+  const b = document.createElement('div');
+  b.className = 'bubble ' + who;
+  b.textContent = text;
+  thread.appendChild(b);
+  scrollDown();
+  return b;
+}
+
+function addChoices(options, onPick) {
+  const wrap = document.createElement('div');
+  wrap.className = 'choices';
+  options.forEach(opt => {
+    const c = document.createElement('div');
+    c.className = 'choice';
+    c.textContent = opt;
+    c.onclick = () => {
+      wrap.remove();
+      addBubble(opt, 'user');
+      onPick(opt);
+    };
+    wrap.appendChild(c);
+  });
+  thread.appendChild(wrap);
+  scrollDown();
+  return wrap;
+}
+
+function showTyping(callback, delay = 700) {
+  const t = document.createElement('div');
+  t.className = 'typing';
+  t.innerHTML = '<span></span><span></span><span></span>';
+  thread.appendChild(t);
+  scrollDown();
+  setTimeout(() => {
+    t.remove();
+    callback();
+  }, delay);
+}
+
+function setInputMode(on, placeholder) {
+  if (on) {
+    inputRow.classList.remove('hidden');
+    textInput.placeholder = placeholder || 'Type here...';
+    textInput.value = '';
+    textInput.focus();
+  } else {
+    inputRow.classList.add('hidden');
+  }
+}
+
+function beginFlow() {
+  setInputMode(false);
+  showTyping(() => {
+    addBubble(pickGreeting() + " Before we get started, besides English, is there another language you'd feel more comfortable speaking in? I can chat in just about any language there is.", 'neo');
+    addChoices(['English is fine', 'हिंदी', 'ਪੰਜਾਬੀ', 'Español', '中文', 'Another language...'], (choice) => {
+      if (choice === 'Another language...') {
+        setInputMode(true, 'e.g. Tagalog, Farsi, Portuguese...');
+        state = 'language';
+        return;
+      }
+      lead.language = (choice === 'English is fine') ? 'English' : choice;
+      confirmAndContinue(languageConfirmedMessage(), askModeChoice);
+    });
+  }, 500);
+}
+
+function languageConfirmedMessage() {
+  if (lead.language === 'English') {
+    return "Great, we'll continue in English.";
+  }
+  return `Wonderful, we'll go with ${lead.language} from here. (Note: this demo displays English text throughout, but the live version would carry the full conversation in ${lead.language}.)`;
+}
+
+function askModeChoice() {
+  showTyping(() => {
+    addBubble("Would you like to fill in your details yourself, or shall I ask you a few quick questions and take care of it for you?", 'neo');
+    addChoices(["I'll type it myself", "Ask me questions"], (choice) => {
+      if (choice === "I'll type it myself") {
+        showSelfForm();
+      } else {
+        askFirstName();
+      }
+    });
+  }, 500);
+}
+
+function showSelfForm() {
+  showTyping(() => {
+    addBubble("Of course — no problem at all. Just fill in what you can below and submit whenever you're ready.", 'neo');
+
+    const form = document.createElement('div');
+    form.className = 'self-form';
+    form.innerHTML = `
+      <div class="title">Quick inquiry form</div>
+      <label>First name</label>
+      <input type="text" id="f_first" placeholder="e.g. Priya">
+      <label>Last name</label>
+      <input type="text" id="f_last" placeholder="e.g. Sharma">
+      <label>Phone number</label>
+      <input type="text" id="f_phone" placeholder="e.g. 416 555 0123">
+      <label>Email</label>
+      <input type="text" id="f_email" placeholder="e.g. priya@email.com">
+      <label>What brings you here?</label>
+      <select id="f_service">
+        <option value="">Select one...</option>
+        <option>Purchase</option>
+        <option>Refinance</option>
+        <option>Second Mortgage</option>
+      </select>
+      <label>Do you currently have life insurance?</label>
+      <select id="f_life">
+        <option value="">Select one...</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+      <label>Do you have a retirement or investment plan?</label>
+      <select id="f_retirement">
+        <option value="">Select one...</option>
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+      <label>Would you like our monthly newsletter with useful financial tips?</label>
+      <select id="f_newsletter">
+        <option value="">Select one...</option>
+        <option>Yes, please</option>
+        <option>No, thank you</option>
+      </select>
+      <div class="form-error" id="formError" style="display:none; color:#c0392b; font-size:13px; margin-top:4px;"></div>
+      <div class="submit-btn" id="formSubmitBtn">Submit inquiry</div>
+    `;
+    thread.appendChild(form);
+    scrollDown();
+
+    const requiredFields = [
+      { id: 'f_first', label: 'First name' },
+      { id: 'f_last', label: 'Last name' },
+      { id: 'f_phone', label: 'Phone number' },
+      { id: 'f_email', label: 'Email' },
+      { id: 'f_service', label: 'What brings you here' },
+      { id: 'f_life', label: 'Life insurance question' },
+      { id: 'f_retirement', label: 'Retirement/investment plan question' },
+      { id: 'f_newsletter', label: 'Newsletter question' }
+    ];
+
+    document.getElementById('formSubmitBtn').onclick = () => {
+      const errorBox = document.getElementById('formError');
+      const missing = requiredFields.filter(f => !document.getElementById(f.id).value.trim());
+      if (missing.length > 0) {
+        errorBox.textContent = `Please fill in: ${missing.map(f => f.label).join(', ')} before submitting.`;
+        errorBox.style.display = 'block';
+        missing.forEach(f => { document.getElementById(f.id).style.borderColor = '#c0392b'; });
+        return;
+      }
+      errorBox.style.display = 'none';
+
+      lead.firstName = document.getElementById('f_first').value.trim();
+      lead.lastName = document.getElementById('f_last').value.trim();
+      lead.phone = document.getElementById('f_phone').value.trim();
+      lead.email = document.getElementById('f_email').value.trim();
+      lead.service = document.getElementById('f_service').value;
+      lead.life = document.getElementById('f_life').value;
+      lead.retirement = document.getElementById('f_retirement').value;
+      lead.newsletter = document.getElementById('f_newsletter').value;
+
+      form.remove();
+      addBubble('Submitted my details', 'user');
+      finishFlow();
+    };
+  }, 500);
+}
+
+function confirmAndContinue(message, next) {
+  showTyping(() => {
+    addBubble(message, 'neo');
+    next();
+  }, 500);
+}
+
+function askSpellingConfirm(fieldLabel, value, onConfirmed) {
+  showTyping(() => {
+    addBubble(`Just to make sure I've got it right — I'm noting "${value}" for your ${fieldLabel}. Is that spelled correctly?`, 'neo');
+    addChoices(['Yes, correct', "No, let me fix it"], (choice) => {
+      if (choice === 'Yes, correct') {
+        showTyping(() => { addBubble('Perfect, thank you.', 'neo'); onConfirmed(value); }, 400);
+      } else {
+        setInputMode(true, 'Type the correct spelling...');
+        pendingField = { label: fieldLabel, onConfirmed };
+        state = 'correcting';
+      }
+    });
+  });
+}
+
+function askFirstName() {
+  showTyping(() => {
+    addBubble("Lovely. What's your first name?", 'neo');
+    setInputMode(true, 'e.g. Priya');
+    state = 'firstName';
+  });
+}
+
+function askLastName() {
+  showTyping(() => {
+    addBubble("And your last name?", 'neo');
+    setInputMode(true, 'e.g. Sharma');
+    state = 'lastName';
+  });
+}
+
+function askPhone() {
+  showTyping(() => {
+    addBubble(`Thank you, ${lead.firstName}. What's the best phone number to reach you on?`, 'neo');
+    setInputMode(true, 'e.g. 416 555 0123');
+    state = 'phone';
+  });
+}
+
+function askEmail() {
+  showTyping(() => {
+    addBubble("And an email address, in case we need to send you anything?", 'neo');
+    setInputMode(true, 'e.g. priya@email.com');
+    state = 'email';
+  });
+}
+
+function askService() {
+  setInputMode(false);
+  showTyping(() => {
+    addBubble("What brings you here today?", 'neo');
+    addChoices(['Purchase', 'Refinance', 'Second Mortgage'], (choice) => {
+      lead.service = choice;
+      askLifeInsurance();
+    });
+  });
+}
+
+function askLifeInsurance() {
+  showTyping(() => {
+    addBubble("Just a couple of quick extra questions, if you don't mind. Do you currently have life insurance?", 'neo');
+    addChoices(['Yes', 'No'], (choice) => {
+      lead.life = choice;
+      askRetirement();
+    });
+  });
+}
+
+function askRetirement() {
+  showTyping(() => {
+    addBubble("And do you have a retirement or investment plan in place?", 'neo');
+    addChoices(['Yes', 'No'], (choice) => {
+      lead.retirement = choice;
+      askNewsletter();
+    });
+  });
+}
+
+function askNewsletter() {
+  showTyping(() => {
+    addBubble("Last thing — would you like to receive our monthly newsletter? It's full of useful financial tips.", 'neo');
+    addChoices(['Yes, please', 'No, thank you'], (choice) => {
+      lead.newsletter = choice;
+      finishFlow();
+    });
+  });
+}
+
+function finishFlow() {
+  setInputMode(false);
+  showTyping(() => {
+    addBubble(`Perfect, ${lead.firstName || ''}. Vik will have your details and someone will reach out shortly. Thanks so much for stopping by! ${signOffMessage()}`, 'neo');
+    showLeadCard();
+    pushLeadToDashboard();
+  }, 800);
+}
+
+async function pushLeadToDashboard() {
+  const endpoint = 'https://fincop-backend.onrender.com/app-data/mortgage-clients';
+  try {
+    const res = await fetch(endpoint);
+    const data = await res.json();
+    const clients = data && data.value ? JSON.parse(data.value) : [];
+
+    const dealCode = 'vmtg 1' + String(clients.length + 1).padStart(4, '0');
+    const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim();
+
+    clients.push({
+      id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      createdAt: Date.now(),
+      dealCode,
+      notesList: [],
+      name: fullName,
+      phone: lead.phone || '',
+      email: lead.email || '',
+      city: '',
+      dob: '',
+      age: null,
+      anniversary: '',
+      religion: '',
+      dealCategory: '',
+      product: lead.service || '',
+      mortgageType: '',
+      stage: 'Lead',
+      propertyAddress: '',
+      propertyType: '',
+      propertyTypeOther: '',
+      multipleProperties: false,
+      insuranceSoldWithDeal: false,
+      calledByVik: false,
+      closingDate: '',
+      mortgageTerm: '',
+      renewalDate: '',
+      insuranceStatus: '',
+      retirementStatus: '',
+      dependents: [],
+      additionalProperties: [],
+      educationPlanStatus: '',
+      referralType: 'Website/Online Ad',
+      referralOther: adAttribution.campaign || adAttribution.source || '',
+      referralName: '',
+      referralEmail: '',
+      referralPhone: '',
+      sourceAgent: 'Neo',
+      sourceNotes: `Language: ${lead.language || '—'}; Life insurance: ${lead.life || '—'}; Retirement plan: ${lead.retirement || '—'}; Newsletter: ${lead.newsletter || '—'}; ${attributionSummary()}`
+    });
+
+    await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: JSON.stringify(clients) })
+    });
+
+    pushInsuranceCrossReferral(dealCode, fullName);
+  } catch (e) {
+    console.error('Neo: could not push lead to dashboard', e);
+  }
+}
+
+async function pushInsuranceCrossReferral(mortgageDealCode, fullName) {
+  const needsInsurance = lead.life === 'No';
+  const needsRetirement = lead.retirement === 'No';
+  if (!needsInsurance && !needsRetirement) return;
+
+  const endpoint = 'https://fincop-backend.onrender.com/app-data/insurance-clients';
+  try {
+    const res = await fetch(endpoint);
+    const data = await res.json();
+    const insClients = data && data.value ? JSON.parse(data.value) : [];
+
+    const gaps = [];
+    if (needsInsurance && needsRetirement) gaps.push('Both');
+    else if (needsInsurance) gaps.push('Insurance');
+    else if (needsRetirement) gaps.push('Investment');
+
+    gaps.forEach((category) => {
+      const dealCode = 'vinc 1' + String(insClients.length + 1).padStart(4, '0');
+      insClients.push({
+        id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        createdAt: Date.now(),
+        dealCode,
+        notesList: [],
+        name: fullName,
+        phone: lead.phone || '',
+        email: lead.email || '',
+        age: null,
+        ageBand: '',
+        leadCategory: category,
+        stage: 'Lead',
+        insuranceStatus: (category === 'Insurance' || category === 'Both') ? 'No' : '',
+        retirementStatus: (category === 'Investment' || category === 'Both') ? 'No' : '',
+        sourceAgent: 'Neo',
+        sourceNotes: `Cross-referred from a mortgage deal (${mortgageDealCode}) — client said they don't have ${category === 'Both' ? 'life insurance or a retirement/investment plan' : (category === 'Insurance' ? 'life insurance' : 'a retirement/investment plan')}.`,
+        linkedMortgageDealCode: mortgageDealCode
+      });
+    });
+
+    await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: JSON.stringify(insClients) })
+    });
+  } catch (e) {
+    console.error('Neo: could not push insurance cross-referral', e);
+  }
+}
+
+function showLeadCard() {
+  const card = document.createElement('div');
+  card.className = 'lead-card';
+  card.innerHTML = `
+    <div class="title">New lead created</div>
+    <div class="row"><span>Name</span><span>${lead.firstName} ${lead.lastName}</span></div>
+    <div class="row"><span>Service</span><span>${lead.service}</span></div>
+    <div class="row"><span>Phone</span><span>${lead.phone}</span></div>
+    <div class="row"><span>Email</span><span>${lead.email}</span></div>
+    <div class="row"><span>Language</span><span>${lead.language}</span></div>
+    <div class="row"><span>Life insurance</span><span>${lead.life || '—'}</span></div>
+    <div class="row"><span>Retirement plan</span><span>${lead.retirement || '—'}</span></div>
+    <div class="row"><span>Newsletter</span><span>${lead.newsletter || '—'}</span></div>
+    <div class="flag">&#9679; Vikram's research will run automatically on this lead</div>
+  `;
+  thread.appendChild(card);
+  scrollDown();
+}
+
+function handleTextSubmit() {
+  const val = textInput.value.trim();
+  if (!val) return;
+  addBubble(val, 'user');
+  textInput.value = '';
+  setInputMode(false);
+
+  if (state === 'language') {
+    lead.language = val;
+    confirmAndContinue(languageConfirmedMessage(), askModeChoice);
+  } else if (state === 'firstName') {
+    askSpellingConfirm('first name', val, (confirmedVal) => {
+      lead.firstName = confirmedVal;
+      askLastName();
+    });
+  } else if (state === 'lastName') {
+    askSpellingConfirm('last name', val, (confirmedVal) => {
+      lead.lastName = confirmedVal;
+      askPhone();
+    });
+  } else if (state === 'phone') {
+    askSpellingConfirm('phone number', val, (confirmedVal) => {
+      lead.phone = confirmedVal;
+      askEmail();
+    });
+  } else if (state === 'email') {
+    askSpellingConfirm('email address', val, (confirmedVal) => {
+      lead.email = confirmedVal;
+      askService();
+    });
+  } else if (state === 'correcting') {
+    const field = pendingField;
+    pendingField = null;
+    askSpellingConfirm(field.label, val, field.onConfirmed);
+  }
+}
+
+sendBtn.onclick = handleTextSubmit;
+textInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handleTextSubmit();
+});
+
+launcher.onclick = () => {
+  panel.classList.add('open');
+  launcher.style.display = 'none';
+  if (!started) {
+    started = true;
+    beginFlow();
+  }
+};
+
+closeBtn.onclick = () => {
+  panel.classList.remove('open');
+  launcher.style.display = 'flex';
+};
+</script>
+<!-- ===== end Neo widget ===== -->
+</body>
+</html>
