@@ -2792,13 +2792,13 @@ async function sendKpGreeting(p){
     });
     const data = await res.json();
     if(!res.ok || !data.ok){
-      showToast('Greeting failed to send: ' + (data.error || 'unknown error'));
+      alert('Greeting failed to send: ' + (data.error || 'unknown error') + (data.details ? ('\n\n' + data.details) : ''));
       return;
     }
-    showToast('Greeting sent — SMS: ' + data.results.sms + ', Email: ' + data.results.email);
+    alert('Greeting result —\nSMS: ' + data.results.sms + '\nEmail: ' + data.results.email);
   }catch(err){
     console.error('sendKpGreeting error:', err);
-    showToast('Greeting failed to send (network error)');
+    alert('Greeting failed to send (network error): ' + err.message);
   }
 }
 
