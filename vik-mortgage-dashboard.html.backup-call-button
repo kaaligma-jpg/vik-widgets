@@ -272,7 +272,6 @@
   .doc-item .item-meta{ margin-bottom:0; }
   .doc-item a{ color:var(--brass); font-size:12px; font-weight:600; text-decoration:none; }
 </style>
-  <script src="https://sdk.twilio.com/js/voice/releases/2.11.2/twilio.min.js"></script>
 </head>
 <body>
 
@@ -885,7 +884,7 @@ function render(){
       <td><span class="badge ${c.stage}">${STAGE_LABELS[c.stage]||c.stage}</span></td>
       <td>${c.closingDate||'—'}</td>
       <td>${escapeHtml(c.referralName||c.referralType||'—')}</td>
-      <td><button class="call-icon-btn" title="Log a call for this deal" onclick="event.stopPropagation(); openLogCall('${c.id}')">📞</button> <button class="call-icon-btn" title="Call now from browser" onclick="event.stopPropagation(); startBrowserCall('${c.id}')">☎️</button></td>
+      <td><button class="call-icon-btn" title="Log a call for this deal" onclick="event.stopPropagation(); openLogCall('${c.id}')">📞</button></td>
     </tr>
   `;}).join('');
 
@@ -1785,91 +1784,6 @@ function openLogCall(id){
   `;
   document.getElementById('callOverlay').classList.add('show');
 }
-
-// ===== Browser voice calling (added by fix-add-browser-call-button.js) =====
-let twilioDevice = null;
-let activeCallConn = null;
-let activeCallClientId = null;
-
-async function ensureTwilioDevice(){
-  if (twilioDevice) return twilioDevice;
-  const res = await fetch('https://fincop-backend.onrender.com/token?identity=vik');
-  const data = await res.json();
-  twilioDevice = new Twilio.Device(data.token, { logLevel: 1 });
-  twilioDevice.on('error', (err) => {
-    console.error('Twilio Device error:', err);
-    showToast('Call error: ' + (err.message || 'unknown error'));
-  });
-  return twilioDevice;
-}
-
-function showCallStatusOverlay(name, status){
-  let box = document.getElementById('browserCallStatusBox');
-  if (!box) {
-    box = document.createElement('div');
-    box.id = 'browserCallStatusBox';
-    box.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#111;color:#fff;padding:16px 20px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:9999;min-width:220px;font-family:inherit;';
-    document.body.appendChild(box);
-  }
-  box.innerHTML = `
-    <div style="font-weight:600;margin-bottom:6px;">${escapeHtml(name)}</div>
-    <div id="browserCallStatusText" style="opacity:.85;margin-bottom:10px;">${escapeHtml(status)}</div>
-    <button class="btn secondary" style="width:100%;" onclick="hangupBrowserCall()">Hang up</button>
-  `;
-  box.style.display = 'block';
-}
-function updateCallStatusText(text){
-  const el = document.getElementById('browserCallStatusText');
-  if (el) el.textContent = text;
-}
-function hideCallStatusOverlay(){
-  const box = document.getElementById('browserCallStatusBox');
-  if (box) box.style.display = 'none';
-}
-
-async function startBrowserCall(id){
-  const c = clients.find(x=>x.id===id);
-  if (!c) return;
-  if (!c.phone) { showToast('No phone number on file for this client'); return; }
-
-  activeCallClientId = id;
-  showCallStatusOverlay(c.name, 'Connecting…');
-
-  try {
-    const device = await ensureTwilioDevice();
-    if (device.state !== 'registered') {
-      await new Promise((resolve) => {
-        device.once('registered', resolve);
-        device.register();
-      });
-    }
-    const conn = await device.connect({ params: { To: c.phone } });
-    activeCallConn = conn;
-    conn.on('accept', () => updateCallStatusText('In call — recording'));
-    conn.on('disconnect', () => {
-      updateCallStatusText('Call ended');
-      setTimeout(hideCallStatusOverlay, 1500);
-      activeCallConn = null;
-    });
-    conn.on('cancel', () => hideCallStatusOverlay());
-    conn.on('reject', () => hideCallStatusOverlay());
-  } catch (err) {
-    console.error('Call failed:', err);
-    showToast('Could not place call: ' + (err.message || 'unknown error'));
-    hideCallStatusOverlay();
-  }
-}
-
-function hangupBrowserCall(){
-  if (activeCallConn) {
-    activeCallConn.disconnect();
-  } else if (twilioDevice) {
-    twilioDevice.disconnectAll();
-  }
-  hideCallStatusOverlay();
-}
-// ===== End browser voice calling =====
-
 function closeCallOverlay(){
   document.getElementById('callOverlay').classList.remove('show');
   callLogClientId = null;
