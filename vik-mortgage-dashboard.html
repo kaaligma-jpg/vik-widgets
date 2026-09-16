@@ -457,12 +457,9 @@
       <option value="other">Other</option>
     </select>
     <input type="text" id="kpOtherProfessionInput" placeholder="What kind of profession?" style="display:none;">
-    <label style="width:100%; display:flex; align-items:center; gap:6px; font-size:13px;">
-      <input type="checkbox" id="kpSendGreetingNow" checked>
-      Send greeting message now
-    </label>
     <div style="width:100%; display:flex; gap:8px;">
-      <button class="btn small" id="kpSaveBtn" onclick="saveKeyPartner()">Save &amp; send greeting</button>
+      <button class="btn secondary small" id="kpSaveOnlyBtn" onclick="saveKeyPartner(false)">Save</button>
+      <button class="btn small" id="kpSaveBtn" onclick="saveKeyPartner(true)">Save &amp; send greeting</button>
       <button class="btn secondary small" id="kpCancelEditBtn" style="display:none;" onclick="cancelKpEdit()">Cancel edit</button>
     </div>
   </div>
@@ -2776,7 +2773,9 @@ function resetKpForm(){
   kpCardPhotoData = null;
   document.getElementById('kpCardPreviewWrap').innerHTML = '';
   editingKpId = null;
-  document.getElementById('kpSaveBtn').textContent = 'Save & send greeting';
+  document.getElementById('kpSaveOnlyBtn').style.display = '';
+  document.getElementById('kpSaveOnlyBtn').textContent = 'Save';
+  document.getElementById('kpSaveBtn').style.display = '';
   document.getElementById('kpCancelEditBtn').style.display = 'none';
 }
 
@@ -2801,7 +2800,7 @@ async function sendKpGreeting(p){
   }
 }
 
-function saveKeyPartner(){
+function saveKeyPartner(sendGreeting){
   const firstName = document.getElementById('kpFirstNameInput').value.trim();
   const lastName = document.getElementById('kpLastNameInput').value.trim();
   const company = document.getElementById('kpCompanyInput').value.trim();
@@ -2828,7 +2827,7 @@ function saveKeyPartner(){
     };
     vikKeyPartners.push(p);
     saveKeyPartnersToServer();
-    if(document.getElementById('kpSendGreetingNow').checked){
+    if(sendGreeting){
       sendKpGreeting(p);
       showToast('Saved — sending greeting...');
     } else {
@@ -2854,7 +2853,8 @@ function editKeyPartner(id){
   document.getElementById('kpProfessionInput').value = p.profession || '';
   toggleKpOtherProfession();
   document.getElementById('kpOtherProfessionInput').value = p.otherProfession || '';
-  document.getElementById('kpSaveBtn').textContent = 'Update';
+  document.getElementById('kpSaveOnlyBtn').textContent = 'Update';
+  document.getElementById('kpSaveBtn').style.display = 'none';
   document.getElementById('kpCancelEditBtn').style.display = '';
   document.getElementById('kpAddForm').classList.add('open');
   window.scrollTo(0,0);
