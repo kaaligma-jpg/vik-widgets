@@ -128,7 +128,7 @@
 
     <div class="card">
       <h2>Agents</h2>
-      <p class="hint">Turn an agent off to pause it — this now actually stops that agent's routes.</p>
+      <p class="hint">Turn an agent off to pause it. Right now only Mandy's switch actually stops her jobs below — Sasha/Vikram/Guru switches are saved but not yet wired into their routes.</p>
       <div id="agentRows"></div>
     </div>
 
@@ -143,10 +143,10 @@
 <script>
 const TOGGLES_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/agent-toggles';
 const AGENTS = [
-  { key: 'mandy', label: 'Mandy', note: 'Greetings, newsletter, touchpoints' },
-  { key: 'sasha', label: 'Sasha', note: 'Client chat + sends' },
-  { key: 'vikram', label: 'Vikram', note: 'Research + call analysis' },
-  { key: 'guru', label: 'Guru', note: '90-day recruit training emails' }
+  { key: 'mandy', label: 'Mandy', note: 'Greetings, newsletter, touchpoints — wired' },
+  { key: 'sasha', label: 'Sasha', note: 'Client chat + sends — not yet wired' },
+  { key: 'vikram', label: 'Vikram', note: 'Research + call analysis — not yet wired' },
+  { key: 'guru', label: 'Guru', note: '90-day recruit training emails — not yet wired' }
 ];
 
 const JOBS = [
