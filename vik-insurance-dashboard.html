@@ -1122,6 +1122,7 @@ function editLead(id){
       <dt>Email</dt><dd><input type="email" id="editEmail" value="${escapeHtml(c.email||'')}"></dd>
       <dt>Deal code</dt><dd><input type="text" id="editDealCode" value="${escapeHtml(c.dealCode||'')}"></dd>
       <dt>Age</dt><dd><input type="number" id="editAge" value="${c.age!=null?c.age:''}" placeholder="Age in years"></dd>
+      <dt>Birthday</dt><dd><input type="date" id="editBirthday" value="${c.birthday||''}"></dd>
       <dt>Category</dt><dd><select id="editCategory">${['Insurance','Investment','Both'].map(o=>`<option ${c.leadCategory===o?'selected':''}>${o}</option>`).join('')}</select></dd>
       <dt>Linked mortgage deal</dt><dd><input type="text" id="editLinkedDeal" value="${escapeHtml(c.linkedMortgageDealCode||'')}" placeholder="e.g. vmtz10010"></dd>
       <dt>Source note</dt><dd><input type="text" id="editSourceNotes" value="${escapeHtml(c.sourceNotes||'')}"></dd>
@@ -1144,6 +1145,7 @@ async function saveLeadEdit(id){
   c.dealCode = document.getElementById('editDealCode').value.trim();
   const ageVal = document.getElementById('editAge').value.trim();
   c.age = ageVal ? Number(ageVal) : null;
+  c.birthday = document.getElementById('editBirthday').value;
   c.ageBand = ageBandFor(c.age) || '';
   c.leadCategory = document.getElementById('editCategory').value;
   c.linkedMortgageDealCode = document.getElementById('editLinkedDeal').value.trim();
