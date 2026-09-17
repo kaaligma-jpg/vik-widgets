@@ -3590,6 +3590,7 @@ function openRecruitDetail(id){
     <dl class="detail">
       <dt>Email</dt><dd>${escapeHtml(r.email)||'—'}</dd>
       <dt>Phone</dt><dd>${escapeHtml(r.phone)||'—'}</dd>
+      <dt>Birthday</dt><dd>${escapeHtml(r.birthday)||'—'}</dd>
 
       <div class="sechead">Guru training program</div>
       <dd style="margin-top:6px;">
@@ -3664,6 +3665,9 @@ function openEditRecruitForm(id){
       '<div class="field"><label>Guru start date (Day 1)</label><input type="date" id="editRecStart" value="' + (r.startDate||'') + '"></div>',
       '<div class="field"><label>&nbsp;</label><div class="hint">Day 1 is this date. Move it back to jump the recruit forward, forward to push them back. Leave blank to stop the count.</div></div>',
     '</div>',
+    '<div class="field-row">',
+      '<div class="field"><label>Birthday</label><input type="date" id="editRecBirthday" value="' + (r.birthday||'') + '"></div>',
+    '</div>',
     '<div class="panel-actions"><div></div><div class="right">',
       '<button class="btn secondary" onclick="closeRecruitEditPanel()">Cancel</button> ',
       '<button class="btn" onclick="submitEditRecruit()">Save changes</button>',
@@ -3684,6 +3688,7 @@ function submitEditRecruit(){
   r.phone     = document.getElementById('editRecPhone').value.trim();
   const sd = document.getElementById('editRecStart').value.trim();
   r.startDate = sd ? sd : null;
+  r.birthday = document.getElementById('editRecBirthday').value;
   saveRecruits();
   closeRecruitEditPanel();
   renderRecruits();
@@ -3696,7 +3701,8 @@ function submitAddRecruit(){
     firstName: document.getElementById('newRecFirst').value.trim(),
     lastName: document.getElementById('newRecLast').value.trim(),
     email: document.getElementById('newRecEmail').value.trim(),
-    phone: document.getElementById('newRecPhone').value.trim()
+    phone: document.getElementById('newRecPhone').value.trim(),
+    birthday: ''
   });
   if(!r.firstName){ showToast('First name required'); return; }
   mortgageRecruits.push(r);
