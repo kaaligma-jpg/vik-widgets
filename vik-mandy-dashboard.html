@@ -128,7 +128,7 @@
 
     <div class="card">
       <h2>Agents</h2>
-      <p class="hint">Turn an agent off to pause it. Right now only Mandy's switch actually stops her jobs below — Sasha/Vikram/Guru switches are saved but not yet wired into their routes.</p>
+      <p class="hint">Turn an agent off to pause it — this now actually stops that agent's routes.</p>
       <div id="agentRows"></div>
     </div>
 
@@ -137,16 +137,39 @@
       <p class="hint">These normally run on their own schedule via cron. Use "Run now" to trigger one manually and see the result.</p>
       <div id="jobRows"></div>
     </div>
+    <div class="card">
+      <h2>Content Queue — Facebook / Instagram</h2>
+      <p class="hint">Mandy drafts posts (with a live web search for anything current), you approve or reject each one. No auto-posting yet — approved posts are meant to be copied and posted by hand until the Meta app is set up.</p>
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:16px;">
+        <select id="cqPlatform" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px;">
+          <option value="facebook">Facebook</option>
+          <option value="instagram">Instagram</option>
+        </select>
+        <select id="cqCount" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px;">
+          <option value="3">3 ideas</option>
+          <option value="5" selected>5 ideas</option>
+          <option value="10">10 ideas</option>
+        </select>
+        <button class="btn" id="cqGenBtn" onclick="generateContent()">Generate ideas</button>
+      </div>
+      <div id="cqStatus" style="font-size:13px; color:var(--slate); margin-bottom:10px;"></div>
+      <div id="cqDrafts"></div>
+      <div id="cqApprovedWrap" style="margin-top:20px; display:none;">
+        <div class="sub" style="margin-bottom:8px; font-weight:600; color:var(--ink);">Approved — ready to post by hand</div>
+        <div id="cqApproved"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <script>
 const TOGGLES_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/agent-toggles';
 const AGENTS = [
-  { key: 'mandy', label: 'Mandy', note: 'Greetings, newsletter, touchpoints — wired' },
-  { key: 'sasha', label: 'Sasha', note: 'Client chat + sends — not yet wired' },
-  { key: 'vikram', label: 'Vikram', note: 'Research + call analysis — not yet wired' },
-  { key: 'guru', label: 'Guru', note: '90-day recruit training emails — not yet wired' }
+  { key: 'mandy', label: 'Mandy', note: 'Greetings, newsletter, touchpoints' },
+  { key: 'sasha', label: 'Sasha', note: 'Client chat + sends' },
+  { key: 'vikram', label: 'Vikram', note: 'Research + call analysis' },
+  { key: 'guru', label: 'Guru', note: '90-day recruit training emails' }
 ];
 
 const JOBS = [
@@ -239,6 +262,111 @@ async function runJob(i){
 
 loadToggles();
 renderJobs();
+
+// ===== Content Queue =====
+const CONTENT_QUEUE_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/mandy-content-queue';
+const GENERATE_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-generate-content';
+const APPROVE_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-content-approve';
+
+async function loadContentQueue(){
+  try{
+    const res = await fetch(CONTENT_QUEUE_ENDPOINT);
+    const data = await res.json();
+    const queue = (data && data.value) ? JSON.parse(data.value) : [];
+    renderContentQueue(Array.isArray(queue) ? queue : []);
+  }catch(e){
+    renderContentQueue([]);
+  }
+}
+
+function renderContentQueue(queue){
+  const drafts = queue.filter(function(q){ return q.status === 'draft'; });
+  const approved = queue.filter(function(q){ return q.status === 'approved'; });
+
+  const draftsWrap = document.getElementById('cqDrafts');
+  if(!drafts.length){
+    draftsWrap.innerHTML = '<div class="hint">No drafts waiting right now. Click "Generate ideas" above.</div>';
+  } else {
+    draftsWrap.innerHTML = drafts.map(function(d){
+      return '<div class="job-row">' +
+        '<div style="font-size:11px; color:var(--brass); text-transform:uppercase; margin-bottom:4px;">' + d.platform + '</div>' +
+        '<div style="font-size:14px; margin-bottom:10px;">' + escapeHtmlMandy(d.draftText) + '</div>' +
+        '<div style="display:flex; gap:8px;">' +
+          '<button class="btn" onclick="approveContent(\'' + d.id + '\', \'approve\')">Approve</button>' +
+          '<button class="btn" style="background:var(--danger);" onclick="approveContent(\'' + d.id + '\', \'reject\')">Reject</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  const approvedWrap = document.getElementById('cqApprovedWrap');
+  const approvedList = document.getElementById('cqApproved');
+  if(approved.length){
+    approvedWrap.style.display = '';
+    approvedList.innerHTML = approved.map(function(d, i){
+      return '<div class="job-row">' +
+        '<div style="font-size:11px; color:var(--good); text-transform:uppercase; margin-bottom:4px;">' + d.platform + '</div>' +
+        '<div style="font-size:14px; margin-bottom:10px;">' + escapeHtmlMandy(d.draftText) + '</div>' +
+        '<button class="btn" onclick="copyContentText(this, ' + JSON.stringify(d.draftText) + ')">Copy text</button>' +
+      '</div>';
+    }).join('');
+  } else {
+    approvedWrap.style.display = 'none';
+  }
+}
+
+function escapeHtmlMandy(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function copyContentText(btn, text){
+  navigator.clipboard.writeText(text).then(function(){
+    const old = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = old; }, 1500);
+  });
+}
+
+async function generateContent(){
+  const platform = document.getElementById('cqPlatform').value;
+  const count = document.getElementById('cqCount').value;
+  const btn = document.getElementById('cqGenBtn');
+  const status = document.getElementById('cqStatus');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  status.textContent = 'Mandy is checking current trends and drafting ideas — this can take a bit.';
+  try{
+    const res = await fetch(GENERATE_ENDPOINT + '?platform=' + encodeURIComponent(platform) + '&count=' + encodeURIComponent(count));
+    const data = await res.json();
+    if(!res.ok || data.error){
+      status.textContent = 'Error: ' + (data.error || 'unknown error');
+    } else if(data.skipped){
+      status.textContent = data.reason || 'Mandy is turned off.';
+    } else {
+      status.textContent = 'Added ' + (data.added ? data.added.length : 0) + ' new drafts.';
+      loadContentQueue();
+    }
+  }catch(err){
+    status.textContent = 'Network error: ' + err.message;
+  }
+  btn.disabled = false;
+  btn.textContent = 'Generate ideas';
+}
+
+async function approveContent(id, action){
+  try{
+    await fetch(APPROVE_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ id: id, action: action })
+    });
+    loadContentQueue();
+  }catch(e){
+    alert('Could not update — try again');
+  }
+}
+
+loadContentQueue();
 </script>
 
 </body>
