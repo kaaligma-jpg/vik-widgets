@@ -150,6 +150,17 @@
         <select id="cqPlatform" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px;">
           <option value="facebook">Facebook</option>
           <option value="instagram">Instagram</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="tiktok">TikTok</option>
+          <option value="youtube">YouTube</option>
+        </select>
+        <select id="cqType" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px;">
+          <option value="mix">Mix of types</option>
+          <option value="image_post">📷 Image Post</option>
+          <option value="carousel">📑 Carousel</option>
+          <option value="short_video">🎬 Short-form Video</option>
+          <option value="long_video">📹 Long-form Video</option>
+          <option value="text_post">💬 Text Post</option>
         </select>
         <select id="cqCount" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px;">
           <option value="3">3 ideas</option>
@@ -281,7 +292,7 @@ let cqPlatformFilter = 'all';
 let cqTypeFilter = 'all';
 
 function cqTypeLabel(t){
-  return { image_post:'📷 Image', reel_script:'🎬 Reel', carousel:'📑 Carousel', text_post:'💬 Text' }[t] || t || '';
+  return { image_post:'📷 Image', short_video:'🎬 Short Video', long_video:'📹 Long Video', carousel:'📑 Carousel', text_post:'💬 Text' }[t] || t || '';
 }
 
 async function loadContentQueue(){
@@ -309,14 +320,21 @@ function renderContentQueue(){
   const queue = cqQueue;
 
   const platformTabsWrap = document.getElementById('cqPlatformTabs');
-  const platforms = [['all','All platforms'], ['facebook','Facebook'], ['instagram','Instagram']];
-  platformTabsWrap.innerHTML = platforms.map(function(p){
-    const cls = (cqPlatformFilter === p[0]) ? 'filter-tab active' : 'filter-tab';
-    return '<button class="' + cls + '" onclick="setCqPlatformFilter(\'' + p[0] + '\')">' + p[1] + '</button>';
-  }).join('');
+  const platformLabels = { facebook:'Facebook', instagram:'Instagram', linkedin:'LinkedIn', tiktok:'TikTok', youtube:'YouTube' };
+  const seenPlatforms = [];
+  queue.forEach(function(q){ if(q.platform && seenPlatforms.indexOf(q.platform) === -1) seenPlatforms.push(q.platform); });
+  if(seenPlatforms.length <= 1){
+    platformTabsWrap.innerHTML = '';
+  } else {
+    const platformTabs = [['all','All']].concat(seenPlatforms.map(function(p){ return [p, platformLabels[p] || p]; }));
+    platformTabsWrap.innerHTML = platformTabs.map(function(p){
+      const cls = (cqPlatformFilter === p[0]) ? 'filter-tab active' : 'filter-tab';
+      return '<button class="' + cls + '" onclick="setCqPlatformFilter(\'' + p[0] + '\')">' + p[1] + '</button>';
+    }).join('');
+  }
 
   const typeTabsWrap = document.getElementById('cqTypeTabs');
-  const types = [['all','All types'], ['image_post','📷 Image'], ['reel_script','🎬 Reel'], ['carousel','📑 Carousel'], ['text_post','💬 Text']];
+  const types = [['all','All types'], ['image_post','📷 Image'], ['short_video','🎬 Short Video'], ['long_video','📹 Long Video'], ['carousel','📑 Carousel'], ['text_post','💬 Text']];
   typeTabsWrap.innerHTML = types.map(function(t){
     const cls = (cqTypeFilter === t[0]) ? 'filter-tab active' : 'filter-tab';
     return '<button class="' + cls + '" onclick="setCqTypeFilter(\'' + t[0] + '\')">' + t[1] + '</button>';
@@ -376,13 +394,14 @@ function copyContentText(btn, text){
 async function generateContent(){
   const platform = document.getElementById('cqPlatform').value;
   const count = document.getElementById('cqCount').value;
+  const type = document.getElementById('cqType').value;
   const btn = document.getElementById('cqGenBtn');
   const status = document.getElementById('cqStatus');
   btn.disabled = true;
   btn.textContent = 'Generating...';
   status.textContent = 'Mandy is checking current trends and drafting ideas — this can take a bit.';
   try{
-    const res = await fetch(GENERATE_ENDPOINT + '?platform=' + encodeURIComponent(platform) + '&count=' + encodeURIComponent(count));
+    const res = await fetch(GENERATE_ENDPOINT + '?platform=' + encodeURIComponent(platform) + '&count=' + encodeURIComponent(count) + '&type=' + encodeURIComponent(type));
     const data = await res.json();
     if(!res.ok || data.error){
       status.textContent = 'Error: ' + (data.error || 'unknown error');
