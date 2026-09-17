@@ -170,8 +170,7 @@
         <button class="btn" id="cqGenBtn" onclick="generateContent()">Generate ideas</button>
       </div>
       <div id="cqStatus" style="font-size:13px; color:var(--slate); margin-bottom:10px;"></div>
-      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:6px;" id="cqPlatformTabs"></div>
-      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;" id="cqTypeTabs"></div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;" id="cqPlatformTabs"></div>
       <div id="cqDrafts"></div>
       <div id="cqApprovedWrap" style="margin-top:20px; display:none;">
         <div class="sub" style="margin-bottom:8px; font-weight:600; color:var(--ink);">Approved — ready to post by hand</div>
@@ -289,7 +288,6 @@ const APPROVE_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-content-appr
 
 let cqQueue = [];
 let cqPlatformFilter = 'all';
-let cqTypeFilter = 'all';
 
 function cqTypeLabel(t){
   return { image_post:'📷 Image', short_video:'🎬 Short Video', long_video:'📹 Long Video', carousel:'📑 Carousel', text_post:'💬 Text' }[t] || t || '';
@@ -308,11 +306,9 @@ async function loadContentQueue(){
 }
 
 function setCqPlatformFilter(p){ cqPlatformFilter = p; renderContentQueue(); }
-function setCqTypeFilter(t){ cqTypeFilter = t; renderContentQueue(); }
 
 function cqMatchesFilters(item){
   if(cqPlatformFilter !== 'all' && item.platform !== cqPlatformFilter) return false;
-  if(cqTypeFilter !== 'all' && item.contentType !== cqTypeFilter) return false;
   return true;
 }
 
@@ -332,13 +328,6 @@ function renderContentQueue(){
       return '<button class="' + cls + '" onclick="setCqPlatformFilter(\'' + p[0] + '\')">' + p[1] + '</button>';
     }).join('');
   }
-
-  const typeTabsWrap = document.getElementById('cqTypeTabs');
-  const types = [['all','All types'], ['image_post','📷 Image'], ['short_video','🎬 Short Video'], ['long_video','📹 Long Video'], ['carousel','📑 Carousel'], ['text_post','💬 Text']];
-  typeTabsWrap.innerHTML = types.map(function(t){
-    const cls = (cqTypeFilter === t[0]) ? 'filter-tab active' : 'filter-tab';
-    return '<button class="' + cls + '" onclick="setCqTypeFilter(\'' + t[0] + '\')">' + t[1] + '</button>';
-  }).join('');
 
   const drafts = queue.filter(function(q){ return q.status === 'draft' && cqMatchesFilters(q); });
   const approved = queue.filter(function(q){ return q.status === 'approved' && cqMatchesFilters(q); });
