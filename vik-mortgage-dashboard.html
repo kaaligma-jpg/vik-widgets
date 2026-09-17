@@ -314,6 +314,7 @@
   .doc-item a{ color:var(--brass); font-size:12px; font-weight:600; text-decoration:none; }
 </style>
   <script src="twilio-voice-sdk.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -425,6 +426,46 @@
   <div class="toolbar">
     <label class="btn" id="kpScanToggleBtn" for="kpCardPhotoInput" onclick="document.getElementById('kpScanForm').classList.add('open'); document.getElementById('kpAddForm').classList.remove('open');">📇 Scan business card</label>
     <button class="btn secondary" id="kpAddToggleBtn" onclick="toggleKpForm()">+ Add manually</button>
+    <button class="btn secondary" id="dcToggleBtn" onclick="toggleDataCenter()">📊 Data Center</button>
+  </div>
+
+  <div class="task-add-form" id="dcForm">
+    <div style="width:100%;">
+      <label style="font-size:12px; color:var(--slate); display:block; margin-bottom:6px;">Upload a file of contacts (CSV or Excel) to import in bulk.</label>
+      <input type="file" id="dcFileInput" accept=".csv,.xlsx,.xls" onchange="handleDcFile(event)">
+    </div>
+    <div id="dcMappingWrap" style="width:100%;"></div>
+    <div id="dcDestinationWrap" style="width:100%; display:none;">
+      <div style="font-size:12px; color:var(--slate); margin:8px 0 6px;">Where should these go?</div>
+      <select id="dcDestination" onchange="onDcDestinationChange()">
+        <option value="keypartners">Key Partners</option>
+        <option value="recruits">Recruits</option>
+        <option value="clients">Clients</option>
+      </select>
+      <div id="dcPipelineWrap" style="display:none; margin-top:8px;">
+        <select id="dcPipeline">
+          <option value="mortgage">Mortgage</option>
+          <option value="insurance">Insurance</option>
+        </select>
+      </div>
+      <div id="dcKpOptionsWrap" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <select id="dcKpCategory">
+          <option value="referral">Referral Source</option>
+          <option value="client">Client</option>
+          <option value="recruit">Recruit</option>
+        </select>
+        <select id="dcKpProfession" onchange="document.getElementById('dcKpOtherProfession').style.display = this.value==='other' ? '' : 'none';">
+          <option value="realtor">Realtor</option>
+          <option value="accountant">Accountant</option>
+          <option value="lawyer">Lawyer</option>
+          <option value="other">Other</option>
+        </select>
+        <input type="text" id="dcKpOtherProfession" placeholder="What kind of profession?" style="display:none;">
+      </div>
+      <div style="width:100%; margin-top:10px;">
+        <button class="btn small" onclick="importDcBatch()">Import contacts</button>
+      </div>
+    </div>
   </div>
 
   <div class="task-add-form" id="kpScanForm">
@@ -2662,6 +2703,119 @@ let kpCardPhotoData = null; // base64 of the scanned card photo, not yet OCR'd
 let editingKpId = null;
 
 function kpUid(){ return 'kp_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+
+// ===== Data Center — bulk import (added by fix-kp-data-center.js) =====
+let dcParsedRows = [];
+let dcHeaders = [];
+
+function toggleDataCenter(){
+  document.getElementById('dcForm').classList.toggle('open');
+  document.getElementById('kpScanForm').classList.remove('open');
+  document.getElementById('kpAddForm').classList.remove('open');
+}
+
+function handleDcFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, {type:'array'});
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      if(!rows.length){ showToast('No rows found in that file'); return; }
+      dcParsedRows = rows;
+      dcHeaders = Object.keys(rows[0]);
+      renderDcColumnMapping();
+    }catch(err){
+      console.error('Data Center file parse error:', err);
+      showToast('Could not read that file — try CSV or Excel (.xlsx)');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function dcGuessColumn(possibleNames){
+  const lower = dcHeaders.map(h => h.toLowerCase());
+  for(const name of possibleNames){
+    const idx = lower.indexOf(name);
+    if(idx > -1) return dcHeaders[idx];
+  }
+  return '';
+}
+
+function renderDcColumnMapping(){
+  const wrap = document.getElementById('dcMappingWrap');
+  const fields = [
+    {key:'firstName', label:'First Name', guesses:['first name','firstname','first']},
+    {key:'lastName', label:'Last Name', guesses:['last name','lastname','last','surname']},
+    {key:'phone', label:'Phone', guesses:['phone','mobile','cell','phone number']},
+    {key:'email', label:'Email', guesses:['email','email address']},
+    {key:'company', label:'Company', guesses:['company','brokerage','firm']}
+  ];
+  let html = '<label style="font-size:12px; color:var(--slate); display:block; margin:10px 0 6px;">' + dcParsedRows.length + ' rows found. Match each field to a column from your file:</label>';
+  fields.forEach(f=>{
+    const guess = dcGuessColumn(f.guesses);
+    html += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">' +
+      '<span style="width:90px; font-size:13px;">' + f.label + '</span>' +
+      '<select id="dcMap_' + f.key + '" style="flex:1;">' +
+      '<option value="">-- none --</option>' +
+      dcHeaders.map(h => '<option value="'+escapeHtml(h)+'"'+(h===guess?' selected':'')+'>'+escapeHtml(h)+'</option>').join('') +
+      '</select></div>';
+  });
+  wrap.innerHTML = html;
+  document.getElementById('dcDestinationWrap').style.display = '';
+}
+
+function onDcDestinationChange(){
+  const dest = document.getElementById('dcDestination').value;
+  document.getElementById('dcPipelineWrap').style.display = (dest==='recruits'||dest==='clients') ? '' : 'none';
+  document.getElementById('dcKpOptionsWrap').style.display = (dest==='keypartners') ? 'flex' : 'none';
+}
+
+function importDcBatch(){
+  const dest = document.getElementById('dcDestination').value;
+  const mapFirst = document.getElementById('dcMap_firstName').value;
+  const mapLast = document.getElementById('dcMap_lastName').value;
+  const mapPhone = document.getElementById('dcMap_phone').value;
+  const mapEmail = document.getElementById('dcMap_email').value;
+  const mapCompany = document.getElementById('dcMap_company').value;
+
+  if(!mapFirst){ showToast('Please match a First Name column first'); return; }
+
+  if(dest === 'keypartners'){
+    const category = document.getElementById('dcKpCategory').value;
+    const profession = document.getElementById('dcKpProfession').value;
+    const otherProfession = (profession==='other') ? document.getElementById('dcKpOtherProfession').value.trim() : '';
+    let added = 0;
+    dcParsedRows.forEach(row=>{
+      const firstName = (row[mapFirst]||'').toString().trim();
+      if(!firstName) return;
+      const lastName = mapLast ? (row[mapLast]||'').toString().trim() : '';
+      const phone = mapPhone ? (row[mapPhone]||'').toString().trim() : '';
+      const email = mapEmail ? (row[mapEmail]||'').toString().trim() : '';
+      const company = mapCompany ? (row[mapCompany]||'').toString().trim() : '';
+      vikKeyPartners.push({
+        id: kpUid(), firstName, lastName, company, phone, email,
+        category, profession, otherProfession, notes:'', cardPhoto:null,
+        createdAt: new Date().toISOString()
+      });
+      added++;
+    });
+    saveKeyPartnersToServer();
+    renderKeyPartners();
+    showToast('Imported ' + added + ' Key Partners');
+    document.getElementById('dcForm').classList.remove('open');
+    document.getElementById('dcFileInput').value = '';
+    dcParsedRows = []; dcHeaders = [];
+    document.getElementById('dcMappingWrap').innerHTML = '';
+    document.getElementById('dcDestinationWrap').style.display = 'none';
+  } else {
+    showToast('Bulk import for Recruits/Clients is coming soon — Key Partners import is ready now');
+  }
+}
 
 async function loadKeyPartners(){
   try{
