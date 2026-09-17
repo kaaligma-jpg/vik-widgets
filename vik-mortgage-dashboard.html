@@ -3874,6 +3874,19 @@ document.getElementById('overlay').addEventListener('click', (e)=>{ if(e.target.
 
 populateFilterOptions();
 loadClients();
+
+// Direct-link support for a home-screen bookmark:
+// ?view=keypartners opens the Key Partners tab; add &scan=1 to also open the
+// "Scan business card" form right away.
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('view') === 'keypartners') {
+    showView('keypartners');
+    if (params.get('scan') === '1') {
+      document.getElementById('kpScanForm').classList.add('open');
+    }
+  }
+})();
 </script>
 
 </body>
