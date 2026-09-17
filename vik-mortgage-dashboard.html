@@ -329,6 +329,7 @@
       <button id="navCoachingBtn" onclick="showView('coaching')">My Coaching</button>
       <button id="navTasksBtn" onclick="showView('tasks')">Tasks</button>
       <button id="navKeyPartnersBtn" onclick="showView('keypartners')">Key Partners</button>
+      <button id="dcSidebarBtn" onclick="showView('keypartners'); toggleDataCenter();">📊 Data Center</button>
       <a href="vik-insurance-dashboard.html" style="all:unset;cursor:pointer;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9D0DC;display:block;">Insurance Pipeline</a>
     </div>
   </div>
@@ -426,7 +427,6 @@
   <div class="toolbar">
     <label class="btn" id="kpScanToggleBtn" for="kpCardPhotoInput" onclick="document.getElementById('kpScanForm').classList.add('open'); document.getElementById('kpAddForm').classList.remove('open');">📇 Scan business card</label>
     <button class="btn secondary" id="kpAddToggleBtn" onclick="toggleKpForm()">+ Add manually</button>
-    <button class="btn secondary" id="dcToggleBtn" onclick="toggleDataCenter()">📊 Data Center</button>
   </div>
 
   <div class="task-add-form" id="dcForm">
