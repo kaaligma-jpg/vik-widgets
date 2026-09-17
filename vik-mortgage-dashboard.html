@@ -499,6 +499,10 @@
     </select>
     <input type="text" id="kpOtherProfessionInput" placeholder="What kind of profession?" style="display:none;">
     <textarea id="kpNotesInput" placeholder="Notes about this key partner (optional)" style="width:100%; min-height:60px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--sans); font-size:13px;"></textarea>
+    <label style="width:100%; display:flex; align-items:center; gap:8px; font-size:13px;">
+      🎂 Birthday (optional)
+      <input type="date" id="kpBirthdayInput">
+    </label>
     <div style="width:100%; display:flex; gap:8px;">
       <button class="btn secondary small" id="kpSaveOnlyBtn" onclick="saveKeyPartner(false)">Save</button>
       <button class="btn small" id="kpSaveBtn" onclick="saveKeyPartner(true)">Save &amp; send greeting</button>
@@ -2925,6 +2929,7 @@ function resetKpForm(){
   document.getElementById('kpProfessionInput').value = '';
   document.getElementById('kpOtherProfessionInput').value = '';
   document.getElementById('kpNotesInput').value = '';
+  document.getElementById('kpBirthdayInput').value = '';
   selectKpCategory('referral');
   kpCardPhotoData = null;
   document.getElementById('kpCardPreviewWrap').innerHTML = '';
@@ -2965,13 +2970,14 @@ function saveKeyPartner(sendGreeting){
   const profession = currentKpCategory==='referral' ? document.getElementById('kpProfessionInput').value : '';
   const otherProfession = (profession==='other') ? document.getElementById('kpOtherProfessionInput').value.trim() : '';
   const notes = document.getElementById('kpNotesInput').value.trim();
+  const birthday = document.getElementById('kpBirthdayInput').value;
   if(!firstName){ showToast('First name required'); return; }
 
   if(editingKpId){
     const p = vikKeyPartners.find(x=>x.id===editingKpId);
     if(p){
       p.firstName=firstName; p.lastName=lastName; p.company=company; p.phone=phone; p.email=email;
-      p.category=currentKpCategory; p.profession=profession; p.otherProfession=otherProfession; p.notes=notes;
+      p.category=currentKpCategory; p.profession=profession; p.otherProfession=otherProfession; p.notes=notes; p.birthday=birthday;
       if(kpCardPhotoData) p.cardPhoto = kpCardPhotoData;
       saveKeyPartnersToServer();
       renderKeyPartners();
@@ -2979,7 +2985,7 @@ function saveKeyPartner(sendGreeting){
   } else {
     const p = {
       id: kpUid(), firstName, lastName, company, phone, email,
-      category: currentKpCategory, profession, otherProfession, notes, cardPhoto: kpCardPhotoData,
+      category: currentKpCategory, profession, otherProfession, notes, birthday, cardPhoto: kpCardPhotoData,
       createdAt: new Date().toISOString()
     };
     vikKeyPartners.push(p);
@@ -3012,6 +3018,7 @@ function editKeyPartner(id){
   toggleKpOtherProfession();
   document.getElementById('kpOtherProfessionInput').value = p.otherProfession || '';
   document.getElementById('kpNotesInput').value = p.notes || '';
+  document.getElementById('kpBirthdayInput').value = p.birthday || '';
   document.getElementById('kpSaveOnlyBtn').textContent = 'Update';
   document.getElementById('kpSaveBtn').style.display = 'none';
   document.getElementById('kpCancelEditBtn').style.display = '';
@@ -3117,6 +3124,7 @@ function renderKeyPartners(){
           '<div class="task-subject">' + escapeHtml(fullName) + (p.company ? (' &mdash; ' + escapeHtml(p.company)) : '') + '</div>' +
           '<div class="task-meta">' + kpCategoryLabel(p.category) + profStr + (p.phone?(' &middot; '+escapeHtml(p.phone)):'') + (p.email?(' &middot; '+escapeHtml(p.email)):'') + '</div>' +
           (p.notes ? ('<div class="task-meta" style="font-style:italic;">' + escapeHtml(p.notes) + '</div>') : '') +
+          (p.birthday ? ('<div class="task-meta">🎂 ' + escapeHtml(p.birthday) + '</div>') : '') +
         '</div>' +
       '</div>' +
       '<div class="task-actions">' +
