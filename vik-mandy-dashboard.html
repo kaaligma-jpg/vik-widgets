@@ -143,9 +143,19 @@
       <p class="hint">These normally run on their own schedule via cron. Use "Run now" to trigger one manually and see the result.</p>
       <div id="jobRows"></div>
     </div>
+    <div style="display:flex; gap:8px; margin-bottom:16px;">
+      <button class="filter-tab active" id="tabBtnSocial" style="padding:10px 18px; font-size:13px;" onclick="switchMandyTab('social')">📱 Social Media</button>
+      <button class="filter-tab" id="tabBtnNewsletter" style="padding:10px 18px; font-size:13px;" onclick="switchMandyTab('newsletter')">📰 Newsletter</button>
+    </div>
+
+    <div id="tabContentSocial">
     <div class="card">
       <h2>Content Queue — Facebook / Instagram</h2>
       <p class="hint">Mandy drafts posts (with a live web search for anything current), you approve or reject each one. No auto-posting yet — approved posts are meant to be copied and posted by hand until the Meta app is set up.</p>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px; color:var(--slate); display:block; margin-bottom:6px;">Custom instructions for Mandy (optional) — e.g. "write about closing costs this week"</label>
+        <textarea id="cqInstructions" placeholder="Leave blank for Mandy to pick the topic herself" style="width:100%; min-height:50px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--sans); font-size:13px;"></textarea>
+      </div>
       <div style="display:flex; gap:10px; align-items:center; margin-bottom:16px;">
         <select id="cqPlatform" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px;">
           <option value="facebook">Facebook</option>
@@ -177,6 +187,29 @@
         <div id="cqApproved"></div>
       </div>
     </div>
+    </div>
+
+    <div id="tabContentNewsletter" style="display:none;">
+    <div class="card">
+      <h2>📰 Newsletter — feed &amp; draft</h2>
+      <p class="hint">Add anything you want this month's newsletter to reflect — a milestone, a story, a topic. Mandy weaves it in when she drafts.</p>
+      <div style="margin-bottom:10px;">
+        <textarea id="nlFeed" placeholder="e.g. Mention we just hit 20 years in the industry. Or: focus on first-time buyers this month." style="width:100%; min-height:70px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--sans); font-size:13px;"></textarea>
+      </div>
+      <button class="btn" onclick="saveNewsletterFeed()">Save notes for Mandy</button>
+      <span id="nlFeedStatus" style="font-size:12px; color:var(--slate); margin-left:10px;"></span>
+    </div>
+    <div class="card">
+      <h2>Draft &amp; approve</h2>
+      <p class="hint">Mandy drafts the monthly newsletter (4 segments) automatically on the last day of the month, using your notes above. Review and approve each segment here — only approved segments actually go out.</p>
+      <div style="display:flex; gap:10px; margin-bottom:16px;">
+        <button class="btn" onclick="draftNewsletter(false)">Check for today's draft</button>
+        <button class="btn" style="background:var(--warn);" onclick="draftNewsletter(true)">Force-draft now (testing)</button>
+      </div>
+      <div id="nlStatus" style="font-size:13px; color:var(--slate); margin-bottom:10px;"></div>
+      <div id="nlSegments"></div>
+    </div>
+    </div>
 
   </div>
 </div>
@@ -191,13 +224,13 @@ const AGENTS = [
 ];
 
 const JOBS = [
-  { name: 'Key Partners — birthday check', url: 'https://fincop-backend.onrender.com/kp-birthday-check' },
-  { name: 'Mortgage Clients — birthday/anniversary check', url: 'https://fincop-backend.onrender.com/mortgage-clients-greeting-check' },
-  { name: 'Mortgage Recruits — birthday check', url: 'https://fincop-backend.onrender.com/mortgage-recruits-greeting-check' },
-  { name: 'Insurance Clients — birthday check', url: 'https://fincop-backend.onrender.com/insurance-clients-greeting-check' },
-  { name: 'Insurance Recruits — birthday check', url: 'https://fincop-backend.onrender.com/insurance-recruits-greeting-check' },
-  { name: 'Mortgage touchpoints + renewal review', url: 'https://fincop-backend.onrender.com/mortgage-touchpoint-check' },
-  { name: 'Monthly newsletter (sends for real — use on purpose)', url: 'https://fincop-backend.onrender.com/mandy-newsletter-send' }
+  { name: '🎂 Key Partners — birthday check', url: 'https://fincop-backend.onrender.com/kp-birthday-check' },
+  { name: '🎂 Mortgage Clients — birthday/anniversary check', url: 'https://fincop-backend.onrender.com/mortgage-clients-greeting-check' },
+  { name: '🎂 Mortgage Recruits — birthday check', url: 'https://fincop-backend.onrender.com/mortgage-recruits-greeting-check' },
+  { name: '🎂 Insurance Clients — birthday check', url: 'https://fincop-backend.onrender.com/insurance-clients-greeting-check' },
+  { name: '🎂 Insurance Recruits — birthday check', url: 'https://fincop-backend.onrender.com/insurance-recruits-greeting-check' },
+  { name: '🤝 Mortgage touchpoints + renewal review', url: 'https://fincop-backend.onrender.com/mortgage-touchpoint-check' },
+  { name: '📰 Monthly newsletter (sends for real — use on purpose)', url: 'https://fincop-backend.onrender.com/mandy-newsletter-send' }
 ];
 
 let toggles = {};
@@ -384,13 +417,14 @@ async function generateContent(){
   const platform = document.getElementById('cqPlatform').value;
   const count = document.getElementById('cqCount').value;
   const type = document.getElementById('cqType').value;
+  const instructions = document.getElementById('cqInstructions').value.trim();
   const btn = document.getElementById('cqGenBtn');
   const status = document.getElementById('cqStatus');
   btn.disabled = true;
   btn.textContent = 'Generating...';
   status.textContent = 'Mandy is checking current trends and drafting ideas — this can take a bit.';
   try{
-    const res = await fetch(GENERATE_ENDPOINT + '?platform=' + encodeURIComponent(platform) + '&count=' + encodeURIComponent(count) + '&type=' + encodeURIComponent(type));
+    const res = await fetch(GENERATE_ENDPOINT + '?platform=' + encodeURIComponent(platform) + '&count=' + encodeURIComponent(count) + '&type=' + encodeURIComponent(type) + '&instructions=' + encodeURIComponent(instructions));
     const data = await res.json();
     if(!res.ok || data.error){
       status.textContent = 'Error: ' + (data.error || 'unknown error');
@@ -435,6 +469,124 @@ async function deleteContent(id){
 }
 
 loadContentQueue();
+
+// ===== Newsletter draft/approve =====
+const NEWSLETTER_DRAFT_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-newsletter-draft';
+const NEWSLETTER_APPROVE_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-newsletter-approve';
+const NEWSLETTER_DRAFTS_DATA_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/mandy-newsletter-drafts';
+
+async function loadNewsletterDrafts(){
+  try{
+    const res = await fetch(NEWSLETTER_DRAFTS_DATA_ENDPOINT);
+    const data = await res.json();
+    const draftRecord = (data && data.value) ? JSON.parse(data.value) : null;
+    renderNewsletterDrafts(draftRecord);
+  }catch(e){
+    renderNewsletterDrafts(null);
+  }
+}
+
+function renderNewsletterDrafts(draftRecord){
+  const wrap = document.getElementById('nlSegments');
+  if(!draftRecord || !draftRecord.segments || !draftRecord.segments.length){
+    wrap.innerHTML = '<div class="hint">No draft yet this month. It generates automatically on the last day of the month, or click "Force-draft now" to test.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="hint" style="margin-bottom:10px;">Draft for ' + draftRecord.month + ', generated ' + new Date(draftRecord.generatedAt).toLocaleString() + '</div>' +
+    draftRecord.segments.map(function(seg){
+      const statusColor = seg.status === 'approved' ? 'var(--good)' : (seg.status === 'sent' ? 'var(--slate)' : (seg.status === 'rejected' ? 'var(--danger)' : 'var(--brass)'));
+      let buttons = '';
+      if(seg.status === 'draft'){
+        buttons = '<button class="btn" onclick="approveNewsletterSegment(\'' + seg.segment + '\', \'approve\')">Approve</button>' +
+          '<button class="btn" style="background:var(--warn); margin-left:8px;" onclick="approveNewsletterSegment(\'' + seg.segment + '\', \'reject\')">Reject</button>';
+      } else if(seg.status === 'approved'){
+        buttons = '<span style="font-size:12px; color:var(--good);">Approved — will send on next newsletter run</span>';
+      } else if(seg.status === 'sent'){
+        buttons = '<span style="font-size:12px; color:var(--slate);">Already sent this month</span>';
+      } else if(seg.status === 'rejected'){
+        buttons = '<span style="font-size:12px; color:var(--danger);">Rejected — will not be sent</span>';
+      } else {
+        buttons = '<span style="font-size:12px; color:var(--danger);">Content generation failed for this segment</span>';
+      }
+      return '<div class="job-row">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
+          '<div style="font-weight:600; font-size:14px;">' + seg.segment + ' <span style="font-size:11px; color:var(--slate); font-weight:400;">(' + seg.recipientCount + ' recipients)</span></div>' +
+          '<div style="font-size:11px; text-transform:uppercase; color:' + statusColor + ';">' + seg.status + '</div>' +
+        '</div>' +
+        (seg.subject ? '<div style="font-size:13px; font-weight:600; margin-bottom:4px;">' + escapeHtmlMandy(seg.subject) + '</div>' : '') +
+        (seg.body ? '<div style="font-size:13px; white-space:pre-wrap; margin-bottom:10px;">' + escapeHtmlMandy(seg.body) + '</div>' : '') +
+        buttons +
+      '</div>';
+    }).join('');
+}
+
+async function draftNewsletter(force){
+  const status = document.getElementById('nlStatus');
+  status.textContent = 'Checking / drafting — this can take a bit (checks all 4 segments)...';
+  try{
+    const res = await fetch(NEWSLETTER_DRAFT_ENDPOINT + (force ? '?force=1' : ''));
+    const data = await res.json();
+    if(!res.ok || data.error){
+      status.textContent = 'Error: ' + (data.error || 'unknown error');
+    } else if(data.skipped){
+      status.textContent = data.reason || 'Skipped.';
+    } else {
+      status.textContent = 'Draft ready for ' + (data.draft ? data.draft.month : '') + '.';
+      loadNewsletterDrafts();
+    }
+  }catch(err){
+    status.textContent = 'Network error: ' + err.message;
+  }
+}
+
+async function approveNewsletterSegment(segment, action){
+  try{
+    await fetch(NEWSLETTER_APPROVE_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ segment: segment, action: action })
+    });
+    loadNewsletterDrafts();
+  }catch(e){
+    alert('Could not update — try again');
+  }
+}
+
+loadNewsletterDrafts();
+
+function switchMandyTab(tab){
+  document.getElementById('tabContentSocial').style.display = (tab === 'social') ? '' : 'none';
+  document.getElementById('tabContentNewsletter').style.display = (tab === 'newsletter') ? '' : 'none';
+  document.getElementById('tabBtnSocial').className = (tab === 'social') ? 'filter-tab active' : 'filter-tab';
+  document.getElementById('tabBtnNewsletter').className = (tab === 'newsletter') ? 'filter-tab active' : 'filter-tab';
+}
+
+const NEWSLETTER_FEED_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/mandy-newsletter-feed';
+
+async function loadNewsletterFeed(){
+  try{
+    const res = await fetch(NEWSLETTER_FEED_ENDPOINT);
+    const data = await res.json();
+    document.getElementById('nlFeed').value = (data && data.value) ? data.value : '';
+  }catch(e){ /* leave blank */ }
+}
+
+async function saveNewsletterFeed(){
+  const status = document.getElementById('nlFeedStatus');
+  try{
+    await fetch(NEWSLETTER_FEED_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ value: document.getElementById('nlFeed').value })
+    });
+    status.textContent = 'Saved.';
+    setTimeout(function(){ status.textContent = ''; }, 2000);
+  }catch(e){
+    status.textContent = 'Could not save — try again';
+  }
+}
+
+loadNewsletterFeed();
 </script>
 
 </body>
