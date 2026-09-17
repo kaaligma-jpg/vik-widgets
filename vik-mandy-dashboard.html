@@ -191,6 +191,12 @@
 
     <div id="tabContentNewsletter" style="display:none;">
     <div class="card">
+      <h2>📚 Daily Research Log</h2>
+      <p class="hint">Mandy checks the market, regulatory, and economic news every day at 9am and logs what's genuinely new here. Review her progress through the month before adding your own notes below.</p>
+      <div id="rlStatus" style="font-size:13px; color:var(--slate); margin-bottom:10px;"></div>
+      <div id="rlEntries"></div>
+    </div>
+    <div class="card">
       <h2>📰 Newsletter — feed &amp; draft</h2>
       <p class="hint">Add anything you want this month's newsletter to reflect — a milestone, a story, a topic. Mandy weaves it in when she drafts.</p>
       <div style="margin-bottom:10px;">
@@ -201,7 +207,7 @@
     </div>
     <div class="card">
       <h2>Draft &amp; approve</h2>
-      <p class="hint">Mandy drafts the monthly newsletter (4 segments) automatically on the last day of the month, using your notes above. Review and approve each segment here — only approved segments actually go out.</p>
+      <p class="hint">Mandy drafts one unified newsletter automatically on the last day of the month, using this month's research log and your notes above. Review and approve it here — sent to mortgage clients and Key Partners together.</p>
       <div style="display:flex; gap:10px; margin-bottom:16px;">
         <button class="btn" onclick="draftNewsletter(false)">Check for today's draft</button>
         <button class="btn" style="background:var(--warn);" onclick="draftNewsletter(true)">Force-draft now (testing)</button>
@@ -488,41 +494,39 @@ async function loadNewsletterDrafts(){
 
 function renderNewsletterDrafts(draftRecord){
   const wrap = document.getElementById('nlSegments');
-  if(!draftRecord || !draftRecord.segments || !draftRecord.segments.length){
+  if(!draftRecord || !draftRecord.subject){
     wrap.innerHTML = '<div class="hint">No draft yet this month. It generates automatically on the last day of the month, or click "Force-draft now" to test.</div>';
     return;
   }
+  const statusColor = draftRecord.status === 'approved' ? 'var(--good)' : (draftRecord.status === 'sent' ? 'var(--slate)' : (draftRecord.status === 'rejected' ? 'var(--danger)' : 'var(--brass)'));
+  let buttons = '';
+  if(draftRecord.status === 'draft'){
+    buttons = '<button class="btn" onclick="approveNewsletter(\'approve\')">Approve</button>' +
+      '<button class="btn" style="background:var(--warn); margin-left:8px;" onclick="approveNewsletter(\'reject\')">Reject</button>';
+  } else if(draftRecord.status === 'approved'){
+    buttons = '<span style="font-size:12px; color:var(--good);">Approved — will send on next newsletter run</span>';
+  } else if(draftRecord.status === 'sent'){
+    buttons = '<span style="font-size:12px; color:var(--slate);">Already sent this month</span>';
+  } else if(draftRecord.status === 'rejected'){
+    buttons = '<span style="font-size:12px; color:var(--danger);">Rejected — will not be sent</span>';
+  } else {
+    buttons = '<span style="font-size:12px; color:var(--danger);">Content generation failed</span>';
+  }
   wrap.innerHTML = '<div class="hint" style="margin-bottom:10px;">Draft for ' + draftRecord.month + ', generated ' + new Date(draftRecord.generatedAt).toLocaleString() + '</div>' +
-    draftRecord.segments.map(function(seg){
-      const statusColor = seg.status === 'approved' ? 'var(--good)' : (seg.status === 'sent' ? 'var(--slate)' : (seg.status === 'rejected' ? 'var(--danger)' : 'var(--brass)'));
-      let buttons = '';
-      if(seg.status === 'draft'){
-        buttons = '<button class="btn" onclick="approveNewsletterSegment(\'' + seg.segment + '\', \'approve\')">Approve</button>' +
-          '<button class="btn" style="background:var(--warn); margin-left:8px;" onclick="approveNewsletterSegment(\'' + seg.segment + '\', \'reject\')">Reject</button>';
-      } else if(seg.status === 'approved'){
-        buttons = '<span style="font-size:12px; color:var(--good);">Approved — will send on next newsletter run</span>';
-      } else if(seg.status === 'sent'){
-        buttons = '<span style="font-size:12px; color:var(--slate);">Already sent this month</span>';
-      } else if(seg.status === 'rejected'){
-        buttons = '<span style="font-size:12px; color:var(--danger);">Rejected — will not be sent</span>';
-      } else {
-        buttons = '<span style="font-size:12px; color:var(--danger);">Content generation failed for this segment</span>';
-      }
-      return '<div class="job-row">' +
-        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
-          '<div style="font-weight:600; font-size:14px;">' + seg.segment + ' <span style="font-size:11px; color:var(--slate); font-weight:400;">(' + seg.recipientCount + ' recipients)</span></div>' +
-          '<div style="font-size:11px; text-transform:uppercase; color:' + statusColor + ';">' + seg.status + '</div>' +
-        '</div>' +
-        (seg.subject ? '<div style="font-size:13px; font-weight:600; margin-bottom:4px;">' + escapeHtmlMandy(seg.subject) + '</div>' : '') +
-        (seg.body ? '<div style="font-size:13px; white-space:pre-wrap; margin-bottom:10px;">' + escapeHtmlMandy(seg.body) + '</div>' : '') +
-        buttons +
-      '</div>';
-    }).join('');
+    '<div class="job-row">' +
+      '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
+        '<div style="font-weight:600; font-size:14px;">Dream Home + Life Monthly <span style="font-size:11px; color:var(--slate); font-weight:400;">(' + draftRecord.recipientCount + ' recipients)</span></div>' +
+        '<div style="font-size:11px; text-transform:uppercase; color:' + statusColor + ';">' + draftRecord.status + '</div>' +
+      '</div>' +
+      (draftRecord.subject ? '<div style="font-size:13px; font-weight:600; margin-bottom:4px;">' + escapeHtmlMandy(draftRecord.subject) + '</div>' : '') +
+      (draftRecord.body ? '<div style="font-size:13px; white-space:pre-wrap; margin-bottom:10px;">' + escapeHtmlMandy(draftRecord.body) + '</div>' : '') +
+      buttons +
+    '</div>';
 }
 
 async function draftNewsletter(force){
   const status = document.getElementById('nlStatus');
-  status.textContent = 'Checking / drafting — this can take a bit (checks all 4 segments)...';
+  status.textContent = 'Checking / drafting from this month\\u2019s research log — this can take a bit...';
   try{
     const res = await fetch(NEWSLETTER_DRAFT_ENDPOINT + (force ? '?force=1' : ''));
     const data = await res.json();
@@ -539,12 +543,12 @@ async function draftNewsletter(force){
   }
 }
 
-async function approveNewsletterSegment(segment, action){
+async function approveNewsletter(action){
   try{
     await fetch(NEWSLETTER_APPROVE_ENDPOINT, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ segment: segment, action: action })
+      body: JSON.stringify({ action: action })
     });
     loadNewsletterDrafts();
   }catch(e){
@@ -587,6 +591,46 @@ async function saveNewsletterFeed(){
 }
 
 loadNewsletterFeed();
+
+// ===== Daily Research Log =====
+function currentMonthKeyToronto(){
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Toronto', year: 'numeric', month: '2-digit'
+  }).formatToParts(new Date());
+  const y = parts.find(p => p.type === 'year').value;
+  const m = parts.find(p => p.type === 'month').value;
+  return y + '-' + m;
+}
+
+async function loadResearchLog(){
+  const monthKey = currentMonthKeyToronto();
+  const endpoint = 'https://fincop-backend.onrender.com/app-data/mandy-research-log-' + monthKey;
+  const status = document.getElementById('rlStatus');
+  const wrap = document.getElementById('rlEntries');
+  try{
+    const res = await fetch(endpoint);
+    const data = await res.json();
+    const log = (data && data.value) ? JSON.parse(data.value) : [];
+    if(!Array.isArray(log) || !log.length){
+      status.textContent = 'No entries yet for ' + monthKey + '. The first one lands after the next 9am run (or trigger it manually).';
+      wrap.innerHTML = '';
+      return;
+    }
+    status.textContent = log.length + ' day' + (log.length === 1 ? '' : 's') + ' logged so far this month (' + monthKey + ').';
+    const sorted = log.slice().sort(function(a, b){ return b.date.localeCompare(a.date); });
+    wrap.innerHTML = sorted.map(function(entry){
+      return '<div class="job-row">' +
+        '<div style="font-weight:600; font-size:13px; margin-bottom:6px;">' + entry.date + '</div>' +
+        '<div style="font-size:13px; white-space:pre-wrap;">' + escapeHtmlMandy(entry.findings) + '</div>' +
+      '</div>';
+    }).join('');
+  }catch(e){
+    status.textContent = 'Could not load the research log.';
+    wrap.innerHTML = '';
+  }
+}
+
+loadResearchLog();
 </script>
 
 </body>
