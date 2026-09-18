@@ -1002,7 +1002,7 @@ function renderReminders(){
       if(hrs !== null){
         const hoursLeft = 2 - hrs;
         if(hoursLeft <= 0){
-          urgent.push({ id:c.id, type:'2-hour SLA breached', label: nameWithCode(c) + ' — not called yet, auto-call by Vik (AI) triggered', days: -1, forceOverdue:true });
+          urgent.push({ id:c.id, type:'2-hour SLA breached', label: nameWithCode(c) + ' — not called yet. Switch Vikram ON to call', days: -1, forceOverdue:true });
         }else{
           urgent.push({ id:c.id, type:'Call within 2 hours', label: nameWithCode(c) + ' — new lead, ' + hoursLeft.toFixed(1) + 'h left', days: 0, forceSoon:true });
         }
@@ -1081,7 +1081,7 @@ function renderReminders(){
   }
   wrap.innerHTML = `<div class="rhead">Follow-ups &amp; reminders</div>` + combined.map(it=>{
     let tagClass, tagText;
-    if(it.forceOverdue){ tagClass='overdue'; tagText='Auto-call triggered'; }
+    if(it.forceOverdue){ tagClass='overdue'; tagText='Not called yet'; }
     else if(it.forceSoon){ tagClass='soon'; tagText='Action needed'; }
     else if(it.quarterlyCheck){ tagClass='soon'; tagText='Quarterly check'; }
     else{
@@ -2162,7 +2162,9 @@ function hangupBrowserCall(){
 // ===== End browser voice calling =====
 
 // ===== Vikram auto-dialer: call blocks (added by fix-vikram-dialer.js) =====
-// Switch ON -> inside your call blocks Vikram dials pending leads one by one.
+// Switch ON -> Vikram dials pending leads one by one (no time blocks: ON = calling, OFF = not).
+// TEST MODE (on by default): only Vik's and Amit's numbers get dialled.
+// Also: Vikram researches any lead that has no research yet (website/Neo/Nikki leads).
 // Spacing is your choice: every 15, 30 or 60 minutes (never mid-call: at least
 // 2 min after a long call ends). 15-minute heads-up before each call (on screen
 // + desktop notification, with "Open profile"). 10-second countdown before the
@@ -2201,7 +2203,32 @@ function vdParseBlocks(s){
   }).filter(Boolean);
 }
 function vdMinsNow(){ const d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
-function vdInBlock(){ const m = vdMinsNow(); return vdParseBlocks(vdBlocksText()).some(b => m >= b.a && m < b.b); }
+function vdInBlock(){ return true; }
+const VD_TEST_KEY = 'vikramDialerTestMode';
+const VD_TEST_NUMBERS = ['4168873861', '9059650451'];
+function vdTestMode(){ try { return localStorage.getItem(VD_TEST_KEY) !== 'off'; } catch (e) { return true; } }
+function vdToggleTest(){
+  if (vdTestMode()) {
+    if (!confirm('Turn OFF test mode? Vikram will then call REAL clients from the list.')) return;
+    try { localStorage.setItem(VD_TEST_KEY, 'off'); } catch (e) {}
+  } else {
+    try { localStorage.setItem(VD_TEST_KEY, 'on'); } catch (e) {}
+  }
+  VD.plannedId = null; VD.plannedAt = 0;
+  vdRender();
+}
+function vdDigits(p){ const d = String(p || '').replace(/\D/g, ''); return d.length === 11 && d[0] === '1' ? d.slice(1) : d; }
+function vdAllowed(c){ return !vdTestMode() || VD_TEST_NUMBERS.includes(vdDigits(c.phone)); }
+let vdResearchLast = 0;
+function vdAutoResearch(){
+  if (Date.now() - vdResearchLast < 20000) return;
+  if (typeof researchInFlight === 'undefined' || researchInFlight.size) return;
+  const c = clients.find(x => !x.archived && x.name && (!Array.isArray(x.researchNotes) || !x.researchNotes.some(n => n && n.author === 'Vikram')));
+  if (!c) return;
+  vdResearchLast = Date.now();
+  if (!Array.isArray(c.researchNotes)) c.researchNotes = [];
+  try { triggerVikramResearch(c.id); } catch (e) {}
+}
 function vdNextBlockLabel(){
   const m = vdMinsNow();
   const nxt = vdParseBlocks(vdBlocksText()).filter(b => b.a > m).sort((x, y) => x.a - y.a)[0];
@@ -2217,11 +2244,11 @@ function vdFollowUpToday(c){
 function vdQueue(){
   const now = Date.now();
   const skipped = (c) => VD.skipToday[c.id] === new Date().toDateString();
-  const leads = clients.filter(c => !c.archived && c.stage === 'Lead' && !c.calledByVik && c.phone
+  const leads = clients.filter(c => !c.archived && c.stage === 'Lead' && !c.calledByVik && c.phone && vdAllowed(c)
       && (c.autoDialAttempts || 0) < VD_MAX_ATTEMPTS && !skipped(c)
       && !(c.lastAutoDialAt && now - c.lastAutoDialAt < VD_RETRY_MS))
     .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  const followUps = clients.filter(c => !c.archived && c.stage !== 'Lead' && c.phone
+  const followUps = clients.filter(c => !c.archived && c.stage !== 'Lead' && c.phone && vdAllowed(c)
       && vdFollowUpToday(c) && !skipped(c) && !vdSameDay(c.lastAutoDialAt));
   return leads.concat(followUps);
 }
@@ -2331,6 +2358,7 @@ async function vdAnswer(spoke){
 }
 
 function vdTick(){
+  try { vdAutoResearch(); } catch (e) {}
   if (VD.phase === 'dialing') {
     if (vdCallOpen()) VD.phase = 'incall';
     else if (Date.now() - VD.lastStart > 25000) vdCallEnded();
@@ -2394,8 +2422,6 @@ function vdRender(){
             + '<button style="' + btn + 'background:var(--paper);color:var(--ink);" onclick="vdAnswer(false)">No answer</button>';
   } else if (!on) {
     status = '<div style="color:var(--slate);">Dialer is OFF. ' + q.length + ' waiting.</div>';
-  } else if (!vdInBlock()) {
-    status = '<div style="color:var(--slate);">Outside your call blocks, ' + vdNextBlockLabel() + '. ' + q.length + ' waiting.</div>';
   } else if (!q.length) {
     status = '<div style="color:var(--slate);">Nobody waiting. New leads will be picked up automatically.</div>';
   } else {
@@ -2417,7 +2443,9 @@ function vdRender(){
     + '<div style="margin-top:10px;display:flex;gap:4px;align-items:center;font-size:12px;color:var(--slate);">Every '
     + [15, 30, 60].map(m => '<button style="' + btn + 'padding:4px 8px;font-size:12px;' + (vdIntervalMin() === m ? 'background:var(--brass);color:#fff;' : 'background:var(--paper);color:var(--ink);') + '" onclick="vdSetInterval(' + m + ')">' + (m === 60 ? '1 hr' : m + ' min') + '</button>').join('')
     + '</div>'
-    + '<div style="margin-top:6px;color:var(--slate);font-size:12px;">Blocks: ' + escapeHtml(vdBlocksText()) + ' · <a href="#" style="color:var(--brass);" onclick="vdEditBlocks();return false;">change</a></div>';
+    + '<div style="margin-top:6px;font-size:12px;' + (vdTestMode() ? 'color:var(--warn);font-weight:600;' : 'color:var(--slate);') + '">'
+    + (vdTestMode() ? 'TEST MODE: only your and Amit\'s numbers are called' : 'Live: real clients are called')
+    + ' · <a href="#" style="color:var(--brass);" onclick="vdToggleTest();return false;">' + (vdTestMode() ? 'go live' : 'back to test') + '</a></div>';
   if (box.__vdLast !== html) { box.innerHTML = html; box.__vdLast = html; }
 }
 
