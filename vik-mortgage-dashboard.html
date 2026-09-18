@@ -2138,7 +2138,7 @@ async function startBrowserCall(id){
         device.register();
       });
     }
-    const conn = await device.connect({ params: { To: dialNumber } });
+    const conn = await device.connect({ params: { To: dialNumber, ClientId: id } });
     activeCallConn = conn;
     conn.on('accept', () => updateCallStatusText('In call — recording'));
     conn.on('disconnect', () => {
