@@ -1545,6 +1545,10 @@ async function triggerVikramResearch(id){
   if(!c) return;
   if(researchInFlight.has(id)) return; // already running for this lead — ignore extra clicks
   researchInFlight.add(id);
+  try {
+    const pnl = document.getElementById('panel');
+    if (pnl && pnl.innerHTML.includes(escapeHtml(c.name))) { openDetail(id); showToast('Vikram is researching ' + (c.name || 'this lead') + ', about a minute'); }
+  } catch (e) {}
   try{
     const nameParts = (c.name||'').trim().split(/\s+/);
     const firstName = nameParts[0] || '';
