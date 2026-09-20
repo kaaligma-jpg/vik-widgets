@@ -313,6 +313,11 @@
   .doc-item .doc-name{ font-size:13px; font-weight:600; }
   .doc-item .item-meta{ margin-bottom:0; }
   .doc-item a{ color:var(--brass); font-size:12px; font-weight:600; text-decoration:none; }
+  /* pending counts on the Tasks tabs (fix-task-tab-counts.js) */
+  .vt-count{ display:inline-block; min-width:20px; margin-left:6px; padding:1px 7px; border-radius:10px; font-size:11px; font-weight:700; text-align:center; background:var(--line); color:var(--slate); }
+  .vt-count.on{ background:var(--ink-2); color:#fff; }
+  .task-subtabs button.active .vt-count.on{ background:#fff; color:var(--ink-2); }
+  .vt-count.urgent, .task-subtabs button.active .vt-count.urgent{ background:#B3261E; color:#fff; }
 </style>
   <script src="twilio-voice-sdk.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -2994,8 +2999,21 @@ function deleteVikTask(id){
   renderVikActionTasks();
 }
 
+// Pending (not done) count on each Tasks tab. Red when something is due within 24h or overdue.
+function vtUpdateTabCounts(){
+  const cats = ['all'].concat(TASK_PREFIXES);
+  document.querySelectorAll('#taskSubtabs button').forEach(function(b, i){
+    const cat = cats[i]; if (!cat) return;
+    if (!b.getAttribute('data-label')) b.setAttribute('data-label', b.textContent.trim());
+    const mine = vikTaskState.tasks.filter(function(t){ return !t.completed && (cat === 'all' || taskPrefixOf(t.id) === cat); });
+    const urgent = mine.some(function(t){ const s = vikTaskStatus(t); return s === 'red' || s === 'purple'; });
+    b.innerHTML = escapeHtml(b.getAttribute('data-label')) + '<span class="vt-count' + (mine.length ? ' on' : '') + (urgent ? ' urgent' : '') + '">' + mine.length + '</span>';
+  });
+}
+
 function renderVikActionTasks(){
   const filtered = currentTaskCategory==='all' ? vikTaskState.tasks : vikTaskState.tasks.filter(t=>taskPrefixOf(t.id)===currentTaskCategory);
+  vtUpdateTabCounts();
   const statsWrap = document.getElementById('taskStats');
   const counts = { green:0, red:0, yellow:0, purple:0 };
   vikTaskState.tasks.forEach(t=> counts[vikTaskStatus(t)]++ );
