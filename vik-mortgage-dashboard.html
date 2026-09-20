@@ -302,6 +302,7 @@
   .sasha-msg.sasha{ align-self:flex-start; background:#F1EAFB; color:var(--ink); border-bottom-left-radius:3px; }
   .sasha-msg .item-meta{ opacity:0.75; }
   .sasha-voice-btn{ font-size:16px; padding:6px 10px; border-radius:50%; background:#F1EAFB; border:1px solid var(--brass); cursor:pointer; line-height:1; }
+  .sasha-voice-btn.vc-on{ box-shadow:0 0 0 3px var(--brass); }
   .sasha-voice-btn.listening{ background:var(--brass); animation:sashaPulse 1s infinite; }
   @keyframes sashaPulse{ 0%{ box-shadow:0 0 0 0 rgba(180,140,60,0.5); } 70%{ box-shadow:0 0 0 10px rgba(180,140,60,0); } 100%{ box-shadow:0 0 0 0 rgba(180,140,60,0); } }
   .sasha-tab{ all:unset; cursor:pointer; font-size:12px; font-weight:600; padding:6px 12px; border-radius:16px; background:#F1EFE8; color:var(--slate); }
@@ -1832,7 +1833,7 @@ let sashaListeningDealId = null;
 const GURU_VOICE_ID = 'TWutjvRaJqAX89preB4e';
 function speakSashaReply(text, voiceId){
   const clean = String(text||'').replace(/\s+/g,' ').trim();
-  if(!clean) return;
+  if(!clean){ vcAfterSpeak(); return; }
   if(window.sashaAudio){ try{ window.sashaAudio.pause(); }catch(e){} }
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   fetch('https://fincop-backend.onrender.com/sasha-speak', {
@@ -1843,57 +1844,79 @@ function speakSashaReply(text, voiceId){
     return r.blob();
   }).then(function(b){
     window.sashaAudio = new Audio(URL.createObjectURL(b));
-    window.sashaAudio.play();
+    window.sashaAudio.onended = function(){ vcAfterSpeak(); };
+    window.sashaAudio.play().catch(function(){ vcAfterSpeak(); });
   }).catch(function(e){
     console.error('[sasha voice]', e);
-    if(window.speechSynthesis) window.speechSynthesis.speak(new SpeechSynthesisUtterance(clean));
+    if(window.speechSynthesis){ const u = new SpeechSynthesisUtterance(clean); u.onend = function(){ vcAfterSpeak(); }; window.speechSynthesis.speak(u); } else { vcAfterSpeak(); }
   });
 }
 
+// ===== Conversation mode for all mic buttons (added by fix-voice-conversation.js) =====
+// Tap the mic once: talk naturally. When you pause, it sends; the agent answers out loud;
+// then it listens again by itself. Tap the mic again to end the conversation.
+let vcSession = null;
+function vcAfterSpeak(){
+  if (!vcSession) return;
+  const s = vcSession;
+  if (s.waitTimer) { clearTimeout(s.waitTimer); s.waitTimer = null; }
+  setTimeout(function(){ if (vcSession === s) vcListen(s); }, 350);
+}
+function vcStop(msg){
+  const s = vcSession; vcSession = null;
+  if (!s) return;
+  if (s.waitTimer) clearTimeout(s.waitTimer);
+  try { if (s.rec) s.rec.abort(); } catch (e) {}
+  try { if (window.sashaAudio) window.sashaAudio.pause(); } catch (e) {}
+  try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+  const btn = s.btn(), hint = s.hint();
+  if (btn) { btn.classList.remove('listening'); btn.classList.remove('vc-on'); }
+  if (hint) hint.textContent = msg || '';
+}
+function vcListen(s){
+  const API = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!API || vcSession !== s) return;
+  const rec = new API(); s.rec = rec;
+  rec.lang = 'en-IN'; rec.continuous = false; rec.interimResults = false;
+  const btn = s.btn(), hint = s.hint();
+  rec.onstart = function(){ if (btn) btn.classList.add('listening'); if (hint) hint.textContent = 'Listening… just talk. Tap the mic to end the conversation.'; };
+  rec.onresult = function(ev){
+    s.noSpeech = 0;
+    const t = ev.results[0][0].transcript;
+    const input = document.getElementById(s.inputId);
+    if (input) input.value = t;
+    if (hint) hint.textContent = s.name + ' is thinking…';
+    s.gotText = true;
+    // safety: if no spoken answer comes back within 60s, start listening again
+    s.waitTimer = setTimeout(function(){ if (vcSession === s) vcListen(s); }, 60000);
+    s.send();
+  };
+  rec.onerror = function(ev){
+    if (vcSession !== s) return;
+    if (ev.error === 'not-allowed') { vcStop('Microphone access was blocked. Allow it in the browser.'); return; }
+    if (ev.error === 'no-speech') s.noSpeech++;
+  };
+  rec.onend = function(){
+    if (btn) btn.classList.remove('listening');
+    if (vcSession !== s) return;
+    if (s.gotText) { s.gotText = false; return; }
+    if (s.noSpeech >= 3) { vcStop('Conversation ended because nobody spoke. Tap the mic to start again.'); return; }
+    setTimeout(function(){ if (vcSession === s) vcListen(s); }, 250);
+  };
+  try { rec.start(); } catch (e) {}
+}
+function vcToggle(key, name, btnFn, hintFn, inputId, send){
+  if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) { showToast('Voice needs Chrome or Edge.'); return; }
+  if (vcSession && vcSession.key === key) { vcStop(''); return; }
+  if (vcSession) vcStop('');
+  vcSession = { key: key, name: name, btn: btnFn, hint: hintFn, inputId: inputId, send: send, rec: null, noSpeech: 0, gotText: false, waitTimer: null };
+  const b = btnFn(); if (b) b.classList.add('vc-on');
+  vcListen(vcSession);
+}
+// ===== End conversation mode =====
+
 function toggleSashaVoice(id){
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.getElementById('sashaVoiceBtn_' + id);
-  const hint = document.getElementById('sashaVoiceHint_' + id);
-  if(!SpeechRecognitionAPI){
-    showToast('Voice chat needs Chrome or Edge — this browser doesn\'t support it yet.');
-    return;
-  }
-  // If already listening on this deal, stop it (acts as a toggle)
-  if(sashaRecognition && sashaListeningDealId === id){
-    sashaRecognition.stop();
-    return;
-  }
-  // If listening on a different deal, stop that first
-  if(sashaRecognition){ sashaRecognition.stop(); }
-
-  sashaRecognition = new SpeechRecognitionAPI();
-  sashaRecognition.lang = 'en-US';
-  sashaRecognition.continuous = false;
-  sashaRecognition.interimResults = false;
-  sashaListeningDealId = id;
-
-  sashaRecognition.onstart = () => {
-    if(btn) btn.classList.add('listening');
-    if(hint) hint.textContent = 'Listening… speak now.';
-  };
-  sashaRecognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    const input = document.getElementById('sashaChatInput');
-    if(input) input.value = transcript;
-    if(hint) hint.textContent = '';
-    sendSashaMessage(id, true);
-  };
-  sashaRecognition.onerror = (event) => {
-    if(hint) hint.textContent = event.error === 'not-allowed'
-      ? 'Microphone access was blocked — allow it in the browser to talk to Sasha.'
-      : 'Didn\'t catch that — tap the mic and try again.';
-  };
-  sashaRecognition.onend = () => {
-    if(btn) btn.classList.remove('listening');
-    sashaRecognition = null;
-    sashaListeningDealId = null;
-  };
-  sashaRecognition.start();
+  vcToggle('sasha-' + id, 'Sasha', function(){ return document.getElementById('sashaVoiceBtn_' + id); }, function(){ return document.getElementById('sashaVoiceHint_' + id); }, 'sashaChatInput', function(){ sendSashaMessage(id, true); });
 }
 
 // ---- Documents: per-deal upload, readable by Vikram / FinCop / Sasha ----
@@ -4078,25 +4101,7 @@ async function sendGuruMessage(isVoice){
   if(isVoice) speakSashaReply(replyText, GURU_VOICE_ID);
 }
 function toggleGuruVoice(){
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.getElementById('guruVoiceBtn');
-  const hint = document.getElementById('guruVoiceHint');
-  if(!SpeechRecognitionAPI){ showToast('Voice needs Chrome or Edge.'); return; }
-  if(guruRecognition){ guruRecognition.stop(); return; }
-  guruRecognition = new SpeechRecognitionAPI();
-  guruRecognition.lang = 'en-US';
-  guruRecognition.continuous = false;
-  guruRecognition.interimResults = false;
-  guruRecognition.onstart = function(){ if(btn) btn.classList.add('listening'); if(hint) hint.textContent = 'Listening… speak now.'; };
-  guruRecognition.onresult = function(event){
-    const input = document.getElementById('guruChatInput');
-    if(input) input.value = event.results[0][0].transcript;
-    if(hint) hint.textContent = '';
-    sendGuruMessage(true);
-  };
-  guruRecognition.onerror = function(event){ if(hint) hint.textContent = 'Tap the mic and try again.'; };
-  guruRecognition.onend = function(){ if(btn) btn.classList.remove('listening'); guruRecognition = null; };
-  guruRecognition.start();
+  vcToggle('guru', 'Guru', function(){ return document.getElementById('guruVoiceBtn'); }, function(){ return document.getElementById('guruVoiceHint'); }, 'guruChatInput', function(){ sendGuruMessage(true); });
 }
 
 
@@ -4140,25 +4145,7 @@ async function sendVikramMessage(isVoice){
   if(isVoice) speakSashaReply(replyText, VIKRAM_VOICE_ID);
 }
 function toggleVikramVoice(){
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.getElementById('vikramVoiceBtn');
-  const hint = document.getElementById('vikramVoiceHint');
-  if(!SpeechRecognitionAPI){ showToast('Voice needs Chrome or Edge.'); return; }
-  if(vikramRecognition){ vikramRecognition.stop(); return; }
-  vikramRecognition = new SpeechRecognitionAPI();
-  vikramRecognition.lang = 'en-US';
-  vikramRecognition.continuous = false;
-  vikramRecognition.interimResults = false;
-  vikramRecognition.onstart = function(){ if(btn) btn.classList.add('listening'); if(hint) hint.textContent = 'Listening… speak now.'; };
-  vikramRecognition.onresult = function(event){
-    const input = document.getElementById('vikramChatInput');
-    if(input) input.value = event.results[0][0].transcript;
-    if(hint) hint.textContent = '';
-    sendVikramMessage(true);
-  };
-  vikramRecognition.onerror = function(event){ if(hint) hint.textContent = 'Tap the mic and try again.'; };
-  vikramRecognition.onend = function(){ if(btn) btn.classList.remove('listening'); vikramRecognition = null; };
-  vikramRecognition.start();
+  vcToggle('vikram', 'Vikram', function(){ return document.getElementById('vikramVoiceBtn'); }, function(){ return document.getElementById('vikramVoiceHint'); }, 'vikramChatInput', function(){ sendVikramMessage(true); });
 }
 
 document.getElementById('recruitSearch').addEventListener('input', renderRecruits);
