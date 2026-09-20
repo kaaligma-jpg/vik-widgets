@@ -4410,6 +4410,41 @@ function toggleKpVoice(){
 // the Key Partners page also needs the task list loaded, so Vikram can see partner reminders
 (function(){ try { loadVikActionTasks(); } catch (e) {} })();
 // ===== End Key Partners: talk to Vikram =====
+
+// ===== Data Center as its own page (added by fix-data-center-page.js) =====
+(function(){
+  const kp = document.getElementById('view-keypartners');
+  const form = document.getElementById('dcForm');
+  if (!kp || !form) return;
+  const view = document.createElement('div');
+  view.id = 'view-datacenter';
+  view.style.display = 'none';
+  view.innerHTML = '<h1>Data Center</h1><p class="sub">Bring in contacts in bulk. Upload a CSV or Excel file, match the columns, choose where they go, and import.</p>';
+  kp.parentNode.insertBefore(view, kp.nextSibling);
+  view.appendChild(form);
+  form.classList.add('open');
+})();
+const _showViewBeforeDc = showView;
+showView = function(view){
+  const dcView = document.getElementById('view-datacenter');
+  _showViewBeforeDc(view === 'datacenter' ? '__datacenter__' : view);
+  if (dcView) dcView.style.display = (view === 'datacenter') ? '' : 'none';
+  const btn = document.getElementById('dcSidebarBtn');
+  if (btn) btn.classList.toggle('active', view === 'datacenter');
+  if (view === 'datacenter') {
+    document.getElementById('dcForm').classList.add('open');
+    loadKeyPartners(); // so an import adds to the real, current list
+    window.scrollTo(0, 0);
+  }
+};
+openDataCenter = function(){ showView('datacenter'); };
+// after an import the box stays ready for the next file
+const _importDcBatchBefore = importDcBatch;
+importDcBatch = function(){
+  _importDcBatchBefore();
+  document.getElementById('dcForm').classList.add('open');
+};
+// ===== End Data Center page =====
 </script>
 
 </body>
