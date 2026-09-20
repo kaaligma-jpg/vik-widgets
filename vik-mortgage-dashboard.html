@@ -318,7 +318,15 @@
   .vt-count.on{ background:var(--ink-2); color:#fff; }
   .task-subtabs button.active .vt-count.on{ background:#fff; color:var(--ink-2); }
   .vt-count.urgent, .task-subtabs button.active .vt-count.urgent{ background:#B3261E; color:#fff; }
+  /* Tasks: talk to Vikram + easy date picker (fix-task-assistant.js) */
+  .tk-assistant{ background:var(--paper-2); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:0 0 18px; }
+  .tk-head{ font-size:14px; font-weight:600; margin-bottom:8px; }
+  .tk-head span{ font-weight:400; font-size:12px; color:var(--slate); }
+  #tkChatWrap .sasha-chat{ max-height:260px; }
+  .tk-due-label{ font-size:12px; color:var(--slate); display:block; margin-bottom:4px; }
+  #taskDueInput{ cursor:pointer; padding:8px 10px; font-size:14px; }
 </style>
+
   <script src="twilio-voice-sdk.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -366,6 +374,17 @@
   <h1>Tasks</h1>
   <p class="sub">Every action item from your calls — clients, recruits, and key partners — lands here on its own. Green means done, red is due within 24 hours, yellow is coming up, purple means the deadline passed with nothing done.</p>
 
+  <div class="tk-assistant">
+    <div class="tk-head">🎙️ Talk to Vikram about your tasks <span>— "Add a call with Amit Tuesday 5pm", "Mark the Vaughan meeting done", "What's due today?"</span></div>
+    <div id="tkChatWrap"></div>
+    <div class="note-add-row">
+      <textarea id="tkChatInput" rows="2" placeholder="Tell Vikram what to do with your tasks…"></textarea>
+      <button class="sasha-voice-btn" id="tkVoiceBtn" onclick="toggleTaskVoice()" title="Talk to Vikram by voice">&#127897;</button>
+      <button class="btn small" id="tkSendBtn" onclick="sendTaskMessage(false)">Send</button>
+    </div>
+    <div class="sasha-voice-hint" id="tkVoiceHint"></div>
+  </div>
+
   <div class="stats" id="taskStats"></div>
 
   <div class="task-subtabs" id="taskSubtabs">
@@ -412,7 +431,7 @@
       </div>
     </div>
     <input type="text" id="taskSubjectInput" placeholder="What needs to happen?" style="width:100%;">
-    <input type="datetime-local" id="taskDueInput">
+    <div><label class="tk-due-label" for="taskDueInput">Due date &amp; time (click to open the calendar)</label><input type="datetime-local" id="taskDueInput"></div>
     <div style="width:100%; display:flex; gap:8px;">
       <button class="btn small" id="taskSaveBtn" onclick="saveTaskForm()">Save task</button>
       <button class="btn secondary small" id="taskCancelEditBtn" style="display:none;" onclick="cancelTaskEdit()">Cancel edit</button>
@@ -2951,6 +2970,8 @@ function saveTaskForm(){
       t.firstName = firstName; t.lastName = lastName; t.taskType = currentTaskType;
       t.relatedType = relatedType; t.subject = subject;
       t.dueAt = dueRaw ? new Date(dueRaw).toISOString() : t.dueAt;
+      const newPrefix = document.getElementById('taskIdTypeInput').value;
+      if (newPrefix && newPrefix !== taskPrefixOf(t.id)) t.id = nextTaskId(newPrefix);
       saveVikActionTasks();
       renderVikActionTasks();
     }
@@ -2971,7 +2992,7 @@ function editVikTask(id){
   document.getElementById('taskLastNameInput').value = t.lastName;
   document.getElementById('taskRelatedTypeInput').value = t.relatedType;
   document.getElementById('taskSubjectInput').value = t.subject;
-  document.getElementById('taskDueInput').value = t.dueAt ? new Date(t.dueAt).toISOString().slice(0,16) : '';
+  document.getElementById('taskDueInput').value = t.dueAt ? tkLocal(t.dueAt) : '';
   selectTaskType(t.taskType);
   document.getElementById('taskSaveBtn').textContent = 'Update task';
   document.getElementById('taskCancelEditBtn').style.display = '';
@@ -4202,6 +4223,87 @@ loadClients();
     }
   }
 })();
+
+// ===== Tasks: talk to Vikram (added by fix-task-assistant.js) =====
+let tkChat = [];
+let tkBusy = false;
+function tkLocal(iso){
+  const d = new Date(iso); if (isNaN(d)) return '';
+  const p = function(n){ return String(n).padStart(2, '0'); };
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function renderTaskChat(){
+  const wrap = document.getElementById('tkChatWrap'); if (!wrap) return;
+  if (!tkChat.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = '<div class="sasha-chat">' + tkChat.map(function(m){
+    return '<div class="sasha-msg ' + (m.from === 'Vik' ? 'vik' : 'sasha') + '" style="max-width:92%;"><div class="item-meta">' + (m.from === 'Vik' ? 'You' : 'Vikram') + '</div><div>' + escapeHtml(m.text) + '</div></div>';
+  }).join('') + '</div>';
+  const box = wrap.querySelector('.sasha-chat'); if (box) box.scrollTop = box.scrollHeight;
+}
+function tkApply(actions){
+  let changed = 0;
+  actions.forEach(function(a){
+    const dueIso = a.due ? new Date(a.due).toISOString() : null;
+    if (a.type === 'add_task') {
+      addVikActionTask(a.category || 'vikmtg', a.firstName || '', a.lastName || '', a.taskType || 'todo', a.relatedType || 'unrelated', a.subject || '', dueIso);
+      changed++;
+      return;
+    }
+    const t = vikTaskState.tasks.find(function(x){ return x.id === a.id; });
+    if (!t) return;
+    if (a.type === 'update_task') {
+      ['firstName', 'lastName', 'taskType', 'relatedType', 'subject'].forEach(function(k){ if (typeof a[k] === 'string' && a[k] !== '') t[k] = a[k]; });
+      if (dueIso) t.dueAt = dueIso;
+      if (a.category && a.category !== taskPrefixOf(t.id)) t.id = nextTaskId(a.category);
+    } else if (a.type === 'set_done') {
+      t.completed = !!a.done; t.completedAt = t.completed ? new Date().toISOString() : null;
+    } else if (a.type === 'delete_task') {
+      vikTaskState.tasks = vikTaskState.tasks.filter(function(x){ return x.id !== a.id; });
+    }
+    changed++;
+  });
+  if (changed) { saveVikActionTasks(); renderVikActionTasks(); }
+}
+async function sendTaskMessage(isVoice){
+  if (tkBusy) return;
+  const input = document.getElementById('tkChatInput'); if (!input) return;
+  const text = input.value.trim();
+  if (!text) { if (isVoice) vcAfterSpeak(); return; }
+  tkBusy = true;
+  input.value = '';
+  tkChat.push({ from: 'Vik', text: text });
+  renderTaskChat();
+  let replyText;
+  try {
+    const list = vikTaskState.tasks.map(function(t){
+      return { id: t.id, category: taskCategoryLabel(taskPrefixOf(t.id)), name: ((t.firstName || '') + ' ' + (t.lastName || '')).trim(), type: taskTypeLabel(t.taskType), related: t.relatedType, subject: t.subject, due: tkLocal(t.dueAt).replace('T', ' '), done: !!t.completed, status: vikTaskStatus(t) };
+    });
+    const res = await fetch('https://fincop-backend.onrender.com/vikram-task-chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: tkChat.slice(0, -1).slice(-12), tasks: list })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || ('error ' + res.status));
+    tkApply(data.actions || []);
+    replyText = data.reply || 'Done.';
+  } catch (e) {
+    replyText = "I couldn't reach my backend just now. Try again in a moment.";
+  }
+  tkChat.push({ from: 'Vikram', text: replyText });
+  renderTaskChat();
+  tkBusy = false;
+  if (isVoice) speakSashaReply(replyText, VIKRAM_VOICE_ID);
+}
+function toggleTaskVoice(){
+  vcToggle('tasks', 'Vikram', function(){ return document.getElementById('tkVoiceBtn'); }, function(){ return document.getElementById('tkVoiceHint'); }, 'tkChatInput', function(){ sendTaskMessage(true); });
+}
+// Clicking anywhere on the due-date box opens the calendar + time picker
+(function(){
+  const el = document.getElementById('taskDueInput');
+  if (!el) return;
+  el.addEventListener('click', function(){ try { if (el.showPicker) el.showPicker(); } catch (e) {} });
+})();
+// ===== End Tasks: talk to Vikram =====
 </script>
 
 </body>
