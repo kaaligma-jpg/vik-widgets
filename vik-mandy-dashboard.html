@@ -115,6 +115,25 @@
   }
   .filter-tab.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
   .btn-danger{ background:var(--danger) !important; }
+  /* Talk to Mandy (added by fix-mandy-chat.js) */
+  .mc-pdf{ font-size:12px; color:var(--brass); font-weight:600; text-decoration:none; }
+  .mc-pdf:hover{ text-decoration:underline; }
+  .mc-log{ max-height:380px; overflow-y:auto; border:1px solid var(--line); border-radius:8px; background:var(--paper); padding:12px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px; }
+  .mc-empty{ font-size:13px; color:var(--slate); }
+  .mc-msg{ max-width:85%; padding:9px 12px; border-radius:10px; font-size:13.5px; line-height:1.45; white-space:pre-wrap; word-wrap:break-word; }
+  .mc-msg.vik{ align-self:flex-end; background:var(--ink); color:#fff; border-bottom-right-radius:3px; }
+  .mc-msg.mandy{ align-self:flex-start; background:var(--paper-2); border:1px solid var(--line); border-bottom-left-radius:3px; }
+  .mc-msg.mandy a{ color:var(--brass); font-weight:600; }
+  .mc-msg.sys{ align-self:center; background:none; color:var(--slate); font-size:12px; font-style:italic; }
+  .mc-who{ font-size:10.5px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; opacity:0.7; margin-bottom:3px; }
+  .mc-input{ width:100%; min-height:64px; max-height:260px; padding:9px 11px; border:1px solid var(--line); border-radius:8px; font-family:var(--sans); font-size:13.5px; resize:vertical; }
+  .mc-row{ display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap; }
+  .mc-mic{ all:unset; cursor:pointer; width:40px; height:40px; border-radius:50%; background:var(--paper); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .mc-mic.vc-on{ box-shadow:0 0 0 3px var(--brass); }
+  .mc-mic.listening{ background:var(--danger); border-color:var(--danger); animation:mcPulse 1.2s infinite; }
+  @keyframes mcPulse{ 0%{ box-shadow:0 0 0 0 rgba(162,59,52,0.5);} 70%{ box-shadow:0 0 0 10px rgba(162,59,52,0);} 100%{ box-shadow:0 0 0 0 rgba(162,59,52,0);} }
+  .mc-count{ font-size:11px; color:var(--slate); }
+  .mc-hint{ font-size:12px; color:var(--slate); flex:1; min-width:180px; }
 </style>
 </head>
 <body>
@@ -131,6 +150,22 @@
   <div class="main">
     <h1>Mandy</h1>
     <p class="sub">Agent on/off switches and Mandy's automated jobs — greetings, newsletter, touchpoints.</p>
+
+    <div class="card" id="mcCard">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h2 style="margin:0;">💬 Talk to Mandy</h2>
+        <a class="mc-pdf" href="https://fincop-backend.onrender.com/mandy-newsletter-pdf" target="_blank" rel="noopener">📄 Current newsletter PDF</a>
+      </div>
+      <p class="hint" style="margin-top:4px;">Type, paste a whole article, or tap 🎤 once and just talk. Ask her "is the draft ready?" any time. She can save notes for the newsletter, start a new draft, or start post ideas. She cannot approve or send.</p>
+      <div id="mcLog" class="mc-log"><div class="mc-empty">Say hello to Mandy, or ask: "What have you got for the newsletter so far?"</div></div>
+      <textarea id="mcInput" class="mc-input" placeholder="Type here, or paste an article (up to about 10,000 words)…"></textarea>
+      <div class="mc-row">
+        <button class="mc-mic" id="mcVoiceBtn" onclick="toggleMandyVoice()" title="Talk to Mandy">🎤</button>
+        <button class="btn" id="mcSendBtn" onclick="sendMandyMessage(false)">Send</button>
+        <span id="mcCount" class="mc-count"></span>
+        <span id="mcVoiceHint" class="mc-hint"></span>
+      </div>
+    </div>
 
     <div class="card">
       <h2>Agents</h2>
@@ -631,6 +666,177 @@ async function loadResearchLog(){
 }
 
 loadResearchLog();
+
+// ===== Talk to Mandy (added by fix-mandy-chat.js) =====
+const MANDY_CHAT_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-chat';
+const MANDY_SPEAK_ENDPOINT = 'https://fincop-backend.onrender.com/sasha-speak';
+let mcHistory = [];
+let mcBusy = false;
+
+function mcLinkify(s){
+  return escapeHtmlMandy(s).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+function mcAdd(from, text){
+  const log = document.getElementById('mcLog');
+  const empty = log.querySelector('.mc-empty'); if (empty) empty.remove();
+  const div = document.createElement('div');
+  if (from === 'sys') { div.className = 'mc-msg sys'; div.textContent = text; }
+  else {
+    div.className = 'mc-msg ' + (from === 'Vik' ? 'vik' : 'mandy');
+    let shown = text;
+    if (from === 'Vik' && text.length > 1200) shown = text.slice(0, 600) + '\n\n… [' + text.length.toLocaleString() + ' characters pasted] …';
+    div.innerHTML = '<div class="mc-who">' + (from === 'Vik' ? 'You' : 'Mandy') + '</div>' + (from === 'Vik' ? escapeHtmlMandy(shown) : mcLinkify(shown));
+  }
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+function mcUpdateCount(){
+  const n = (document.getElementById('mcInput').value || '').length;
+  document.getElementById('mcCount').textContent = n > 300 ? n.toLocaleString() + ' characters' + (n > 60000 ? ' — too long, only the first 60,000 will be read' : '') : '';
+}
+
+async function sendMandyMessage(fromVoice){
+  if (mcBusy) return;
+  const input = document.getElementById('mcInput');
+  const text = (input.value || '').trim();
+  if (!text) { if (fromVoice) vcAfterSpeak(); return; }
+  mcBusy = true;
+  document.getElementById('mcSendBtn').setAttribute('disabled', 'disabled');
+  input.value = ''; mcUpdateCount();
+  mcAdd('Vik', text);
+  const thinking = mcAdd('sys', 'Mandy is thinking…');
+  try {
+    const res = await fetch(MANDY_CHAT_ENDPOINT, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: mcHistory.slice(-16) })
+    });
+    const data = await res.json();
+    thinking.remove();
+    if (!res.ok || data.error) {
+      mcAdd('sys', 'Mandy could not answer: ' + (data.error || ('error ' + res.status)) + '. Try again in a minute.');
+      if (fromVoice) vcAfterSpeak();
+    } else {
+      const reply = data.reply || '';
+      mcHistory.push({ from: 'Vik', text: text });
+      mcHistory.push({ from: 'Mandy', text: reply });
+      mcAdd('Mandy', reply);
+      mcDoActions(data.actions || []);
+      if (fromVoice) mcSpeak(reply);
+    }
+  } catch (err) {
+    thinking.remove();
+    mcAdd('sys', 'Network problem: ' + err.message + '. The server may be waking up — try again in 30 seconds.');
+    if (fromVoice) vcAfterSpeak();
+  }
+  mcBusy = false;
+  document.getElementById('mcSendBtn').removeAttribute('disabled');
+}
+
+function mcDoActions(actions){
+  actions.forEach(function(a){
+    if (a.type === 'note_saved') {
+      try { loadNewsletterFeed(); } catch (e) {}
+      mcAdd('sys', 'Saved in the Newsletter tab under "Notes for Mandy".');
+    } else if (a.type === 'draft_started') {
+      mcAdd('sys', 'New draft started. It takes 2–4 minutes; you will get an email, and it will show on the Newsletter tab.');
+      [120000, 240000, 360000].forEach(function(ms){ setTimeout(function(){ try { loadNewsletterDrafts(); } catch (e) {} }, ms); });
+    } else if (a.type === 'posts') {
+      try {
+        switchMandyTab('social');
+        document.getElementById('cqPlatform').value = a.platform;
+        document.getElementById('cqType').value = a.postType;
+        document.getElementById('cqCount').value = String(a.count);
+        document.getElementById('cqInstructions').value = a.instructions;
+        generateContent();
+        mcAdd('sys', 'Post ideas started — they will appear below in the Content Queue.');
+      } catch (e) { mcAdd('sys', 'Could not start the post ideas: ' + e.message); }
+    }
+  });
+}
+
+function mcSpeak(text){
+  const clean = String(text || '').replace(/https?:\/\/\S+/g, '').replace(/[*#_`>]/g, '').trim();
+  if (!clean) { vcAfterSpeak(); return; }
+  fetch(MANDY_SPEAK_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: clean }) })
+    .then(function(r){ if (!r.ok) throw new Error('tts'); return r.blob(); })
+    .then(function(blob){
+      if (window.sashaAudio) { try { window.sashaAudio.pause(); } catch (e) {} }
+      window.sashaAudio = new Audio(URL.createObjectURL(blob));
+      window.sashaAudio.onended = function(){ vcAfterSpeak(); };
+      window.sashaAudio.play().catch(function(){ vcAfterSpeak(); });
+    })
+    .catch(function(){
+      if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance(clean); u.lang = 'en-IN'; u.onend = function(){ vcAfterSpeak(); }; window.speechSynthesis.speak(u); }
+      else vcAfterSpeak();
+    });
+}
+
+// Conversation mode: tap the mic once and talk. When you pause, it sends; Mandy answers
+// out loud; then it listens again by itself. Tap the mic again to end.
+// If an article is already pasted in the box, what you say is added under it.
+let vcSession = null;
+function vcAfterSpeak(){
+  if (!vcSession) return;
+  const s = vcSession;
+  if (s.waitTimer) { clearTimeout(s.waitTimer); s.waitTimer = null; }
+  setTimeout(function(){ if (vcSession === s) vcListen(s); }, 350);
+}
+function vcStop(msg){
+  const s = vcSession; vcSession = null;
+  if (!s) return;
+  if (s.waitTimer) clearTimeout(s.waitTimer);
+  try { if (s.rec) s.rec.abort(); } catch (e) {}
+  try { if (window.sashaAudio) window.sashaAudio.pause(); } catch (e) {}
+  try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+  const btn = s.btn(), hint = s.hint();
+  if (btn) { btn.classList.remove('listening'); btn.classList.remove('vc-on'); }
+  if (hint) hint.textContent = msg || '';
+}
+function vcListen(s){
+  const API = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!API || vcSession !== s) return;
+  const rec = new API(); s.rec = rec;
+  rec.lang = 'en-IN'; rec.continuous = false; rec.interimResults = false;
+  const btn = s.btn(), hint = s.hint();
+  rec.onstart = function(){ if (btn) btn.classList.add('listening'); if (hint) hint.textContent = 'Listening… just talk. Tap the mic to end the conversation.'; };
+  rec.onresult = function(ev){
+    s.noSpeech = 0;
+    const t = ev.results[0][0].transcript;
+    const input = document.getElementById(s.inputId);
+    if (input) input.value = (input.value || '').trim() ? input.value.trim() + '\n\n' + t : t;
+    if (hint) hint.textContent = s.name + ' is thinking…';
+    s.gotText = true;
+    s.waitTimer = setTimeout(function(){ if (vcSession === s) vcListen(s); }, 90000);
+    s.send();
+  };
+  rec.onerror = function(ev){
+    if (vcSession !== s) return;
+    if (ev.error === 'not-allowed') { vcStop('Microphone access was blocked. Allow it in the browser.'); return; }
+    if (ev.error === 'no-speech') s.noSpeech++;
+  };
+  rec.onend = function(){
+    if (btn) btn.classList.remove('listening');
+    if (vcSession !== s) return;
+    if (s.gotText) { s.gotText = false; return; }
+    if (s.noSpeech >= 3) { vcStop('Conversation ended because nobody spoke. Tap the mic to start again.'); return; }
+    setTimeout(function(){ if (vcSession === s) vcListen(s); }, 250);
+  };
+  try { rec.start(); } catch (e) {}
+}
+function vcToggle(key, name, btnFn, hintFn, inputId, send){
+  if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) { alert('Voice needs Chrome or Edge.'); return; }
+  if (vcSession && vcSession.key === key) { vcStop(''); return; }
+  if (vcSession) vcStop('');
+  vcSession = { key: key, name: name, btn: btnFn, hint: hintFn, inputId: inputId, send: send, rec: null, noSpeech: 0, gotText: false, waitTimer: null };
+  const b = btnFn(); if (b) b.classList.add('vc-on');
+  vcListen(vcSession);
+}
+function toggleMandyVoice(){
+  vcToggle('mandy', 'Mandy', function(){ return document.getElementById('mcVoiceBtn'); }, function(){ return document.getElementById('mcVoiceHint'); }, 'mcInput', function(){ sendMandyMessage(true); });
+}
+document.getElementById('mcInput').addEventListener('input', mcUpdateCount);
+// ===== End Talk to Mandy =====
 </script>
 
 </body>
