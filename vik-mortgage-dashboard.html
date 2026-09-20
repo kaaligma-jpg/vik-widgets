@@ -346,6 +346,7 @@
         <button class="btn small" onclick="sendVikramMessage()">Send</button>
       </div>
       <div class="sasha-voice-hint" id="vikramVoiceHint"></div>
+      <div id="vikramDialerHost" style="margin-top:24px;"></div>
       <div class="reminders" id="reminders" style="margin-top:24px;"><!-- reminders-moved --></div>
     </div>
 
@@ -2402,12 +2403,23 @@ function vdTick(){
 
 function vdRender(){
   let box = document.getElementById('vikramDialerBox');
+  const host = document.getElementById('vikramDialerHost');
   if (!box) {
     box = document.createElement('div');
     box.id = 'vikramDialerBox';
-    box.style.cssText = 'position:fixed;bottom:24px;left:24px;width:280px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 20px rgba(21,34,56,.18);z-index:9998;font-family:var(--sans);font-size:13px;padding:14px 16px;';
-    document.body.appendChild(box);
+    (host || document.body).appendChild(box);
   }
+  const vdView = document.getElementById('view-vikram');
+  const vdOnVikramPage = vdView && vdView.style.display !== 'none';
+  const vdBusy = ['countdown', 'dialing', 'incall', 'asking'].includes(VD.phase);
+  const vdFloat = vdBusy && !vdOnVikramPage;
+  const vdCard = 'background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:12px;font-family:var(--sans);font-size:13px;padding:14px 16px;';
+  const vdStyle = vdFloat
+    ? 'position:fixed;bottom:24px;left:24px;width:280px;box-shadow:0 6px 20px rgba(21,34,56,.18);z-index:9998;' + vdCard
+    : 'position:static;max-width:420px;' + vdCard;
+  if (box.__vdStyle !== vdStyle) { box.style.cssText = vdStyle; box.__vdStyle = vdStyle; }
+  if (vdFloat && box.parentNode !== document.body) document.body.appendChild(box);
+  if (!vdFloat && host && box.parentNode !== host) host.appendChild(box);
   const btn = 'border:none;border-radius:8px;padding:7px 10px;font:inherit;font-weight:600;cursor:pointer;';
   const on = VD.on;
   const c = VD.currentId ? clients.find(x => x.id === VD.currentId) : null;
