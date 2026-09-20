@@ -343,7 +343,7 @@
       <button id="navCoachingBtn" onclick="showView('coaching')">📈 My Coaching</button>
       <button id="navTasksBtn" onclick="showView('tasks')">✅ Tasks</button>
       <button id="navKeyPartnersBtn" onclick="showView('keypartners')">🤝 Key Partners</button>
-      <button id="dcSidebarBtn" onclick="showView('keypartners'); toggleDataCenter();">🗄️ Data Center</button>
+      <button id="dcSidebarBtn" onclick="openDataCenter();">🗄️ Data Center</button>
       <a href="vik-insurance-dashboard.html" style="all:unset;cursor:pointer;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9D0DC;display:block;">🛡️ Insurance Pipeline</a>
       <a href="vik-mandy-dashboard.html" style="all:unset;cursor:pointer;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9D0DC;display:block;">🎯 Mandy</a>
     </div>
@@ -3095,6 +3095,15 @@ function kpUid(){ return 'kp_' + Date.now() + '_' + Math.random().toString(36).s
 // ===== Data Center — bulk import (added by fix-kp-data-center.js) =====
 let dcParsedRows = [];
 let dcHeaders = [];
+
+function openDataCenter(){
+  showView('keypartners');
+  const f = document.getElementById('dcForm');
+  f.classList.add('open');
+  document.getElementById('kpScanForm').classList.remove('open');
+  document.getElementById('kpAddForm').classList.remove('open');
+  setTimeout(function(){ try { f.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }, 80);
+}
 
 function toggleDataCenter(){
   document.getElementById('dcForm').classList.toggle('open');
