@@ -449,6 +449,17 @@
   <h1>Key Partners</h1>
   <p class="sub">People you meet networking — realtors, accountants, other referral sources — plus clients and recruits you scan on the spot. Scan a business card or fill it in by hand, and a warm "great meeting you" message goes out on WhatsApp, SMS and email right away.</p>
 
+  <div class="tk-assistant">
+    <div class="tk-head">🎙️ Talk to Vikram about your partners <span>— "How many realtors do I have?", "Change Raj's phone to…", "Add a note for Priya: met at the BNI lunch"</span></div>
+    <div id="kvChatWrap"></div>
+    <div class="note-add-row">
+      <textarea id="kvChatInput" rows="2" placeholder="Ask Vikram about your Key Partners…"></textarea>
+      <button class="sasha-voice-btn" id="kvVoiceBtn" onclick="toggleKpVoice()" title="Talk to Vikram by voice">&#127897;</button>
+      <button class="btn small" onclick="sendKpMessage(false)">Send</button>
+    </div>
+    <div class="sasha-voice-hint" id="kvVoiceHint"></div>
+  </div>
+
   <div class="task-subtabs" id="kpFilterTabs"></div>
   <div class="task-subtabs" id="kpOtherSubTabs" style="display:none;"></div>
 
@@ -4304,6 +4315,92 @@ function toggleTaskVoice(){
   el.addEventListener('click', function(){ try { if (el.showPicker) el.showPicker(); } catch (e) {} });
 })();
 // ===== End Tasks: talk to Vikram =====
+
+// ===== Key Partners: talk to Vikram (added by fix-kp-vikram.js) =====
+let kvChat = [];
+let kvBusy = false;
+function renderKpChat(){
+  const wrap = document.getElementById('kvChatWrap'); if (!wrap) return;
+  if (!kvChat.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = '<div class="sasha-chat">' + kvChat.map(function(m){
+    return '<div class="sasha-msg ' + (m.from === 'Vik' ? 'vik' : 'sasha') + '" style="max-width:92%;"><div class="item-meta">' + (m.from === 'Vik' ? 'You' : 'Vikram') + '</div><div>' + escapeHtml(m.text) + '</div></div>';
+  }).join('') + '</div>';
+  const box = wrap.querySelector('.sasha-chat'); if (box) box.scrollTop = box.scrollHeight;
+}
+function kvApply(actions){
+  let changed = false;
+  actions.forEach(function(a){
+    if (a.type === 'add_task') {
+      addVikActionTask('vikkp', a.firstName || '', a.lastName || '', a.taskType || 'followup', 'partner', a.subject || '', a.due ? new Date(a.due).toISOString() : null);
+      return;
+    }
+    if (a.type === 'add_partner') {
+      vikKeyPartners.push({ id: kpUid(), firstName: a.firstName || '', lastName: a.lastName || '', company: a.company || '', phone: a.phone || '', email: a.email || '',
+        category: 'referral', profession: a.profession || 'other', otherProfession: a.otherProfession || '', notes: a.notes || '', birthday: '', cardPhoto: null, createdAt: new Date().toISOString() });
+      changed = true; return;
+    }
+    const p = vikKeyPartners.find(function(x){ return x.id === a.id; });
+    if (!p) return;
+    const who = ((p.firstName || '') + ' ' + (p.lastName || '')).trim();
+    if (a.type === 'update_partner') {
+      ['firstName', 'lastName', 'company', 'phone', 'email', 'profession', 'otherProfession', 'birthday'].forEach(function(k){ if (typeof a[k] === 'string' && a[k] !== '') p[k] = a[k]; });
+      changed = true;
+    } else if (a.type === 'add_note') {
+      const stamp = new Date().toLocaleDateString();
+      p.notes = ((p.notes || '').trim() ? p.notes.trim() + '\n' : '') + stamp + ': ' + a.note;
+      changed = true;
+    } else if (a.type === 'delete_partner') {
+      if (window.confirm('Vikram wants to delete ' + (who || 'this partner') + (p.company ? ' (' + p.company + ')' : '') + '. This cannot be undone. Delete?')) {
+        vikKeyPartners = vikKeyPartners.filter(function(x){ return x.id !== a.id; });
+        changed = true;
+        showToast('Deleted ' + who);
+      } else showToast('Not deleted');
+    }
+  });
+  if (changed) { saveKeyPartnersToServer(); renderKeyPartners(); }
+}
+async function sendKpMessage(isVoice){
+  if (kvBusy) return;
+  const input = document.getElementById('kvChatInput'); if (!input) return;
+  const text = input.value.trim();
+  if (!text) { if (isVoice) vcAfterSpeak(); return; }
+  kvBusy = true;
+  input.value = '';
+  kvChat.push({ from: 'Vik', text: text });
+  renderKpChat();
+  let replyText;
+  try {
+    const partners = vikKeyPartners.map(function(p){
+      return { id: p.id, firstName: p.firstName, lastName: p.lastName, company: p.company, phone: p.phone, email: p.email, category: p.category,
+        profession: p.profession, otherProfession: p.otherProfession, birthday: p.birthday, notes: String(p.notes || '').slice(0, 600), added: p.createdAt ? String(p.createdAt).slice(0, 10) : '' };
+    });
+    const tasks = (vikTaskState.tasks || []).filter(function(t){ return taskPrefixOf(t.id) === 'vikkp'; }).map(function(t){
+      return { name: ((t.firstName || '') + ' ' + (t.lastName || '')).trim(), type: taskTypeLabel(t.taskType), subject: t.subject, due: tkLocal(t.dueAt).replace('T', ' '), done: !!t.completed };
+    });
+    const res = await fetch('https://fincop-backend.onrender.com/vikram-kp-chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: kvChat.slice(0, -1).slice(-12), partners: partners, tasks: tasks })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || ('error ' + res.status));
+    replyText = data.reply || 'Done.';
+    kvChat.push({ from: 'Vikram', text: replyText });
+    renderKpChat();
+    kvApply(data.actions || []);
+  } catch (e) {
+    replyText = "I couldn't reach my backend just now. Try again in a moment.";
+    kvChat.push({ from: 'Vikram', text: replyText });
+    renderKpChat();
+  }
+  kvBusy = false;
+  if (isVoice) speakSashaReply(replyText, VIKRAM_VOICE_ID);
+}
+function toggleKpVoice(){
+  vcToggle('kp', 'Vikram', function(){ return document.getElementById('kvVoiceBtn'); }, function(){ return document.getElementById('kvVoiceHint'); }, 'kvChatInput', function(){ sendKpMessage(true); });
+}
+// the Key Partners page also needs the task list loaded, so Vikram can see partner reminders
+(function(){ try { loadVikActionTasks(); } catch (e) {} })();
+// ===== End Key Partners: talk to Vikram =====
 </script>
 
 </body>
