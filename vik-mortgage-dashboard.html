@@ -346,6 +346,7 @@
         <button class="btn small" onclick="sendVikramMessage()">Send</button>
       </div>
       <div class="sasha-voice-hint" id="vikramVoiceHint"></div>
+      <div class="reminders" id="reminders" style="margin-top:24px;"><!-- reminders-moved --></div>
     </div>
 
     <div id="view-coaching" style="display:none;">
@@ -524,7 +525,6 @@
 
     <div class="stats" id="stats"></div>
 
-    <div class="reminders" id="reminders"></div>
 
     <div class="toolbar">
       <input id="search" type="text" placeholder="Search name, phone, email, city, address, referral…">
@@ -1074,6 +1074,7 @@ function renderReminders(){
 
   items.sort((a,b)=> a.days - b.days);
   const combined = urgent.concat(items).slice(0, 14);
+  try { const nb = document.getElementById('navVikramBtn'); if (nb) { const n = urgent.length; nb.innerHTML = '🧠 Ask Vikram' + (n ? ' <span style="background:var(--danger);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;">' + n + '</span>' : ''); } } catch (e) {}
 
   if(combined.length === 0){
     wrap.innerHTML = `<div class="rhead">Follow-ups &amp; reminders</div><div class="rempty">Nothing due soon. As you add closing dates, terms, DOBs, and anniversaries, reminders will appear here.</div>`;
