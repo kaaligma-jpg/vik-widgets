@@ -1810,7 +1810,7 @@ function renderSashaChat(c){
   return `<div class="sasha-chat">` + items.map(m=>`
     <div class="sasha-msg ${m.from==='Vik'?'vik':'sasha'}">
       <div class="item-meta">${m.from==='Vik'?'You':'Sasha'} · ${escapeHtml(formatNoteTs(m.ts))}</div>
-      <div>${escapeHtml(m.text)}</div>
+      <div>${escapeHtml(m.text)}</div>${m.draft ? sashaDraftCard(c, m) : ''}
     </div>`).join('') + `</div>`;
 }
 
@@ -1843,14 +1843,14 @@ async function sendSashaMessage(id, isVoice){
   try{
     const res = await fetch('https://fincop-backend.onrender.com/sasha-chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ mode: talking ? 'talk' : 'send', dealCode:c.dealCode, name:c.name, email:c.email, phone:c.phone, message:text, autoSend: talking ? false : c.sashaAutoSend, history: thread, researchNotes:c.researchNotes })
+      body: JSON.stringify({ mode: talking ? 'talk' : 'send', dealCode:c.dealCode, name:c.name, email:c.email, phone:c.phone, message:text, autoSend: talking ? false : c.sashaAutoSend, history: thread.map(sashaHistoryItem), researchNotes:c.researchNotes })
     });
     if(!res.ok) throw new Error('sasha backend error ' + res.status);
     const data = await res.json();
     replyText = (data && data.reply) || 'Got it.';
     if(data && data.sent) replyText += '\n\n(Sent via ' + (data.channel||'email').toLowerCase() + ' to ' + (data.to || 'the client') + ')';
     else if(data && data.sendError) replyText += '\n\n(Not sent — ' + data.sendError + ')';
-    thread.push({ from:'Sasha', text: replyText, ts: Date.now() });
+    thread.push(data && data.draft ? { from:'Sasha', text: replyText, ts: Date.now(), draft: Object.assign({ status:'pending' }, data.draft) } : { from:'Sasha', text: replyText, ts: Date.now() });
   }catch(e){
     replyText = "I couldn't reach my backend just now, so nothing was sent. Try again in a moment.";
     thread.push({ from:'Sasha', text: replyText, ts: Date.now() });
@@ -4445,6 +4445,63 @@ importDcBatch = function(){
   document.getElementById('dcForm').classList.add('open');
 };
 // ===== End Data Center page =====
+
+// ===== Sasha drafts in the Talk tab + Send button (added by fix-sasha-draft-send.js) =====
+function sashaHistoryItem(m){
+  if (!m || !m.draft) return m;
+  const d = m.draft;
+  return { from: m.from, ts: m.ts, text: (m.text || '') + '\n[Draft shown to Vik — ' + d.channel + (d.subject ? ' — subject: ' + d.subject : '') + ' — status: ' + (d.status || 'pending') + ']\n' + d.body };
+}
+function sashaDraftCard(c, m){
+  const d = m.draft;
+  const where = d.channel === 'EMAIL' ? 'Email' : (d.channel === 'SMS' ? 'Text (SMS)' : 'WhatsApp');
+  let status = '';
+  if (d.status === 'sent') status = '<div style="margin-top:6px; font-weight:600; color:#2E7D32;">✓ Sent' + (d.sentAt ? ' · ' + escapeHtml(formatNoteTs(d.sentAt)) : '') + '</div>';
+  else if (d.status === 'discarded') status = '<div style="margin-top:6px; color:var(--slate);">Discarded — not sent</div>';
+  else if (d.status === 'sending') status = '<div style="margin-top:6px; color:var(--slate);">Sending…</div>';
+  const buttons = (!d.status || d.status === 'pending' || d.status === 'error') ?
+    '<div style="display:flex; gap:8px; margin-top:8px;">' +
+      (d.to ? '<button class="btn small" onclick="sendSashaDraft(\'' + c.id + '\',' + m.ts + ')">✉️ Send this</button>' : '<span style="font-size:12px; color:#B3261E;">No ' + (d.channel === 'EMAIL' ? 'email' : 'phone') + ' on file — add it to the client first</span>') +
+      '<button class="btn small secondary" onclick="discardSashaDraft(\'' + c.id + '\',' + m.ts + ')">Discard</button>' +
+    '</div>' + (d.error ? '<div style="margin-top:6px; font-size:12px; color:#B3261E;">Not sent: ' + escapeHtml(d.error) + '</div>' : '') : '';
+  return '<div style="margin-top:8px; background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 12px; white-space:pre-wrap;">' +
+    '<div style="font-size:11px; color:var(--slate); margin-bottom:6px;">' + where + ' to ' + escapeHtml(d.to || '(missing)') + (d.subject ? '<br>Subject: ' + escapeHtml(d.subject) : '') + '</div>' +
+    escapeHtml(d.body) + status + buttons + '</div>';
+}
+async function sendSashaDraft(id, ts){
+  const c = clients.find(function(x){ return x.id === id; }); if (!c) return;
+  const m = (c.sashaTalk || []).find(function(x){ return x.ts === ts; });
+  if (!m || !m.draft || m.draft.status === 'sent' || m.draft.status === 'sending') return;
+  const d = m.draft;
+  d.status = 'sending'; d.error = null;
+  openDetail(id); switchLayerTab(id, 'sasha');
+  try {
+    const res = await fetch('https://fincop-backend.onrender.com/sasha-send-draft', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel: d.channel, subject: d.subject, body: d.body, email: c.email, phone: c.phone, name: c.name, whatsappReplied: !!c.whatsappReplied })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.sent) throw new Error(data.error || ('error ' + res.status));
+    d.status = 'sent'; d.sentAt = Date.now(); d.to = data.to || d.to;
+    if (!Array.isArray(c.sashaChat)) c.sashaChat = [];
+    c.sashaChat.push({ from: 'Sasha', text: d.body + '\n\n(Sent via ' + d.channel.toLowerCase() + ' to ' + d.to + ', approved by Vik from the Talk tab)' + (data.note ? '\n(' + data.note + ')' : ''), ts: Date.now() });
+    showToast('Sent to ' + (c.name || 'client'));
+  } catch (e) {
+    d.status = 'error'; d.error = e.message;
+    showToast('Not sent: ' + e.message);
+  }
+  await saveClients();
+  openDetail(id); switchLayerTab(id, 'sasha');
+}
+async function discardSashaDraft(id, ts){
+  const c = clients.find(function(x){ return x.id === id; }); if (!c) return;
+  const m = (c.sashaTalk || []).find(function(x){ return x.ts === ts; });
+  if (!m || !m.draft) return;
+  m.draft.status = 'discarded';
+  await saveClients();
+  openDetail(id); switchLayerTab(id, 'sasha');
+}
+// ===== End Sasha drafts =====
 </script>
 
 </body>
