@@ -4803,6 +4803,57 @@ function kpRenderTrash(){
   kpLoadTrash();
 })();
 // ===== End Key Partners archive / Deleted bin =====
+
+// ===== Key Partners: small photos + checked saves (added by fix-kp-photo-size.js) =====
+function kpShrinkPhoto(dataUrl){
+  return new Promise(function(resolve){
+    try {
+      const img = new Image();
+      img.onload = function(){
+        try {
+          const max = 1100;
+          const scale = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const out = c.toDataURL('image/jpeg', 0.62);
+          resolve(out && out.length < dataUrl.length ? out : dataUrl);
+        } catch (e) { resolve(dataUrl); }
+      };
+      img.onerror = function(){ resolve(dataUrl); };
+      img.src = dataUrl;
+    } catch (e) { resolve(dataUrl); }
+  });
+}
+function kpSaveAlarm(msg){
+  let bar = document.getElementById('kpSaveAlarm');
+  if (!bar) {
+    bar = document.createElement('div'); bar.id = 'kpSaveAlarm';
+    bar.style.cssText = 'position:fixed; left:12px; right:12px; top:12px; z-index:99999; background:#B3261E; color:#fff; padding:14px 16px; border-radius:10px; font-weight:700; font-size:15px; box-shadow:0 6px 24px rgba(0,0,0,.25);';
+    bar.onclick = function(){ bar.remove(); };
+    document.body.appendChild(bar);
+  }
+  bar.textContent = msg + '  (tap to close)';
+}
+saveKeyPartnersToServer = async function(){
+  // shrink any big photo first (this also slims the old ones)
+  for (const p of vikKeyPartners) {
+    if (p && typeof p.cardPhoto === 'string' && p.cardPhoto.length > 350000) {
+      p.cardPhoto = await kpShrinkPhoto(p.cardPhoto);
+    }
+  }
+  const body = JSON.stringify({ value: JSON.stringify(vikKeyPartners) });
+  try {
+    const res = await fetch(VIK_KEY_PARTNERS_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body });
+    if (!res.ok) throw new Error('server said ' + res.status + (res.status === 413 ? ' (too big)' : ''));
+    const bar = document.getElementById('kpSaveAlarm'); if (bar) bar.remove();
+    return true;
+  } catch (e) {
+    kpSaveAlarm('⚠️ KEY PARTNERS NOT SAVED — ' + e.message + '. Do not close or refresh this page. Tell Claude.');
+    return false;
+  }
+};
+// ===== End Key Partners small photos =====
 </script>
 
 </body>
