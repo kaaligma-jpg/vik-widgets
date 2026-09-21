@@ -1503,7 +1503,7 @@ function renderForm(keepScroll){
 
     <div class="panel-actions">
       <div>${editingId ? (c.archived
-        ? '<button class="btn secondary" onclick="restoreClient(\''+editingId+'\')">Restore</button> <button class="btn danger" onclick="deleteClient(\''+editingId+'\')">Delete permanently</button>'
+        ? '<button class="btn secondary" onclick="restoreClient(\''+editingId+'\')">Restore</button> <button class="btn danger" onclick="deleteClient(\''+editingId+'\')">Move to Deleted</button>'
         : '<button class="btn danger" onclick="archiveClient(\''+editingId+'\')">Archive</button>') : ''}</div>
       <div class="right">
         <button class="btn secondary" onclick="closeOverlay()">Cancel</button>
@@ -4539,6 +4539,127 @@ async function bdDeleteSelected(){
 const _renderBeforeBd = render;
 render = function(){ _renderBeforeBd.apply(this, arguments); bdRefresh(); };
 // ===== End bulk delete =====
+
+// ===== Deleted bin / Trash (added by fix-trash.js) =====
+const TRASH_URL = 'https://fincop-backend.onrender.com/app-data/mortgage-clients-trash';
+let trashList = [];
+let trashOpen = false;
+async function loadTrash(){
+  try { const r = await fetch(TRASH_URL); const d = await r.json(); trashList = d && d.value ? JSON.parse(d.value) : []; }
+  catch (e) { /* keep what we have */ }
+  if (!Array.isArray(trashList)) trashList = [];
+  renderTrash();
+}
+async function saveTrash(){
+  await fetch(TRASH_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value: JSON.stringify(trashList) }) });
+}
+async function moveToTrash(ids){
+  await loadTrash();
+  const moving = clients.filter(function(c){ return ids.has(c.id); });
+  if (!moving.length) return 0;
+  const now = Date.now();
+  moving.forEach(function(c){ trashList.push(Object.assign({}, c, { deletedAt: now })); });
+  try { await saveTrash(); } catch (e) { showToast('Could not save — nothing was deleted'); await loadTrash(); return 0; }
+  clients = clients.filter(function(c){ return !ids.has(c.id); });
+  await saveClients();
+  render(); renderTrash();
+  return moving.length;
+}
+bdDeleteSelected = async function(){
+  const chosen = clients.filter(function(c){ return bdSelected.has(c.id); });
+  if (!chosen.length) return;
+  const names = chosen.slice(0, 25).map(function(c){ return '• ' + (c.name || '(no name)') + (c.dealCode ? '  [' + c.dealCode + ']' : ''); }).join('\n') + (chosen.length > 25 ? '\n…and ' + (chosen.length - 25) + ' more' : '');
+  if (!confirm('Move these ' + chosen.length + ' lead(s) to Deleted?\n\n' + names + '\n\nYou can restore them from "View deleted" until you delete them permanently.')) return;
+  const n = await moveToTrash(new Set(chosen.map(function(c){ return c.id; })));
+  bdSelected.clear(); bdRefresh();
+  if (n) showToast(n + ' lead(s) moved to Deleted');
+};
+if (typeof deleteClient === 'function') {
+  deleteClient = async function(id){
+    const c = clients.find(function(x){ return x.id === id; });
+    if (!c || !confirm('Move ' + (c.name || 'this client') + ' to Deleted? You can restore them from "View deleted".')) return;
+    await moveToTrash(new Set([id]));
+    try { closeOverlay(); } catch (e) {}
+    showToast('Moved to Deleted');
+  };
+}
+async function restoreFromTrash(id){
+  await loadTrash();
+  const t = trashList.find(function(x){ return x.id === id; });
+  if (!t) return;
+  const back = Object.assign({}, t); delete back.deletedAt;
+  if (!clients.find(function(c){ return c.id === id; })) clients.push(back);
+  await saveClients();
+  trashList = trashList.filter(function(x){ return x.id !== id; });
+  await saveTrash();
+  render(); renderTrash();
+  showToast('Restored ' + (t.name || 'lead'));
+}
+async function restoreAllTrash(){
+  await loadTrash();
+  if (!trashList.length) return;
+  if (!confirm('Restore all ' + trashList.length + ' deleted lead(s) to the pipeline?')) return;
+  trashList.forEach(function(t){ const back = Object.assign({}, t); delete back.deletedAt; if (!clients.find(function(c){ return c.id === t.id; })) clients.push(back); });
+  await saveClients();
+  trashList = []; await saveTrash();
+  render(); renderTrash();
+  showToast('All restored');
+}
+async function deleteForever(id){
+  const t = trashList.find(function(x){ return x.id === id; });
+  if (!t) return;
+  if (!confirm('Permanently delete ' + (t.name || 'this lead') + '? This cannot be undone.')) return;
+  if (!confirm('Second check: delete ' + (t.name || 'this lead') + ' for good?')) return;
+  await loadTrash();
+  trashList = trashList.filter(function(x){ return x.id !== id; });
+  await saveTrash(); renderTrash();
+  showToast('Permanently deleted');
+}
+async function emptyTrash(){
+  await loadTrash();
+  if (!trashList.length) return;
+  if (!confirm('Permanently delete ALL ' + trashList.length + ' lead(s) in Deleted? This cannot be undone.')) return;
+  if (!confirm('Second check: empty Deleted for good? ' + trashList.length + ' lead(s) will be gone forever.')) return;
+  trashList = []; await saveTrash(); renderTrash();
+  showToast('Deleted bin emptied');
+}
+function toggleTrashView(){ trashOpen = !trashOpen; renderTrash(); if (trashOpen) loadTrash(); }
+function renderTrash(){
+  const btn = document.getElementById('trashViewBtn');
+  if (btn) btn.textContent = (trashOpen ? '✕ Close deleted' : '🗑 View deleted') + ' (' + trashList.length + ')';
+  const panel = document.getElementById('trashPanel');
+  if (!panel) return;
+  if (!trashOpen) { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+  if (!trashList.length) { panel.innerHTML = '<div style="font-weight:600; margin-bottom:4px;">Deleted</div><div style="color:var(--slate); font-size:13px;">Nothing here.</div>'; return; }
+  const rows = trashList.slice().sort(function(a, b){ return (b.deletedAt || 0) - (a.deletedAt || 0); }).map(function(t){
+    return '<div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); flex-wrap:wrap;">' +
+      '<div style="flex:1; min-width:180px;"><b>' + escapeHtml(t.name || '(no name)') + '</b> <span style="font-size:12px; color:var(--slate);">' + escapeHtml(t.dealCode || '') + ' · ' + escapeHtml(t.phone || '') + '</span>' +
+      '<div style="font-size:11px; color:var(--slate);">Deleted ' + new Date(t.deletedAt || 0).toLocaleString() + '</div></div>' +
+      '<button class="btn small secondary" onclick="restoreFromTrash(\'' + t.id + '\')">Restore</button>' +
+      '<button class="btn small" style="background:var(--danger); border-color:var(--danger); color:#fff;" onclick="deleteForever(\'' + t.id + '\')">Delete permanently</button></div>';
+  }).join('');
+  panel.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;"><div style="font-weight:600;">Deleted (' + trashList.length + ') <span style="font-weight:400; font-size:12px; color:var(--slate);">— stays here until you delete it permanently</span></div>' +
+    '<div style="display:flex; gap:8px;"><button class="btn small secondary" onclick="restoreAllTrash()">Restore all</button><button class="btn small" style="background:var(--danger); border-color:var(--danger); color:#fff;" onclick="emptyTrash()">Empty Deleted</button></div></div>' + rows;
+}
+(function(){
+  const del = document.getElementById('bdDeleteBtn');
+  if (del) {
+    const b = document.createElement('button');
+    b.className = 'btn secondary'; b.id = 'trashViewBtn'; b.textContent = '🗑 View deleted';
+    b.onclick = toggleTrashView;
+    del.parentNode.insertBefore(b, del.nextSibling);
+  }
+  const table = document.getElementById('tbody') && document.getElementById('tbody').closest('table');
+  if (table) {
+    const p = document.createElement('div');
+    p.id = 'trashPanel';
+    p.style.cssText = 'display:none; background:var(--paper-2, #faf8f3); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:0 0 16px;';
+    table.parentNode.insertBefore(p, table);
+  }
+  loadTrash();
+})();
+// ===== End Deleted bin =====
 </script>
 
 </body>
