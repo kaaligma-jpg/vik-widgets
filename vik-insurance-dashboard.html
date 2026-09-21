@@ -205,6 +205,7 @@
       <div class="toolbar">
         <input id="search" placeholder="Search by name, phone, email...">
         <button class="btn secondary" id="archiveViewToggle" onclick="toggleArchivedView()">📁 View archived</button>
+        <button class="btn" id="bdDeleteBtn" style="display:none; background:var(--danger); border-color:var(--danger); color:#fff;" onclick="bdDeleteSelected()">🗑 Delete selected</button>
         <select id="filterCategory"><option value="">All categories</option><option>Insurance</option><option>Investment</option><option>Both</option></select>
         <select id="filterInsurance"><option value="">Insurance: any</option></select>
         <select id="filterRetirement"><option value="">Retirement: any</option></select>
@@ -215,6 +216,7 @@
       <table>
         <thead>
           <tr>
+            <th style="width:30px;"><input type="checkbox" id="bdAll" title="Select all leads shown" onclick="event.stopPropagation(); bdToggleAll(this.checked)"></th>
             <th>Client</th>
             <th>Deal</th>
             <th>Category</th>
@@ -942,7 +944,7 @@ function render(){
   emptyState.style.display = 'none';
 
   if(!filtered.length){
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--slate);padding:30px;">${viewArchived ? 'No archived leads.' : 'No leads match right now.'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--slate);padding:30px;">${viewArchived ? 'No archived leads.' : 'No leads match right now.'}</td></tr>`;
     rowCards.innerHTML = '';
     return;
   }
@@ -951,6 +953,7 @@ function render(){
     const band = c.ageBand || ageBandFor(c.age) || '—';
     return `
     <tr onclick="openDetail('${c.id}')">
+      <td onclick="event.stopPropagation()"><input type="checkbox" class="bd-box" data-id="${c.id}" ${bdSelected.has(c.id) ? 'checked' : ''} onclick="event.stopPropagation(); bdToggle('${c.id}', this.checked)"></td>
       <td class="name-cell">${escapeHtml(c.name)||'—'}<div class="meta">${escapeHtml(c.phone)||'—'} <span class="code-tag">${escapeHtml(c.dealCode||'')}</span></div></td>
       <td>${escapeHtml(c.dealCode||'—')}<div class="meta">Age band: ${band}</div></td>
       <td>${categoryBadges(c)}</td>
@@ -2178,6 +2181,38 @@ function hangupBrowserCall(){
   }
   hideCallStatusOverlay();
 }
+
+// ===== Bulk delete with two confirmations (added by fix-bulk-delete-insurance.js) =====
+const bdSelected = new Set();
+function bdRefresh(){
+  Array.from(bdSelected).forEach(function(id){ if (!clients.find(function(c){ return c.id === id; })) bdSelected.delete(id); });
+  const btn = document.getElementById('bdDeleteBtn');
+  if (btn) { btn.style.display = bdSelected.size ? '' : 'none'; btn.textContent = '🗑 Delete selected (' + bdSelected.size + ')'; }
+  const all = document.getElementById('bdAll');
+  const boxes = document.querySelectorAll('#tbody .bd-box');
+  if (all) all.checked = boxes.length > 0 && Array.from(boxes).every(function(b){ return b.checked; });
+}
+function bdToggle(id, on){ if (on) bdSelected.add(id); else bdSelected.delete(id); bdRefresh(); }
+function bdToggleAll(on){
+  document.querySelectorAll('#tbody .bd-box').forEach(function(b){ b.checked = on; if (on) bdSelected.add(b.getAttribute('data-id')); else bdSelected.delete(b.getAttribute('data-id')); });
+  bdRefresh();
+}
+async function bdDeleteSelected(){
+  const chosen = clients.filter(function(c){ return bdSelected.has(c.id); });
+  if (!chosen.length) return;
+  const names = chosen.slice(0, 25).map(function(c){ return '• ' + (c.name || '(no name)') + (c.dealCode ? '  [' + c.dealCode + ']' : ''); }).join('\n') + (chosen.length > 25 ? '\n…and ' + (chosen.length - 25) + ' more' : '');
+  if (!confirm('Delete these ' + chosen.length + ' lead(s)?\n\n' + names)) return;
+  if (!confirm('Second check: permanently delete ' + chosen.length + ' lead(s)? This cannot be undone.')) return;
+  const ids = new Set(chosen.map(function(c){ return c.id; }));
+  clients = clients.filter(function(c){ return !ids.has(c.id); });
+  bdSelected.clear();
+  await saveClients();
+  render();
+  showToast(chosen.length + ' lead(s) deleted');
+}
+const _renderBeforeBd = render;
+render = function(){ _renderBeforeBd.apply(this, arguments); bdRefresh(); };
+// ===== End bulk delete =====
 </script>
 </body>
 </html>
