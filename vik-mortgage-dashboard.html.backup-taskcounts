@@ -17,6 +17,8 @@
     --good:#3C6E47;
     --warn:#B4762E;
     --danger:#A23B34;
+    --stale:#6B4C8A;
+    --future:#C9A227;
     --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
     --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
@@ -36,10 +38,19 @@
     padding:28px 20px;
     flex-shrink:0;
   }
+  .mobile-menu-btn{ display:none; }
   @media (max-width: 820px){
     .app{ flex-direction:column; }
-    .sidebar{ width:100%; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; }
+    .sidebar{ width:100%; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; position:relative; }
     .sidebar .navlist{ display:none; }
+    .sidebar .navlist.mobile-open{
+      display:flex; position:absolute; top:100%; left:0; right:0;
+      background:var(--ink); padding:12px 20px 20px; margin-top:0;
+      box-shadow:0 8px 16px rgba(0,0,0,0.25); z-index:50;
+    }
+    .mobile-menu-btn{
+      display:block; all:unset; cursor:pointer; color:#fff; font-size:24px; padding:4px 8px;
+    }
   }
   .brand{
     font-family:var(--serif);
@@ -173,6 +184,36 @@
   .badge.flag{ background:#F0E1C8; color:var(--warn); }
   .badge.soft{ background:#EDE8DD; color:var(--slate); }
 
+  /* ---- Task Center ---- */
+  .task-subtabs{ display:flex; gap:8px; margin:14px 0 18px; flex-wrap:wrap; }
+  .task-subtabs button{ padding:8px 16px; border-radius:20px; border:1px solid var(--line); background:var(--paper-2); color:var(--slate); font-size:13px; cursor:pointer; font-family:var(--sans); }
+  .task-subtabs button.active{ background:var(--ink-2); color:#fff; border-color:var(--ink-2); }
+  .task-card{ background:var(--paper-2); border:1px solid var(--line); border-left:6px solid var(--slate); border-radius:8px; padding:12px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .task-card.status-green{ border-left-color:var(--good); }
+  .task-card.status-red{ border-left-color:var(--danger); }
+  .task-card.status-yellow{ border-left-color:var(--future); }
+  .task-card.status-purple{ border-left-color:var(--stale); }
+  .task-dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; }
+  .task-dot.status-green{ background:var(--good); }
+  .task-dot.status-red{ background:var(--danger); }
+  .task-dot.status-yellow{ background:var(--future); }
+  .task-dot.status-purple{ background:var(--stale); }
+  .task-subject{ font-size:15px; color:var(--ink); margin-bottom:3px; }
+  .task-meta{ font-size:12px; color:var(--slate); }
+  .task-actions{ display:flex; gap:8px; flex-shrink:0; }
+  .task-actions button{ padding:5px 10px; font-size:12px; border-radius:6px; border:1px solid var(--line); background:var(--paper-2); cursor:pointer; }
+  .task-add-form{ background:var(--paper-2); border:1px solid var(--line); border-radius:8px; padding:14px; margin-bottom:18px; display:none; gap:10px; flex-wrap:wrap; }
+  .task-add-form.open{ display:flex; }
+  .task-add-form input, .task-add-form select{ padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--sans); font-size:13px; }
+  .task-add-form input[type=text]{ flex:1; min-width:160px; }
+  .task-type-pills{ display:flex; gap:6px; flex-wrap:wrap; }
+  .task-type-pills button{ padding:6px 12px; border-radius:16px; border:1px solid var(--line); background:var(--paper); color:var(--slate); font-size:12px; cursor:pointer; font-family:var(--sans); }
+  .task-type-pills button.active{ background:var(--brass); color:#fff; border-color:var(--brass); }
+  .task-id-tag{ font-family:monospace; font-size:11px; color:var(--brass); background:#EDE8DD; padding:1px 6px; border-radius:4px; margin-right:6px; }
+  .kp-card{ background:var(--paper-2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .kp-photo{ width:44px; height:44px; border-radius:6px; object-fit:cover; margin-right:10px; flex-shrink:0; }
+  .kp-card-main{ display:flex; align-items:center; }
+
   .cards{ display:none; }
   @media (max-width: 720px){
     table{ display:none; }
@@ -231,7 +272,7 @@
   .note-add-row textarea{ flex:1; resize:vertical; }
   .note-empty{ font-size:13px; color:var(--slate); }
 
-  .call-icon-btn{ all:unset; cursor:pointer; width:30px; height:30px; border-radius:50%; background:#EAF4EC; color:#2E7D32; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .call-icon-btn{ all:unset; cursor:pointer; width:30px; height:30px; border-radius:50%; background:#FBE4E4; color:#C62828; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
   .call-icon-btn:hover{ background:#D7EBDA; }
   .row1 .call-icon-btn{ margin-left:8px; }
   .name-cell-row{ display:flex; align-items:center; gap:6px; }
@@ -261,6 +302,7 @@
   .sasha-msg.sasha{ align-self:flex-start; background:#F1EAFB; color:var(--ink); border-bottom-left-radius:3px; }
   .sasha-msg .item-meta{ opacity:0.75; }
   .sasha-voice-btn{ font-size:16px; padding:6px 10px; border-radius:50%; background:#F1EAFB; border:1px solid var(--brass); cursor:pointer; line-height:1; }
+  .sasha-voice-btn.vc-on{ box-shadow:0 0 0 3px var(--brass); }
   .sasha-voice-btn.listening{ background:var(--brass); animation:sashaPulse 1s infinite; }
   @keyframes sashaPulse{ 0%{ box-shadow:0 0 0 0 rgba(180,140,60,0.5); } 70%{ box-shadow:0 0 0 10px rgba(180,140,60,0); } 100%{ box-shadow:0 0 0 0 rgba(180,140,60,0); } }
   .sasha-tab{ all:unset; cursor:pointer; font-size:12px; font-weight:600; padding:6px 12px; border-radius:16px; background:#F1EFE8; color:var(--slate); }
@@ -273,17 +315,24 @@
   .doc-item a{ color:var(--brass); font-size:12px; font-weight:600; text-decoration:none; }
 </style>
   <script src="twilio-voice-sdk.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
 <div class="app">
   <div class="sidebar">
     <div class="brand">Vik<small>MORTGAGE PIPELINE</small></div>
+    <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileNav()">&#9776;</button>
     <div class="navlist">
-      <button class="active" id="navClientsBtn" onclick="showView('clients')">Clients</button>
-      <button id="navRecruitsBtn" onclick="showView('recruits')">Recruits (Guru)</button>
-      <button id="navVikramBtn" onclick="showView('vikram')">Ask Vikram</button>
-      <a href="vik-insurance-dashboard.html" style="all:unset;cursor:pointer;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9D0DC;display:block;">Insurance Pipeline</a>
+      <button class="active" id="navClientsBtn" onclick="showView('clients')">🏠 Mortgage Pipeline</button>
+      <button id="navRecruitsBtn" onclick="showView('recruits')">🎓 Mortgage Recruit (Guru)</button>
+      <button id="navVikramBtn" onclick="showView('vikram')">🧠 Ask Vikram</button>
+      <button id="navCoachingBtn" onclick="showView('coaching')">📈 My Coaching</button>
+      <button id="navTasksBtn" onclick="showView('tasks')">✅ Tasks</button>
+      <button id="navKeyPartnersBtn" onclick="showView('keypartners')">🤝 Key Partners</button>
+      <button id="dcSidebarBtn" onclick="showView('keypartners'); toggleDataCenter();">🗄️ Data Center</button>
+      <a href="vik-insurance-dashboard.html" style="all:unset;cursor:pointer;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9D0DC;display:block;">🛡️ Insurance Pipeline</a>
+      <a href="vik-mandy-dashboard.html" style="all:unset;cursor:pointer;padding:10px 12px;border-radius:6px;font-size:14px;color:#C9D0DC;display:block;">🎯 Mandy</a>
     </div>
   </div>
 
@@ -298,15 +347,186 @@
         <button class="btn small" onclick="sendVikramMessage()">Send</button>
       </div>
       <div class="sasha-voice-hint" id="vikramVoiceHint"></div>
+      <div id="vikramDialerHost" style="margin-top:24px;"></div>
+      <div class="reminders" id="reminders" style="margin-top:24px;"><!-- reminders-moved --></div>
     </div>
 
-    <div id="view-clients">
+    <div id="view-coaching" style="display:none;">
+  <h1>My Coaching</h1>
+  <p class="sub">Vikram's honest feedback on your calls — tone, clarity, and what to improve. Private to you, never shown to any client.</p>
+  <div id="coachingListWrap"><p style="color:var(--slate);">Loading...</p></div>
+</div>
+
+<div id="view-tasks" style="display:none;">
+  <h1>Tasks</h1>
+  <p class="sub">Every action item from your calls — clients, recruits, and key partners — lands here on its own. Green means done, red is due within 24 hours, yellow is coming up, purple means the deadline passed with nothing done.</p>
+
+  <div class="stats" id="taskStats"></div>
+
+  <div class="task-subtabs" id="taskSubtabs">
+    <button class="active" onclick="setTaskCategory('all')">All</button>
+    <button onclick="setTaskCategory('vikmtg')">Mortgage</button>
+    <button onclick="setTaskCategory('vikins')">Insurance</button>
+    <button onclick="setTaskCategory('vikrecm')">Recruitment (Mortgage)</button>
+    <button onclick="setTaskCategory('vikreci')">Recruitment (Insurance)</button>
+    <button onclick="setTaskCategory('vikkp')">Key Partners</button>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn" id="taskAddToggleBtn" onclick="toggleTaskAddForm()">+ Add task</button>
+  </div>
+
+  <div class="task-add-form" id="taskAddForm">
+    <div style="width:100%; display:flex; gap:10px; flex-wrap:wrap;">
+      <select id="taskIdTypeInput">
+        <option value="vikmtg">Mortgage (vikmtg)</option>
+        <option value="vikins">Insurance (vikins)</option>
+        <option value="vikrecm">Recruitment — Mortgage (vikrecm)</option>
+        <option value="vikreci">Recruitment — Insurance (vikreci)</option>
+        <option value="vikkp">Key Partners (vikkp)</option>
+      </select>
+      <input type="text" id="taskFirstNameInput" placeholder="First name">
+      <input type="text" id="taskLastNameInput" placeholder="Last name">
+      <select id="taskRelatedTypeInput">
+        <option value="unrelated">Related Type: Unrelated</option>
+        <option value="deal">Related Type: Deal</option>
+        <option value="contact">Related Type: Contact</option>
+        <option value="partner">Related Type: Partner</option>
+      </select>
+    </div>
+    <div style="width:100%;">
+      <div style="font-size:12px; color:var(--slate); margin-bottom:6px;">Type of task</div>
+      <div class="task-type-pills" id="taskTypePills">
+        <button type="button" class="active" data-val="followup" onclick="selectTaskType('followup')">Follow Up</button>
+        <button type="button" data-val="todo" onclick="selectTaskType('todo')">To Do</button>
+        <button type="button" data-val="call" onclick="selectTaskType('call')">Call</button>
+        <button type="button" data-val="meetperson" onclick="selectTaskType('meetperson')">Meet in Person</button>
+        <button type="button" data-val="meetonline" onclick="selectTaskType('meetonline')">Meet Online</button>
+        <button type="button" data-val="note" onclick="selectTaskType('note')">Note</button>
+        <button type="button" data-val="text" onclick="selectTaskType('text')">Text</button>
+      </div>
+    </div>
+    <input type="text" id="taskSubjectInput" placeholder="What needs to happen?" style="width:100%;">
+    <input type="datetime-local" id="taskDueInput">
+    <div style="width:100%; display:flex; gap:8px;">
+      <button class="btn small" id="taskSaveBtn" onclick="saveTaskForm()">Save task</button>
+      <button class="btn secondary small" id="taskCancelEditBtn" style="display:none;" onclick="cancelTaskEdit()">Cancel edit</button>
+    </div>
+  </div>
+
+  <div id="taskListWrap"></div>
+  <div class="empty" id="taskEmptyState" style="display:none;">
+    <div class="big">No tasks yet</div>
+    <div>Action items from your calls will appear here automatically.</div>
+  </div>
+</div>
+
+<div id="view-keypartners" style="display:none;">
+  <h1>Key Partners</h1>
+  <p class="sub">People you meet networking — realtors, accountants, other referral sources — plus clients and recruits you scan on the spot. Scan a business card or fill it in by hand, and a warm "great meeting you" message goes out on WhatsApp, SMS and email right away.</p>
+
+  <div class="task-subtabs" id="kpFilterTabs"></div>
+  <div class="task-subtabs" id="kpOtherSubTabs" style="display:none;"></div>
+
+  <div class="toolbar">
+    <label class="btn" id="kpScanToggleBtn" for="kpCardPhotoInput" onclick="document.getElementById('kpScanForm').classList.add('open'); document.getElementById('kpAddForm').classList.remove('open');">📇 Scan business card</label>
+    <button class="btn secondary" id="kpAddToggleBtn" onclick="toggleKpForm()">+ Add manually</button>
+  </div>
+
+  <div class="task-add-form" id="dcForm">
+    <div style="width:100%;">
+      <label style="font-size:12px; color:var(--slate); display:block; margin-bottom:6px;">Upload a file of contacts (CSV or Excel) to import in bulk.</label>
+      <input type="file" id="dcFileInput" accept=".csv,.xlsx,.xls" onchange="handleDcFile(event)">
+    </div>
+    <div id="dcMappingWrap" style="width:100%;"></div>
+    <div id="dcDestinationWrap" style="width:100%; display:none;">
+      <div style="font-size:12px; color:var(--slate); margin:8px 0 6px;">Where should these go?</div>
+      <select id="dcDestination" onchange="onDcDestinationChange()">
+        <option value="keypartners">Key Partners</option>
+        <option value="recruits">Recruits</option>
+        <option value="clients">Clients</option>
+      </select>
+      <div id="dcPipelineWrap" style="display:none; margin-top:8px;">
+        <select id="dcPipeline">
+          <option value="mortgage">Mortgage</option>
+          <option value="insurance">Insurance</option>
+        </select>
+      </div>
+      <div id="dcKpOptionsWrap" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <select id="dcKpCategory">
+          <option value="referral">Referral Source</option>
+          <option value="client">Client</option>
+          <option value="recruit">Recruit</option>
+        </select>
+        <select id="dcKpProfession" onchange="document.getElementById('dcKpOtherProfession').style.display = this.value==='other' ? '' : 'none';">
+          <option value="realtor">Realtor</option>
+          <option value="accountant">Accountant</option>
+          <option value="lawyer">Lawyer</option>
+          <option value="other">Other</option>
+        </select>
+        <input type="text" id="dcKpOtherProfession" placeholder="What kind of profession?" style="display:none;">
+      </div>
+      <div style="width:100%; margin-top:10px;">
+        <button class="btn small" onclick="importDcBatch()">Import contacts</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="task-add-form" id="kpScanForm">
+    <div style="width:100%;">
+      <label style="font-size:12px; color:var(--slate); display:block; margin-bottom:6px;">Take a photo of the card, then fill in what it says below (reading the card automatically comes later).</label>
+      <input type="file" id="kpCardPhotoInput" accept="image/*" capture="environment" onchange="handleKpCardPhoto(event)">
+      <div id="kpCardPreviewWrap" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div class="task-add-form" id="kpAddForm">
+    <input type="text" id="kpFirstNameInput" placeholder="First name">
+    <input type="text" id="kpLastNameInput" placeholder="Last name">
+    <input type="text" id="kpCompanyInput" placeholder="Company">
+    <input type="text" id="kpPhoneInput" placeholder="Phone">
+    <input type="text" id="kpEmailInput" placeholder="Email">
+    <div style="width:100%;">
+      <div style="font-size:12px; color:var(--slate); margin-bottom:6px;">Category</div>
+      <div class="task-type-pills" id="kpCategoryPills">
+        <button type="button" class="active" data-val="referral" onclick="selectKpCategory('referral')">Referral Source</button>
+        <button type="button" data-val="client" onclick="selectKpCategory('client')">Client</button>
+        <button type="button" data-val="recruit" onclick="selectKpCategory('recruit')">Recruit</button>
+      </div>
+    </div>
+    <select id="kpProfessionInput" onchange="toggleKpOtherProfession()">
+      <option value="">Profession</option>
+      <option value="realtor">Realtor</option>
+      <option value="accountant">Accountant</option>
+      <option value="lawyer">Lawyer</option>
+      <option value="other">Other</option>
+    </select>
+    <input type="text" id="kpOtherProfessionInput" placeholder="What kind of profession?" style="display:none;">
+    <textarea id="kpNotesInput" placeholder="Notes about this key partner (optional)" style="width:100%; min-height:60px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--sans); font-size:13px;"></textarea>
+    <label style="width:100%; display:flex; align-items:center; gap:8px; font-size:13px;">
+      🎂 Birthday (optional)
+      <input type="date" id="kpBirthdayInput">
+    </label>
+    <div style="width:100%; display:flex; gap:8px;">
+      <button class="btn secondary small" id="kpSaveOnlyBtn" onclick="saveKeyPartner(false)">Save</button>
+      <button class="btn small" id="kpSaveBtn" onclick="saveKeyPartner(true)">Save &amp; send greeting</button>
+      <button class="btn secondary small" id="kpCancelEditBtn" style="display:none;" onclick="cancelKpEdit()">Cancel edit</button>
+    </div>
+  </div>
+
+  <div id="kpListWrap"></div>
+  <div class="empty" id="kpEmptyState" style="display:none;">
+    <div class="big">No Key Partners yet</div>
+    <div>Scan a card at your next event, or add one by hand.</div>
+  </div>
+</div>
+
+<div id="view-clients">
     <h1>Mortgage pipeline</h1>
     <p class="sub">Every deal, one place. Search, filter, and track from lead to funded — plus follow-up, referral, and financial-planning tracking.</p>
 
     <div class="stats" id="stats"></div>
 
-    <div class="reminders" id="reminders"></div>
 
     <div class="toolbar">
       <input id="search" type="text" placeholder="Search name, phone, email, city, address, referral…">
@@ -588,8 +808,34 @@ clients = [];
 render();
 }
 
+function mergeBackgroundNotes(freshServerList){
+  if (!Array.isArray(freshServerList)) return;
+  freshServerList.forEach(serverClient => {
+    const localClient = clients.find(c => c.id === serverClient.id);
+    if (!localClient) return;
+    ['agentNotes','commHistory'].forEach(field => {
+      const serverItems = Array.isArray(serverClient[field]) ? serverClient[field] : [];
+      if (!Array.isArray(localClient[field])) localClient[field] = [];
+      const localTimestamps = new Set(localClient[field].map(n => n && n.ts));
+      serverItems.forEach(item => {
+        if (item && !localTimestamps.has(item.ts)) {
+          localClient[field].push(item);
+          localTimestamps.add(item.ts);
+        }
+      });
+    });
+  });
+}
+
 async function saveClients(){
 try{
+  try {
+    const freshRes = await fetch('https://fincop-backend.onrender.com/app-data/mortgage-clients');
+    const freshData = await freshRes.json();
+    const freshList = freshData && freshData.value ? JSON.parse(freshData.value) : null;
+    mergeBackgroundNotes(freshList);
+  } catch (mergeErr) { /* if merge fails, still proceed with the save below */ }
+
 await fetch('https://fincop-backend.onrender.com/app-data/mortgage-clients', {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
@@ -758,7 +1004,7 @@ function renderReminders(){
       if(hrs !== null){
         const hoursLeft = 2 - hrs;
         if(hoursLeft <= 0){
-          urgent.push({ id:c.id, type:'2-hour SLA breached', label: nameWithCode(c) + ' — not called yet, auto-call by Vik (AI) triggered', days: -1, forceOverdue:true });
+          urgent.push({ id:c.id, type:'2-hour SLA breached', label: nameWithCode(c) + ' — not called yet. Switch Vikram ON to call', days: -1, forceOverdue:true });
         }else{
           urgent.push({ id:c.id, type:'Call within 2 hours', label: nameWithCode(c) + ' — new lead, ' + hoursLeft.toFixed(1) + 'h left', days: 0, forceSoon:true });
         }
@@ -830,6 +1076,7 @@ function renderReminders(){
 
   items.sort((a,b)=> a.days - b.days);
   const combined = urgent.concat(items).slice(0, 14);
+  try { const nb = document.getElementById('navVikramBtn'); if (nb) { const n = urgent.length; nb.innerHTML = '🧠 Ask Vikram' + (n ? ' <span style="background:var(--danger);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;">' + n + '</span>' : ''); } } catch (e) {}
 
   if(combined.length === 0){
     wrap.innerHTML = `<div class="rhead">Follow-ups &amp; reminders</div><div class="rempty">Nothing due soon. As you add closing dates, terms, DOBs, and anniversaries, reminders will appear here.</div>`;
@@ -837,7 +1084,7 @@ function renderReminders(){
   }
   wrap.innerHTML = `<div class="rhead">Follow-ups &amp; reminders</div>` + combined.map(it=>{
     let tagClass, tagText;
-    if(it.forceOverdue){ tagClass='overdue'; tagText='Auto-call triggered'; }
+    if(it.forceOverdue){ tagClass='overdue'; tagText='Not called yet'; }
     else if(it.forceSoon){ tagClass='soon'; tagText='Action needed'; }
     else if(it.quarterlyCheck){ tagClass='soon'; tagText='Quarterly check'; }
     else{
@@ -848,7 +1095,7 @@ function renderReminders(){
       <span>${escapeHtml(it.type)}: ${escapeHtml(it.label)}</span>
       <span class="rtag-wrap">
         <span class="rtag ${tagClass}">${tagText}</span>
-        <button class="call-icon-btn" title="Log a call for this deal" onclick="event.stopPropagation(); openLogCall('${it.id}')">📞</button>
+        <button class="call-icon-btn" title="Call now from browser" onclick="event.stopPropagation(); startBrowserCall('${it.id}')">☎️</button>
       </span>
     </div>`;
   }).join('');
@@ -885,7 +1132,7 @@ function render(){
       <td><span class="badge ${c.stage}">${STAGE_LABELS[c.stage]||c.stage}</span></td>
       <td>${c.closingDate||'—'}</td>
       <td>${escapeHtml(c.referralName||c.referralType||'—')}</td>
-      <td><button class="call-icon-btn" title="Log a call for this deal" onclick="event.stopPropagation(); openLogCall('${c.id}')">📞</button> <button class="call-icon-btn" title="Call now from browser" onclick="event.stopPropagation(); startBrowserCall('${c.id}')">☎️</button></td>
+      <td><button class="call-icon-btn" title="Call now from browser" onclick="event.stopPropagation(); startBrowserCall('${c.id}')">☎️</button></td>
     </tr>
   `;}).join('');
 
@@ -898,7 +1145,7 @@ function render(){
         </div>
         <div class="rtag-wrap">
           <span class="badge ${c.stage}">${STAGE_LABELS[c.stage]||c.stage}</span>
-          ${c.archived ? '<button class="btn small secondary" title="Restore to active pipeline" onclick="event.stopPropagation(); restoreClient(\''+c.id+'\')">Restore</button>' : '<button class="call-icon-btn" title="Log a call for this deal" onclick="event.stopPropagation(); openLogCall(\''+c.id+'\')">📞</button>'}
+          ${c.archived ? '<button class="btn small secondary" title="Restore to active pipeline" onclick="event.stopPropagation(); restoreClient(\''+c.id+'\')">Restore</button>' : '<button class="call-icon-btn" title="Call now from browser" onclick="event.stopPropagation(); startBrowserCall(\''+c.id+'\')">☎️</button>'}
         </div>
       </div>
     </div>
@@ -1241,7 +1488,7 @@ async function saveForm(){
     name,
     firstName,
     lastName,
-    phone: document.getElementById('f_phone').value.trim(),
+    phone: normalizePhone(document.getElementById('f_phone').value.trim()),
     email: document.getElementById('f_email').value.trim(),
     city: document.getElementById('f_city').value.trim(),
     dob,
@@ -1301,6 +1548,10 @@ async function triggerVikramResearch(id){
   if(!c) return;
   if(researchInFlight.has(id)) return; // already running for this lead — ignore extra clicks
   researchInFlight.add(id);
+  try {
+    const pnl = document.getElementById('panel');
+    if (pnl && pnl.innerHTML.includes(escapeHtml(c.name))) { openDetail(id); showToast('Vikram is researching ' + (c.name || 'this lead') + ', about a minute'); }
+  } catch (e) {}
   try{
     const nameParts = (c.name||'').trim().split(/\s+/);
     const firstName = nameParts[0] || '';
@@ -1582,7 +1833,7 @@ let sashaListeningDealId = null;
 const GURU_VOICE_ID = 'TWutjvRaJqAX89preB4e';
 function speakSashaReply(text, voiceId){
   const clean = String(text||'').replace(/\s+/g,' ').trim();
-  if(!clean) return;
+  if(!clean){ vcAfterSpeak(); return; }
   if(window.sashaAudio){ try{ window.sashaAudio.pause(); }catch(e){} }
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   fetch('https://fincop-backend.onrender.com/sasha-speak', {
@@ -1593,57 +1844,79 @@ function speakSashaReply(text, voiceId){
     return r.blob();
   }).then(function(b){
     window.sashaAudio = new Audio(URL.createObjectURL(b));
-    window.sashaAudio.play();
+    window.sashaAudio.onended = function(){ vcAfterSpeak(); };
+    window.sashaAudio.play().catch(function(){ vcAfterSpeak(); });
   }).catch(function(e){
     console.error('[sasha voice]', e);
-    if(window.speechSynthesis) window.speechSynthesis.speak(new SpeechSynthesisUtterance(clean));
+    if(window.speechSynthesis){ const u = new SpeechSynthesisUtterance(clean); u.onend = function(){ vcAfterSpeak(); }; window.speechSynthesis.speak(u); } else { vcAfterSpeak(); }
   });
 }
 
+// ===== Conversation mode for all mic buttons (added by fix-voice-conversation.js) =====
+// Tap the mic once: talk naturally. When you pause, it sends; the agent answers out loud;
+// then it listens again by itself. Tap the mic again to end the conversation.
+let vcSession = null;
+function vcAfterSpeak(){
+  if (!vcSession) return;
+  const s = vcSession;
+  if (s.waitTimer) { clearTimeout(s.waitTimer); s.waitTimer = null; }
+  setTimeout(function(){ if (vcSession === s) vcListen(s); }, 350);
+}
+function vcStop(msg){
+  const s = vcSession; vcSession = null;
+  if (!s) return;
+  if (s.waitTimer) clearTimeout(s.waitTimer);
+  try { if (s.rec) s.rec.abort(); } catch (e) {}
+  try { if (window.sashaAudio) window.sashaAudio.pause(); } catch (e) {}
+  try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+  const btn = s.btn(), hint = s.hint();
+  if (btn) { btn.classList.remove('listening'); btn.classList.remove('vc-on'); }
+  if (hint) hint.textContent = msg || '';
+}
+function vcListen(s){
+  const API = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!API || vcSession !== s) return;
+  const rec = new API(); s.rec = rec;
+  rec.lang = 'en-IN'; rec.continuous = false; rec.interimResults = false;
+  const btn = s.btn(), hint = s.hint();
+  rec.onstart = function(){ if (btn) btn.classList.add('listening'); if (hint) hint.textContent = 'Listening… just talk. Tap the mic to end the conversation.'; };
+  rec.onresult = function(ev){
+    s.noSpeech = 0;
+    const t = ev.results[0][0].transcript;
+    const input = document.getElementById(s.inputId);
+    if (input) input.value = t;
+    if (hint) hint.textContent = s.name + ' is thinking…';
+    s.gotText = true;
+    // safety: if no spoken answer comes back within 60s, start listening again
+    s.waitTimer = setTimeout(function(){ if (vcSession === s) vcListen(s); }, 60000);
+    s.send();
+  };
+  rec.onerror = function(ev){
+    if (vcSession !== s) return;
+    if (ev.error === 'not-allowed') { vcStop('Microphone access was blocked. Allow it in the browser.'); return; }
+    if (ev.error === 'no-speech') s.noSpeech++;
+  };
+  rec.onend = function(){
+    if (btn) btn.classList.remove('listening');
+    if (vcSession !== s) return;
+    if (s.gotText) { s.gotText = false; return; }
+    if (s.noSpeech >= 3) { vcStop('Conversation ended because nobody spoke. Tap the mic to start again.'); return; }
+    setTimeout(function(){ if (vcSession === s) vcListen(s); }, 250);
+  };
+  try { rec.start(); } catch (e) {}
+}
+function vcToggle(key, name, btnFn, hintFn, inputId, send){
+  if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) { showToast('Voice needs Chrome or Edge.'); return; }
+  if (vcSession && vcSession.key === key) { vcStop(''); return; }
+  if (vcSession) vcStop('');
+  vcSession = { key: key, name: name, btn: btnFn, hint: hintFn, inputId: inputId, send: send, rec: null, noSpeech: 0, gotText: false, waitTimer: null };
+  const b = btnFn(); if (b) b.classList.add('vc-on');
+  vcListen(vcSession);
+}
+// ===== End conversation mode =====
+
 function toggleSashaVoice(id){
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.getElementById('sashaVoiceBtn_' + id);
-  const hint = document.getElementById('sashaVoiceHint_' + id);
-  if(!SpeechRecognitionAPI){
-    showToast('Voice chat needs Chrome or Edge — this browser doesn\'t support it yet.');
-    return;
-  }
-  // If already listening on this deal, stop it (acts as a toggle)
-  if(sashaRecognition && sashaListeningDealId === id){
-    sashaRecognition.stop();
-    return;
-  }
-  // If listening on a different deal, stop that first
-  if(sashaRecognition){ sashaRecognition.stop(); }
-
-  sashaRecognition = new SpeechRecognitionAPI();
-  sashaRecognition.lang = 'en-US';
-  sashaRecognition.continuous = false;
-  sashaRecognition.interimResults = false;
-  sashaListeningDealId = id;
-
-  sashaRecognition.onstart = () => {
-    if(btn) btn.classList.add('listening');
-    if(hint) hint.textContent = 'Listening… speak now.';
-  };
-  sashaRecognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    const input = document.getElementById('sashaChatInput');
-    if(input) input.value = transcript;
-    if(hint) hint.textContent = '';
-    sendSashaMessage(id, true);
-  };
-  sashaRecognition.onerror = (event) => {
-    if(hint) hint.textContent = event.error === 'not-allowed'
-      ? 'Microphone access was blocked — allow it in the browser to talk to Sasha.'
-      : 'Didn\'t catch that — tap the mic and try again.';
-  };
-  sashaRecognition.onend = () => {
-    if(btn) btn.classList.remove('listening');
-    sashaRecognition = null;
-    sashaListeningDealId = null;
-  };
-  sashaRecognition.start();
+  vcToggle('sasha-' + id, 'Sasha', function(){ return document.getElementById('sashaVoiceBtn_' + id); }, function(){ return document.getElementById('sashaVoiceHint_' + id); }, 'sashaChatInput', function(){ sendSashaMessage(id, true); });
 }
 
 // ---- Documents: per-deal upload, readable by Vikram / FinCop / Sasha ----
@@ -1753,7 +2026,7 @@ async function addAgentNote(id){
   showToast('Agent note added');
 }
 
-// Deal-tagged calling: the 📞 icon on a card, table row, or reminder opens this
+// Deal-tagged calling: the ☏️ icon on a card, table row, or reminder opens this
 // modal already scoped to that specific deal, so every logged call auto-saves
 // into that deal's communication-history layer — no manual re-tagging needed.
 let callLogClientId = null;
@@ -1827,10 +2100,57 @@ function hideCallStatusOverlay(){
   if (box) box.style.display = 'none';
 }
 
+function normalizePhone(raw){
+  if (!raw) return '';
+  let digits = raw.toString().replace(/[^0-9+]/g, '');
+  const hasPlus = digits.startsWith('+');
+  digits = digits.replace(/\+/g, '');
+  if (hasPlus) return '+' + digits;
+  if (digits.length === 10) return '+1' + digits;
+  if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
+  return digits ? ('+' + digits) : '';
+}
+
+async function startBrowserCallRecruit(id){
+  const r = mortgageRecruits.find(x=>x.id===id);
+  if (!r) return;
+  if (!r.phone) { showToast('No phone number on file for this recruit'); return; }
+  const dialNumber = normalizePhone(r.phone);
+  if (!dialNumber) { showToast('This recruit\'s phone number looks invalid'); return; }
+
+  const displayName = (r.firstName||'') + ' ' + (r.lastName||'');
+  showCallStatusOverlay(displayName.trim(), 'Connecting…');
+
+  try {
+    const device = await ensureTwilioDevice();
+    if (device.state !== 'registered') {
+      await new Promise((resolve) => {
+        device.once('registered', resolve);
+        device.register();
+      });
+    }
+    const conn = await device.connect({ params: { To: dialNumber } });
+    activeCallConn = conn;
+    conn.on('accept', () => updateCallStatusText('In call — recording'));
+    conn.on('disconnect', () => {
+      updateCallStatusText('Call ended — Vikram is reviewing the recording');
+      setTimeout(hideCallStatusOverlay, 2000);
+      activeCallConn = null;
+    });
+    conn.on('cancel', () => hideCallStatusOverlay());
+    conn.on('reject', () => hideCallStatusOverlay());
+  } catch (err) {
+    console.error('Call failed:', err);
+    showToast('Could not place call: ' + (err.message || 'unknown error'));
+    hideCallStatusOverlay();
+  }
+}
 async function startBrowserCall(id){
   const c = clients.find(x=>x.id===id);
   if (!c) return;
-  if (!c.phone) { showToast('No phone number on file for this client'); return; }
+    if (!c.phone) { showToast('No phone number on file for this client'); return; }
+  const dialNumber = normalizePhone(c.phone);
+  if (!dialNumber) { showToast('This client\'s phone number looks invalid'); return; }
 
   activeCallClientId = id;
   showCallStatusOverlay(c.name, 'Connecting…');
@@ -1843,12 +2163,12 @@ async function startBrowserCall(id){
         device.register();
       });
     }
-    const conn = await device.connect({ params: { To: c.phone } });
+    const conn = await device.connect({ params: { To: dialNumber, ClientId: id } });
     activeCallConn = conn;
     conn.on('accept', () => updateCallStatusText('In call — recording'));
     conn.on('disconnect', () => {
-      updateCallStatusText('Call ended');
-      setTimeout(hideCallStatusOverlay, 1500);
+      updateCallStatusText('Call ended — Vikram is reviewing the recording');
+      setTimeout(hideCallStatusOverlay, 2000);
       activeCallConn = null;
     });
     conn.on('cancel', () => hideCallStatusOverlay());
@@ -1869,6 +2189,310 @@ function hangupBrowserCall(){
   hideCallStatusOverlay();
 }
 // ===== End browser voice calling =====
+
+// ===== Vikram auto-dialer: call blocks (added by fix-vikram-dialer.js) =====
+// Switch ON -> Vikram dials pending leads one by one (no time blocks: ON = calling, OFF = not).
+// TEST MODE (on by default): only Vik's and Amit's numbers get dialled.
+// Also: Vikram researches any lead that has no research yet (website/Neo/Nikki leads).
+// Spacing is your choice: every 15, 30 or 60 minutes (never mid-call: at least
+// 2 min after a long call ends). 15-minute heads-up before each call (on screen
+// + desktop notification, with "Open profile"). 10-second countdown before the
+// dial (Stop / Skip). After each call: "Spoke with them" / "No answer".
+const VD = {
+  on: false, phase: 'idle', currentId: null, countdown: 0,
+  lastStart: 0, lastEnd: 0, askLeft: 0, skipToday: {}, timer: null,
+  plannedId: null, plannedAt: 0, notifiedKey: ''
+};
+const VD_INTERVAL_KEY = 'vikramDialerInterval';
+const VD_HEADSUP_MS = 15 * 60 * 1000;
+function vdIntervalMin(){
+  try { const v = Number(localStorage.getItem(VD_INTERVAL_KEY)); if ([15, 30, 60].includes(v)) return v; } catch (e) {}
+  return 15;
+}
+function vdSetInterval(m){
+  try { localStorage.setItem(VD_INTERVAL_KEY, String(m)); } catch (e) {}
+  if (VD.phase === 'idle' && VD.plannedId) { VD.plannedAt = Math.max(vdNextAt(), VD.plannedAt); }
+  vdRender();
+}
+const VD_BLOCKS_KEY = 'vikramDialerBlocks';
+const VD_AFTER_MS = 2 * 60 * 1000;
+const VD_RETRY_MS = 3 * 60 * 60 * 1000;
+const VD_MAX_ATTEMPTS = 3;
+const VD_COUNTDOWN = 10;
+const VD_ASK_SECONDS = 60;
+
+function vdBlocksText(){
+  try { const v = localStorage.getItem(VD_BLOCKS_KEY); if (v) return v; } catch (e) {}
+  return '9:00-12:00, 15:00-17:00';
+}
+function vdParseBlocks(s){
+  return String(s || '').split(',').map(x => x.trim()).map(x => {
+    const m = x.match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);
+    return m ? { a: (+m[1]) * 60 + (+m[2]), b: (+m[3]) * 60 + (+m[4]) } : null;
+  }).filter(Boolean);
+}
+function vdMinsNow(){ const d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+function vdInBlock(){ return true; }
+const VD_TEST_KEY = 'vikramDialerTestMode';
+const VD_TEST_NUMBERS = ['4168873861', '9059650451'];
+function vdTestMode(){ try { return localStorage.getItem(VD_TEST_KEY) !== 'off'; } catch (e) { return true; } }
+function vdToggleTest(){
+  if (vdTestMode()) {
+    if (!confirm('Turn OFF test mode? Vikram will then call REAL clients from the list.')) return;
+    try { localStorage.setItem(VD_TEST_KEY, 'off'); } catch (e) {}
+  } else {
+    try { localStorage.setItem(VD_TEST_KEY, 'on'); } catch (e) {}
+  }
+  VD.plannedId = null; VD.plannedAt = 0;
+  vdRender();
+}
+function vdDigits(p){ const d = String(p || '').replace(/\D/g, ''); return d.length === 11 && d[0] === '1' ? d.slice(1) : d; }
+function vdAllowed(c){ return !vdTestMode() || VD_TEST_NUMBERS.includes(vdDigits(c.phone)); }
+let vdResearchLast = 0;
+function vdAutoResearch(){
+  if (Date.now() - vdResearchLast < 20000) return;
+  if (typeof researchInFlight === 'undefined' || researchInFlight.size) return;
+  const c = clients.find(x => !x.archived && x.name && (!Array.isArray(x.researchNotes) || !x.researchNotes.some(n => n && n.author === 'Vikram')));
+  if (!c) return;
+  vdResearchLast = Date.now();
+  if (!Array.isArray(c.researchNotes)) c.researchNotes = [];
+  try { triggerVikramResearch(c.id); } catch (e) {}
+}
+function vdNextBlockLabel(){
+  const m = vdMinsNow();
+  const nxt = vdParseBlocks(vdBlocksText()).filter(b => b.a > m).sort((x, y) => x.a - y.a)[0];
+  if (!nxt) return 'no more blocks today';
+  const h = Math.floor(nxt.a / 60), mi = nxt.a % 60;
+  return 'next block ' + ((h % 12) || 12) + ':' + String(mi).padStart(2, '0') + (h < 12 ? ' am' : ' pm');
+}
+function vdSameDay(ts){ return ts && new Date(ts).toDateString() === new Date().toDateString(); }
+function vdFollowUpToday(c){
+  try { const fu = nextFollowUpDate(c); return !!fu && fu.toDateString() === new Date().toDateString(); }
+  catch (e) { return false; }
+}
+function vdQueue(){
+  const now = Date.now();
+  const skipped = (c) => VD.skipToday[c.id] === new Date().toDateString();
+  const leads = clients.filter(c => !c.archived && c.stage === 'Lead' && !c.calledByVik && c.phone && vdAllowed(c)
+      && (c.autoDialAttempts || 0) < VD_MAX_ATTEMPTS && !skipped(c)
+      && !(c.lastAutoDialAt && now - c.lastAutoDialAt < VD_RETRY_MS))
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const followUps = clients.filter(c => !c.archived && c.stage !== 'Lead' && c.phone && vdAllowed(c)
+      && vdFollowUpToday(c) && !skipped(c) && !vdSameDay(c.lastAutoDialAt));
+  return leads.concat(followUps);
+}
+function vdNextAt(){
+  return Math.max(VD.lastStart ? VD.lastStart + vdIntervalMin() * 60000 : 0, VD.lastEnd ? VD.lastEnd + VD_AFTER_MS : 0);
+}
+function vdClockLabel(ts){
+  const d = new Date(ts); const h = d.getHours();
+  return ((h % 12) || 12) + ':' + String(d.getMinutes()).padStart(2, '0') + (h < 12 ? ' am' : ' pm');
+}
+function vdCallOpen(){
+  if (!activeCallConn) return false;
+  try { if (typeof activeCallConn.status === 'function' && activeCallConn.status() === 'closed') return false; } catch (e) {}
+  return true;
+}
+
+async function vdToggle(){
+  if (VD.on) {
+    VD.on = false;
+    if (VD.phase === 'countdown') { VD.phase = 'idle'; VD.currentId = null; }
+    vdRender();
+    return;
+  }
+  VD.on = true;
+  VD.plannedId = null; VD.plannedAt = 0;
+  try { if (window.Notification && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {}
+  vdRender();
+  try {
+    const device = await ensureTwilioDevice();
+    if (device.state !== 'registered') {
+      await new Promise((resolve) => { device.once('registered', resolve); device.register(); });
+    }
+  } catch (e) {
+    showToast('Dialer: could not get the phone line ready. Check the microphone permission.');
+  }
+}
+function vdEditBlocks(){
+  const v = prompt('Your call blocks (24-hour clock, comma between blocks):', vdBlocksText());
+  if (v === null) return;
+  if (!vdParseBlocks(v).length) { showToast('Could not read that. Example: 9:00-12:00, 15:00-17:00'); return; }
+  try { localStorage.setItem(VD_BLOCKS_KEY, v.trim()); } catch (e) {}
+  vdRender();
+}
+function vdSkip(){
+  const id = VD.currentId || VD.plannedId || (vdQueue()[0] || {}).id;
+  if (id) VD.skipToday[id] = new Date().toDateString();
+  if (VD.phase === 'countdown') { VD.phase = 'idle'; VD.currentId = null; }
+  VD.plannedId = null; VD.plannedAt = 0;
+  vdRender();
+}
+function vdOpenProfile(){
+  const id = VD.currentId || VD.plannedId;
+  if (id) { try { openDetail(id); } catch (e) {} }
+}
+function vdHeadsUp(c, at){
+  const key = c.id + '@' + at;
+  if (VD.notifiedKey === key) return;
+  VD.notifiedKey = key;
+  const text = (c.name || 'Next client') + ' at ' + vdClockLabel(at) + '. Review the profile before Vikram dials.';
+  showToast('Vikram: next call ' + text);
+  try {
+    if (window.Notification && Notification.permission === 'granted') {
+      const n = new Notification('Vikram will call ' + (c.name || 'your next client'), { body: 'At ' + vdClockLabel(at) + '. Click to open the profile.' });
+      n.onclick = () => { window.focus(); try { openDetail(c.id); } catch (e) {} n.close(); };
+    }
+  } catch (e) {}
+}
+function vdStop(){
+  VD.on = false;
+  VD.plannedId = null; VD.plannedAt = 0;
+  if (VD.phase === 'countdown') { VD.phase = 'idle'; VD.currentId = null; }
+  showToast('Dialer switched OFF');
+  vdRender();
+}
+async function vdDialNow(){
+  const c = clients.find(x => x.id === VD.currentId);
+  if (!c) { VD.phase = 'idle'; VD.currentId = null; return; }
+  VD.lastStart = Date.now();
+  VD.phase = 'dialing';
+  c.autoDialAttempts = (c.autoDialAttempts || 0) + 1;
+  c.lastAutoDialAt = Date.now();
+  saveClients();
+  activeCallConn = null;
+  startBrowserCall(c.id);
+}
+function vdCallEnded(){
+  VD.lastEnd = Date.now();
+  VD.phase = 'asking';
+  VD.askLeft = VD_ASK_SECONDS;
+}
+async function vdAnswer(spoke){
+  const c = clients.find(x => x.id === VD.currentId);
+  if (c) {
+    if (!Array.isArray(c.commHistory)) c.commHistory = [];
+    if (spoke) {
+      if (c.stage === 'Lead') c.calledByVik = true;
+      c.commHistory.push({ text: 'Auto-dial (Vikram): spoke with client', direction: 'outbound', ts: Date.now(), author: 'Vikram' });
+    } else {
+      c.commHistory.push({ text: 'Auto-dial (Vikram): no answer — attempt ' + (c.autoDialAttempts || 1) + ' of ' + VD_MAX_ATTEMPTS, direction: 'outbound', ts: Date.now(), author: 'Vikram' });
+    }
+    await saveClients();
+    try { render(); } catch (e) {}
+  }
+  VD.phase = 'idle';
+  VD.currentId = null;
+  vdRender();
+}
+
+function vdTick(){
+  try { vdAutoResearch(); } catch (e) {}
+  if (VD.phase === 'dialing') {
+    if (vdCallOpen()) VD.phase = 'incall';
+    else if (Date.now() - VD.lastStart > 25000) vdCallEnded();
+  } else if (VD.phase === 'incall') {
+    if (!vdCallOpen()) vdCallEnded();
+  } else if (VD.phase === 'asking') {
+    VD.askLeft -= 1;
+    if (VD.askLeft <= 0) { vdAnswer(false); return; }
+  } else if (VD.phase === 'countdown') {
+    if (!VD.on) { VD.phase = 'idle'; VD.currentId = null; }
+    else {
+      VD.countdown -= 1;
+      if (VD.countdown <= 0) vdDialNow();
+    }
+  } else if (VD.on && vdInBlock() && !vdCallOpen()) {
+    const q = vdQueue();
+    if (VD.plannedId && !q.some(c => c.id === VD.plannedId)) { VD.plannedId = null; VD.plannedAt = 0; }
+    if (!VD.plannedId && q.length) {
+      VD.plannedId = q[0].id;
+      // first call of a session (or after a skip): give the full 15-minute heads-up
+      VD.plannedAt = VD.lastStart ? vdNextAt() : Math.max(vdNextAt(), Date.now() + VD_HEADSUP_MS);
+    }
+    if (VD.plannedId) {
+      const pc = clients.find(x => x.id === VD.plannedId);
+      if (pc && VD.plannedAt - Date.now() <= VD_HEADSUP_MS) vdHeadsUp(pc, VD.plannedAt);
+      if (Date.now() >= VD.plannedAt) {
+        VD.currentId = VD.plannedId;
+        VD.plannedId = null; VD.plannedAt = 0;
+        VD.phase = 'countdown';
+        VD.countdown = VD_COUNTDOWN;
+      }
+    }
+  }
+  vdRender();
+}
+
+function vdRender(){
+  let box = document.getElementById('vikramDialerBox');
+  const host = document.getElementById('vikramDialerHost');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'vikramDialerBox';
+    (host || document.body).appendChild(box);
+  }
+  const vdView = document.getElementById('view-vikram');
+  const vdOnVikramPage = vdView && vdView.style.display !== 'none';
+  const vdBusy = ['countdown', 'dialing', 'incall', 'asking'].includes(VD.phase);
+  const vdFloat = vdBusy && !vdOnVikramPage;
+  const vdCard = 'background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:12px;font-family:var(--sans);font-size:13px;padding:14px 16px;';
+  const vdStyle = vdFloat
+    ? 'position:fixed;bottom:24px;left:24px;width:280px;box-shadow:0 6px 20px rgba(21,34,56,.18);z-index:9998;' + vdCard
+    : 'position:static;max-width:420px;' + vdCard;
+  if (box.__vdStyle !== vdStyle) { box.style.cssText = vdStyle; box.__vdStyle = vdStyle; }
+  if (vdFloat && box.parentNode !== document.body) document.body.appendChild(box);
+  if (!vdFloat && host && box.parentNode !== host) host.appendChild(box);
+  const btn = 'border:none;border-radius:8px;padding:7px 10px;font:inherit;font-weight:600;cursor:pointer;';
+  const on = VD.on;
+  const c = VD.currentId ? clients.find(x => x.id === VD.currentId) : null;
+  const who = c ? escapeHtml(c.name || 'this client') : '';
+  const q = vdQueue();
+  let status = '';
+  let actions = '';
+  if (VD.phase === 'countdown' && c) {
+    status = '<div style="font-size:15px;font-weight:700;color:var(--danger);">Calling ' + who + ' in ' + VD.countdown + '…</div>';
+    actions = '<button style="' + btn + 'background:var(--danger);color:#fff;" onclick="vdStop()">Stop</button> '
+            + '<button style="' + btn + 'background:var(--paper);color:var(--ink);" onclick="vdSkip()">Skip</button>';
+  } else if ((VD.phase === 'dialing' || VD.phase === 'incall') && c) {
+    status = '<div style="font-weight:700;">On a call with ' + who + '</div><div style="color:var(--slate);">Vikram will take the notes.</div>';
+  } else if (VD.phase === 'asking' && c) {
+    status = '<div style="font-weight:700;">Did you speak with ' + who + '?</div><div style="color:var(--slate);">No tap in ' + VD.askLeft + 's counts as no answer.</div>';
+    actions = '<button style="' + btn + 'background:var(--good);color:#fff;" onclick="vdAnswer(true)">Spoke with them</button> '
+            + '<button style="' + btn + 'background:var(--paper);color:var(--ink);" onclick="vdAnswer(false)">No answer</button>';
+  } else if (!on) {
+    status = '<div style="color:var(--slate);">Dialer is OFF. ' + q.length + ' waiting.</div>';
+  } else if (!q.length) {
+    status = '<div style="color:var(--slate);">Nobody waiting. New leads will be picked up automatically.</div>';
+  } else {
+    const pc = VD.plannedId ? clients.find(x => x.id === VD.plannedId) : q[0];
+    const nextAt = VD.plannedId ? VD.plannedAt : Math.max(vdNextAt(), Date.now());
+    const mins = Math.max(0, Math.ceil((nextAt - Date.now()) / 60000));
+    const soon = nextAt - Date.now() <= VD_HEADSUP_MS;
+    status = '<div><b>Next:</b> ' + escapeHtml((pc && pc.name) || '') + '</div><div style="color:' + (soon ? 'var(--danger);font-weight:600' : 'var(--slate)') + ';">at ' + vdClockLabel(nextAt) + (mins ? ' (in ' + mins + ' min)' : '') + '</div><div style="color:var(--slate);">' + q.length + ' waiting</div>';
+    actions = '<button style="' + btn + 'background:var(--ink);color:#fff;" onclick="vdOpenProfile()">Open profile</button> '
+            + '<button style="' + btn + 'background:var(--paper);color:var(--ink);" onclick="vdSkip()">Skip for today</button>';
+  }
+  const html =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+    + '<div style="font-weight:700;font-size:14px;">Vikram dialer</div>'
+    + '<button style="' + btn + (on ? 'background:var(--good);color:#fff;' : 'background:var(--line);color:var(--ink);') + '" onclick="vdToggle()">' + (on ? 'ON' : 'OFF') + '</button>'
+    + '</div>'
+    + status
+    + (actions ? '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">' + actions + '</div>' : '')
+    + '<div style="margin-top:10px;display:flex;gap:4px;align-items:center;font-size:12px;color:var(--slate);">Every '
+    + [15, 30, 60].map(m => '<button style="' + btn + 'padding:4px 8px;font-size:12px;' + (vdIntervalMin() === m ? 'background:var(--brass);color:#fff;' : 'background:var(--paper);color:var(--ink);') + '" onclick="vdSetInterval(' + m + ')">' + (m === 60 ? '1 hr' : m + ' min') + '</button>').join('')
+    + '</div>'
+    + '<div style="margin-top:6px;font-size:12px;' + (vdTestMode() ? 'color:var(--warn);font-weight:600;' : 'color:var(--slate);') + '">'
+    + (vdTestMode() ? 'TEST MODE: only your and Amit\'s numbers are called' : 'Live: real clients are called')
+    + ' · <a href="#" style="color:var(--brass);" onclick="vdToggleTest();return false;">' + (vdTestMode() ? 'go live' : 'back to test') + '</a></div>';
+  if (box.__vdLast !== html) { box.innerHTML = html; box.__vdLast = html; }
+}
+
+if (!VD.timer) VD.timer = setInterval(vdTick, 1000);
+setTimeout(vdRender, 1500);
+// ===== End Vikram auto-dialer =====
+
 
 function closeCallOverlay(){
   document.getElementById('callOverlay').classList.remove('show');
@@ -1955,7 +2579,7 @@ function openDetail(id){
         ${renderResearchNotes(c)}
       </div>
       <div class="layer-pane" id="pane-comm">
-        <div class="hint" style="margin:6px 0;">Use the 📞 icon on the client card or a follow-up reminder to log a call — it lands here automatically, tagged to this deal.</div>
+        <div class="hint" style="margin:6px 0;">Use the ☏️ icon on the client card or a follow-up reminder to log a call — it lands here automatically, tagged to this deal.</div>
         ${renderCommHistory(c)}
       </div>
       <div class="layer-pane" id="pane-manual">
@@ -2107,6 +2731,7 @@ function recruitUid(){ return 'r_' + Date.now() + '_' + Math.random().toString(3
 
 function ensureRecruitDefaults(r){
   if(!r.id) r.id = recruitUid();
+  if(typeof r.displayId !== 'string') r.displayId = '';
   if(typeof r.firstName !== 'string') r.firstName = '';
   if(typeof r.lastName !== 'string') r.lastName = '';
   if(typeof r.email !== 'string') r.email = '';
@@ -2120,15 +2745,728 @@ function ensureRecruitDefaults(r){
   return r;
 }
 
+// vikrecm-###### — matches the Task Center's ID-prefix system (this dashboard is mortgage-side, so recruits here are always vikrecm).
+function assignMissingRecruitDisplayIds(list){
+  let maxNum = 0;
+  list.forEach(function(r){
+    if(r.displayId){
+      const n = parseInt(r.displayId.split('-')[1], 10);
+      if(!isNaN(n) && n > maxNum) maxNum = n;
+    }
+  });
+  list.forEach(function(r){
+    if(!r.displayId){
+      maxNum++;
+      r.displayId = 'vikrecm-' + String(maxNum).padStart(6,'0');
+    }
+  });
+}
+
+function toggleMobileNav(){
+  document.querySelector('.sidebar .navlist').classList.toggle('mobile-open');
+}
+
 function showView(view){
+  document.querySelector('.sidebar .navlist').classList.remove('mobile-open');
   document.getElementById('view-clients').style.display = (view==='clients') ? '' : 'none';
   document.getElementById('view-recruits').style.display = (view==='recruits') ? '' : 'none';
   document.getElementById('navClientsBtn').classList.toggle('active', view==='clients');
   document.getElementById('navRecruitsBtn').classList.toggle('active', view==='recruits');
   document.getElementById('view-vikram').style.display = (view==='vikram') ? '' : 'none';
   document.getElementById('navVikramBtn').classList.toggle('active', view==='vikram');
+  document.getElementById('view-coaching').style.display = (view==='coaching') ? '' : 'none';
+  document.getElementById('navCoachingBtn').classList.toggle('active', view==='coaching');
+  document.getElementById('view-tasks').style.display = (view==='tasks') ? '' : 'none';
+  document.getElementById('navTasksBtn').classList.toggle('active', view==='tasks');
+  document.getElementById('view-keypartners').style.display = (view==='keypartners') ? '' : 'none';
+  document.getElementById('navKeyPartnersBtn').classList.toggle('active', view==='keypartners');
   if(view==='vikram') renderVikramChat();
   if(view==='recruits'){ closeRecruitDetail(); renderRecruits(); }
+  if(view==='coaching') renderCoachingLog();
+  if(view==='tasks'){ loadVikActionTasks().then(renderVikActionTasks); }
+  if(view==='keypartners'){ loadKeyPartners().then(renderKeyPartners); }
+}
+
+async function renderCoachingLog(){
+  const wrap = document.getElementById('coachingListWrap');
+  wrap.innerHTML = '<p style="color:var(--slate);">Loading...</p>';
+  try {
+    const res = await fetch('https://fincop-backend.onrender.com/coaching-log');
+    const list = await res.json();
+    if (!Array.isArray(list) || list.length === 0) {
+      wrap.innerHTML = '<p style="color:var(--slate);">No coaching entries yet — they appear here automatically after each call.</p>';
+      return;
+    }
+    wrap.innerHTML = list.map(item => {
+      const dateStr = item.ts ? new Date(item.ts).toLocaleString() : '';
+      const who = item.clientName ? (' — call with ' + escapeHtml(item.clientName) + (item.dealCode ? ' (' + escapeHtml(item.dealCode) + ')' : '')) : ' — call (no client matched)';
+      return '<div class="card" style="margin-bottom:12px;"><div class="meta" style="margin-bottom:6px;">' + dateStr + who + '</div><div style="white-space:pre-line;">' + escapeHtml(item.text || '') + '</div></div>';
+    }).join('');
+  } catch (e) {
+    wrap.innerHTML = '<p style="color:var(--slate);">Could not load coaching log — try again.</p>';
+  }
+}
+
+// ===================== Task Center (action items from calls — ID prefix tells you the pipeline) =====================
+// NOTE: kept separate from MORTGAGE_GURU_TASKS / TASKS_ENDPOINT below, which is Guru's 90-day curriculum, unrelated.
+// ID prefixes: vikmtg = Mortgage, vikins = Insurance, vikrecm = Recruitment (Mortgage), vikreci = Recruitment (Insurance), vikkp = Key Partners.
+const VIK_ACTION_TASKS_ENDPOINT = "https://fincop-backend.onrender.com/app-data/vik-action-tasks";
+const TASK_PREFIXES = ['vikmtg','vikins','vikrecm','vikreci','vikkp'];
+let vikTaskState = { tasks: [], counters: { vikmtg:0, vikins:0, vikrecm:0, vikreci:0, vikkp:0 } };
+let currentTaskCategory = 'all';
+let currentTaskType = 'followup';
+let editingTaskId = null;
+
+async function loadVikActionTasks(){
+  try{
+    const res = await fetch(VIK_ACTION_TASKS_ENDPOINT);
+    const data = await res.json();
+    const parsed = data && data.value ? JSON.parse(data.value) : null;
+    if(Array.isArray(parsed)){
+      // old shape from before the ID-prefix redesign — carry old test tasks forward under vikmtg so nothing is lost
+      vikTaskState = { tasks: parsed.map(function(t,i){
+        return { id: 'vikmtg-' + String(i+1).padStart(6,'0'), firstName: t.relatedName||'', lastName:'', taskType:'todo', relatedType:'unrelated', subject:t.subject||'', dueAt:t.dueAt, createdAt:t.createdAt, completed:!!t.completed, completedAt:t.completedAt||null };
+      }), counters: { vikmtg: parsed.length, vikins:0, vikrecm:0, vikreci:0, vikkp:0 } };
+    } else if(parsed && Array.isArray(parsed.tasks)){
+      vikTaskState = parsed;
+      TASK_PREFIXES.forEach(function(p){ if(typeof vikTaskState.counters[p] !== 'number') vikTaskState.counters[p] = 0; });
+    } else {
+      vikTaskState = { tasks: [], counters: { vikmtg:0, vikins:0, vikrecm:0, vikreci:0, vikkp:0 } };
+    }
+  }catch(e){
+    vikTaskState = { tasks: [], counters: { vikmtg:0, vikins:0, vikrecm:0, vikreci:0, vikkp:0 } };
+  }
+}
+
+async function saveVikActionTasks(){
+  try{
+    await fetch(VIK_ACTION_TASKS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: JSON.stringify(vikTaskState) })
+    });
+  }catch(e){
+    showToast('Could not save task — try again');
+  }
+}
+
+function nextTaskId(prefix){
+  vikTaskState.counters[prefix] = (vikTaskState.counters[prefix]||0) + 1;
+  return prefix + '-' + String(vikTaskState.counters[prefix]).padStart(6,'0');
+}
+
+// Any conversation (client, recruit, or key partner) can call this once Vikram is wired up to auto-create tasks.
+// prefix: one of TASK_PREFIXES. dueAt: ISO string or null (defaults to 48h from now).
+function addVikActionTask(prefix, firstName, lastName, taskType, relatedType, subject, dueAt){
+  const created = new Date();
+  const due = dueAt ? new Date(dueAt) : new Date(created.getTime() + 48*3600*1000);
+  vikTaskState.tasks.push({
+    id: nextTaskId(prefix),
+    firstName: firstName || '',
+    lastName: lastName || '',
+    taskType: taskType || 'todo',
+    relatedType: relatedType || 'unrelated',
+    subject: subject || '',
+    createdAt: created.toISOString(),
+    dueAt: due.toISOString(),
+    completed: false,
+    completedAt: null
+  });
+  saveVikActionTasks();
+  if(document.getElementById('view-tasks').style.display !== 'none') renderVikActionTasks();
+}
+
+function vikTaskStatus(t){
+  if(t.completed) return 'green';
+  const now = Date.now();
+  const due = new Date(t.dueAt).getTime();
+  if(now > due) return 'purple'; // stale — deadline passed, nothing done
+  if(due - now <= 24*3600*1000) return 'red'; // pending, due within 24 hours
+  return 'yellow'; // future
+}
+
+function taskPrefixOf(id){ return id.split('-')[0]; }
+
+function taskCategoryLabel(prefix){
+  return prefix==='vikmtg' ? 'Mortgage' : prefix==='vikins' ? 'Insurance' : prefix==='vikrecm' ? 'Recruitment (Mortgage)' : prefix==='vikreci' ? 'Recruitment (Insurance)' : 'Key Partners';
+}
+
+function taskTypeLabel(v){
+  return { followup:'Follow Up', todo:'To Do', call:'Call', meetperson:'Meet in Person', meetonline:'Meet Online', note:'Note', text:'Text' }[v] || v;
+}
+
+function relatedTypeLabel(v){
+  return { unrelated:'Unrelated', deal:'Deal', contact:'Contact', partner:'Partner' }[v] || v;
+}
+
+function setTaskCategory(cat){
+  currentTaskCategory = cat;
+  document.querySelectorAll('#taskSubtabs button').forEach((b,i)=>{
+    const cats = ['all'].concat(TASK_PREFIXES);
+    b.classList.toggle('active', cats[i]===cat);
+  });
+  renderVikActionTasks();
+}
+
+function selectTaskType(v){
+  currentTaskType = v;
+  document.querySelectorAll('#taskTypePills button').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-val')===v);
+  });
+}
+
+function toggleTaskAddForm(){
+  document.getElementById('taskAddForm').classList.toggle('open');
+}
+
+function resetTaskForm(){
+  document.getElementById('taskIdTypeInput').value = 'vikmtg';
+  document.getElementById('taskFirstNameInput').value = '';
+  document.getElementById('taskLastNameInput').value = '';
+  document.getElementById('taskRelatedTypeInput').value = 'unrelated';
+  document.getElementById('taskSubjectInput').value = '';
+  document.getElementById('taskDueInput').value = '';
+  selectTaskType('followup');
+  editingTaskId = null;
+  document.getElementById('taskSaveBtn').textContent = 'Save task';
+  document.getElementById('taskCancelEditBtn').style.display = 'none';
+}
+
+function saveTaskForm(){
+  const firstName = document.getElementById('taskFirstNameInput').value.trim();
+  const lastName = document.getElementById('taskLastNameInput').value.trim();
+  const relatedType = document.getElementById('taskRelatedTypeInput').value;
+  const subject = document.getElementById('taskSubjectInput').value.trim();
+  const dueRaw = document.getElementById('taskDueInput').value;
+  if(!subject){ showToast('Add what needs to happen first'); return; }
+
+  if(editingTaskId){
+    const t = vikTaskState.tasks.find(x=>x.id===editingTaskId);
+    if(t){
+      t.firstName = firstName; t.lastName = lastName; t.taskType = currentTaskType;
+      t.relatedType = relatedType; t.subject = subject;
+      t.dueAt = dueRaw ? new Date(dueRaw).toISOString() : t.dueAt;
+      saveVikActionTasks();
+      renderVikActionTasks();
+    }
+  } else {
+    const prefix = document.getElementById('taskIdTypeInput').value;
+    addVikActionTask(prefix, firstName, lastName, currentTaskType, relatedType, subject, dueRaw ? new Date(dueRaw).toISOString() : null);
+  }
+  resetTaskForm();
+  document.getElementById('taskAddForm').classList.remove('open');
+}
+
+function editVikTask(id){
+  const t = vikTaskState.tasks.find(x=>x.id===id);
+  if(!t) return;
+  editingTaskId = id;
+  document.getElementById('taskIdTypeInput').value = taskPrefixOf(t.id);
+  document.getElementById('taskFirstNameInput').value = t.firstName;
+  document.getElementById('taskLastNameInput').value = t.lastName;
+  document.getElementById('taskRelatedTypeInput').value = t.relatedType;
+  document.getElementById('taskSubjectInput').value = t.subject;
+  document.getElementById('taskDueInput').value = t.dueAt ? new Date(t.dueAt).toISOString().slice(0,16) : '';
+  selectTaskType(t.taskType);
+  document.getElementById('taskSaveBtn').textContent = 'Update task';
+  document.getElementById('taskCancelEditBtn').style.display = '';
+  document.getElementById('taskAddForm').classList.add('open');
+  window.scrollTo(0,0);
+}
+
+function cancelTaskEdit(){
+  resetTaskForm();
+  document.getElementById('taskAddForm').classList.remove('open');
+}
+
+function toggleTaskDone(id){
+  const t = vikTaskState.tasks.find(x=>x.id===id);
+  if(!t) return;
+  t.completed = !t.completed;
+  t.completedAt = t.completed ? new Date().toISOString() : null;
+  saveVikActionTasks();
+  renderVikActionTasks();
+}
+
+function deleteVikTask(id){
+  vikTaskState.tasks = vikTaskState.tasks.filter(x=>x.id!==id);
+  saveVikActionTasks();
+  renderVikActionTasks();
+}
+
+function renderVikActionTasks(){
+  const filtered = currentTaskCategory==='all' ? vikTaskState.tasks : vikTaskState.tasks.filter(t=>taskPrefixOf(t.id)===currentTaskCategory);
+  const statsWrap = document.getElementById('taskStats');
+  const counts = { green:0, red:0, yellow:0, purple:0 };
+  vikTaskState.tasks.forEach(t=> counts[vikTaskStatus(t)]++ );
+  statsWrap.innerHTML =
+    '<div class="stat"><div class="num">' + counts.red + '</div><div class="lbl">Due within 24h</div></div>' +
+    '<div class="stat"><div class="num">' + counts.yellow + '</div><div class="lbl">Coming up</div></div>' +
+    '<div class="stat"><div class="num">' + counts.purple + '</div><div class="lbl">Stale</div></div>' +
+    '<div class="stat"><div class="num">' + counts.green + '</div><div class="lbl">Completed</div></div>';
+
+  const wrap = document.getElementById('taskListWrap');
+  const empty = document.getElementById('taskEmptyState');
+  if(filtered.length === 0){
+    wrap.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  const sorted = filtered.slice().sort((a,b)=> new Date(a.dueAt) - new Date(b.dueAt));
+  wrap.innerHTML = sorted.map(t=>{
+    const status = vikTaskStatus(t);
+    const dueStr = new Date(t.dueAt).toLocaleString();
+    const fullName = (t.firstName + ' ' + t.lastName).trim();
+    const nameStr = fullName ? (' &mdash; ' + escapeHtml(fullName)) : '';
+    return '<div class="task-card status-' + status + '">' +
+      '<div>' +
+        '<div class="task-subject"><span class="task-dot status-' + status + '"></span><span class="task-id-tag">' + t.id + '</span>' + escapeHtml(taskTypeLabel(t.taskType)) + ': ' + escapeHtml(t.subject) + nameStr + '</div>' +
+        '<div class="task-meta">' + taskCategoryLabel(taskPrefixOf(t.id)) + ' &middot; ' + relatedTypeLabel(t.relatedType) + ' &middot; due ' + dueStr + '</div>' +
+      '</div>' +
+      '<div class="task-actions">' +
+        '<button onclick="editVikTask(\'' + t.id + '\')">Edit</button>' +
+        '<button onclick="toggleTaskDone(\'' + t.id + '\')">' + (t.completed ? 'Undo' : 'Done') + '</button>' +
+        '<button onclick="deleteVikTask(\'' + t.id + '\')">Delete</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ===================== Key Partners (networking captures — referral sources, plus clients/recruits met in the field) =====================
+const VIK_KEY_PARTNERS_ENDPOINT = "https://fincop-backend.onrender.com/app-data/vik-key-partners";
+let vikKeyPartners = [];
+let currentKpCategory = 'referral';
+let kpCardPhotoData = null; // base64 of the scanned card photo, not yet OCR'd
+let editingKpId = null;
+
+function kpUid(){ return 'kp_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+
+// ===== Data Center — bulk import (added by fix-kp-data-center.js) =====
+let dcParsedRows = [];
+let dcHeaders = [];
+
+function toggleDataCenter(){
+  document.getElementById('dcForm').classList.toggle('open');
+  document.getElementById('kpScanForm').classList.remove('open');
+  document.getElementById('kpAddForm').classList.remove('open');
+}
+
+function handleDcFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, {type:'array'});
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      if(!rows.length){ showToast('No rows found in that file'); return; }
+      dcParsedRows = rows;
+      dcHeaders = Object.keys(rows[0]);
+      renderDcColumnMapping();
+    }catch(err){
+      console.error('Data Center file parse error:', err);
+      showToast('Could not read that file — try CSV or Excel (.xlsx)');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function dcGuessColumn(possibleNames){
+  const lower = dcHeaders.map(h => h.toLowerCase());
+  for(const name of possibleNames){
+    const idx = lower.indexOf(name);
+    if(idx > -1) return dcHeaders[idx];
+  }
+  return '';
+}
+
+function renderDcColumnMapping(){
+  const wrap = document.getElementById('dcMappingWrap');
+  const fields = [
+    {key:'firstName', label:'First Name', guesses:['first name','firstname','first']},
+    {key:'lastName', label:'Last Name', guesses:['last name','lastname','last','surname']},
+    {key:'phone', label:'Phone', guesses:['phone','mobile','cell','phone number']},
+    {key:'email', label:'Email', guesses:['email','email address']},
+    {key:'company', label:'Company', guesses:['company','brokerage','firm']}
+  ];
+  let html = '<label style="font-size:12px; color:var(--slate); display:block; margin:10px 0 6px;">' + dcParsedRows.length + ' rows found. Match each field to a column from your file:</label>';
+  fields.forEach(f=>{
+    const guess = dcGuessColumn(f.guesses);
+    html += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">' +
+      '<span style="width:90px; font-size:13px;">' + f.label + '</span>' +
+      '<select id="dcMap_' + f.key + '" style="flex:1;">' +
+      '<option value="">-- none --</option>' +
+      dcHeaders.map(h => '<option value="'+escapeHtml(h)+'"'+(h===guess?' selected':'')+'>'+escapeHtml(h)+'</option>').join('') +
+      '</select></div>';
+  });
+  wrap.innerHTML = html;
+  document.getElementById('dcDestinationWrap').style.display = '';
+}
+
+function onDcDestinationChange(){
+  const dest = document.getElementById('dcDestination').value;
+  document.getElementById('dcPipelineWrap').style.display = (dest==='recruits'||dest==='clients') ? '' : 'none';
+  document.getElementById('dcKpOptionsWrap').style.display = (dest==='keypartners') ? 'flex' : 'none';
+}
+
+function importDcBatch(){
+  const dest = document.getElementById('dcDestination').value;
+  const mapFirst = document.getElementById('dcMap_firstName').value;
+  const mapLast = document.getElementById('dcMap_lastName').value;
+  const mapPhone = document.getElementById('dcMap_phone').value;
+  const mapEmail = document.getElementById('dcMap_email').value;
+  const mapCompany = document.getElementById('dcMap_company').value;
+
+  if(!mapFirst){ showToast('Please match a First Name column first'); return; }
+
+  if(dest === 'keypartners'){
+    const category = document.getElementById('dcKpCategory').value;
+    const profession = document.getElementById('dcKpProfession').value;
+    const otherProfession = (profession==='other') ? document.getElementById('dcKpOtherProfession').value.trim() : '';
+    let added = 0;
+    dcParsedRows.forEach(row=>{
+      const firstName = (row[mapFirst]||'').toString().trim();
+      if(!firstName) return;
+      const lastName = mapLast ? (row[mapLast]||'').toString().trim() : '';
+      const phone = mapPhone ? (row[mapPhone]||'').toString().trim() : '';
+      const email = mapEmail ? (row[mapEmail]||'').toString().trim() : '';
+      const company = mapCompany ? (row[mapCompany]||'').toString().trim() : '';
+      vikKeyPartners.push({
+        id: kpUid(), firstName, lastName, company, phone, email,
+        category, profession, otherProfession, notes:'', cardPhoto:null,
+        createdAt: new Date().toISOString()
+      });
+      added++;
+    });
+    saveKeyPartnersToServer();
+    renderKeyPartners();
+    showToast('Imported ' + added + ' Key Partners');
+    document.getElementById('dcForm').classList.remove('open');
+    document.getElementById('dcFileInput').value = '';
+    dcParsedRows = []; dcHeaders = [];
+    document.getElementById('dcMappingWrap').innerHTML = '';
+    document.getElementById('dcDestinationWrap').style.display = 'none';
+  } else {
+    showToast('Bulk import for Recruits/Clients is coming soon — Key Partners import is ready now');
+  }
+}
+
+async function loadKeyPartners(){
+  try{
+    const res = await fetch(VIK_KEY_PARTNERS_ENDPOINT);
+    const data = await res.json();
+    vikKeyPartners = data && data.value ? JSON.parse(data.value) : [];
+  }catch(e){
+    vikKeyPartners = [];
+  }
+}
+
+async function saveKeyPartnersToServer(){
+  try{
+    await fetch(VIK_KEY_PARTNERS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: JSON.stringify(vikKeyPartners) })
+    });
+  }catch(e){
+    showToast('Could not save Key Partner — try again');
+  }
+}
+
+function toggleKpScan(){
+  document.getElementById('kpScanForm').classList.toggle('open');
+  document.getElementById('kpAddForm').classList.remove('open');
+}
+
+function toggleKpForm(){
+  document.getElementById('kpAddForm').classList.toggle('open');
+  document.getElementById('kpScanForm').classList.remove('open');
+}
+
+function guessKpProfessionFromTitle(jobTitle){
+  const t = (jobTitle || '').toLowerCase();
+  if(/real\s*estate|realtor|broker/.test(t)) return 'realtor';
+  if(/account|cpa|bookkeep/.test(t)) return 'accountant';
+  if(/lawyer|attorney|solicitor|barrister|legal/.test(t)) return 'lawyer';
+  return 'other';
+}
+
+function handleKpCardPhoto(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    kpCardPhotoData = e.target.result;
+    document.getElementById('kpCardPreviewWrap').innerHTML =
+      '<img src="' + kpCardPhotoData + '" style="max-width:220px; border-radius:8px; border:1px solid var(--line);">' +
+      '<p style="font-size:12px; color:var(--slate); margin-top:6px;" id="kpScanStatus">Reading card&hellip;</p>';
+    document.getElementById('kpAddForm').classList.add('open');
+    try{
+      const mimeMatch = kpCardPhotoData.match(/^data:([^;]+);/);
+      const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+      const res = await fetch('https://fincop-backend.onrender.com/kp-scan-card', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: kpCardPhotoData, mimeType })
+      });
+      const data = await res.json();
+      const statusEl = document.getElementById('kpScanStatus');
+      if(data && !data.error){
+        if(data.firstName) document.getElementById('kpFirstNameInput').value = data.firstName;
+        if(data.lastName) document.getElementById('kpLastNameInput').value = data.lastName;
+        if(data.company) document.getElementById('kpCompanyInput').value = data.company;
+        if(data.phone) document.getElementById('kpPhoneInput').value = data.phone;
+        if(data.email) document.getElementById('kpEmailInput').value = data.email;
+        selectKpCategory('referral');
+        const guess = guessKpProfessionFromTitle(data.jobTitle);
+        document.getElementById('kpProfessionInput').value = guess;
+        toggleKpOtherProfession();
+        if(guess === 'other' && data.jobTitle) document.getElementById('kpOtherProfessionInput').value = data.jobTitle;
+        if(statusEl) statusEl.textContent = 'Details filled in from the card — check them, then save.';
+      } else if(statusEl){
+        statusEl.textContent = 'Could not read the card automatically — please fill in the details below.';
+      }
+    } catch(err){
+      console.error('Card scan failed:', err);
+      const statusEl = document.getElementById('kpScanStatus');
+      if(statusEl) statusEl.textContent = 'Could not read the card automatically — please fill in the details below.';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function selectKpCategory(v){
+  currentKpCategory = v;
+  document.querySelectorAll('#kpCategoryPills button').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-val')===v);
+  });
+  document.getElementById('kpProfessionInput').style.display = (v==='referral') ? '' : 'none';
+  if(v!=='referral') document.getElementById('kpOtherProfessionInput').style.display = 'none';
+  else toggleKpOtherProfession();
+}
+
+function toggleKpOtherProfession(){
+  const isOther = document.getElementById('kpProfessionInput').value === 'other';
+  document.getElementById('kpOtherProfessionInput').style.display = isOther ? '' : 'none';
+}
+
+function resetKpForm(){
+  document.getElementById('kpFirstNameInput').value = '';
+  document.getElementById('kpLastNameInput').value = '';
+  document.getElementById('kpCompanyInput').value = '';
+  document.getElementById('kpPhoneInput').value = '';
+  document.getElementById('kpEmailInput').value = '';
+  document.getElementById('kpProfessionInput').value = '';
+  document.getElementById('kpOtherProfessionInput').value = '';
+  document.getElementById('kpNotesInput').value = '';
+  document.getElementById('kpBirthdayInput').value = '';
+  selectKpCategory('referral');
+  kpCardPhotoData = null;
+  document.getElementById('kpCardPreviewWrap').innerHTML = '';
+  editingKpId = null;
+  document.getElementById('kpSaveOnlyBtn').style.display = '';
+  document.getElementById('kpSaveOnlyBtn').textContent = 'Save';
+  document.getElementById('kpSaveBtn').style.display = '';
+  document.getElementById('kpCancelEditBtn').style.display = 'none';
+}
+
+// Sends the real greeting (SMS + email) via the backend. WhatsApp isn't included yet —
+// first-contact WhatsApp needs an approved template, and this wording isn't one.
+async function sendKpGreeting(p){
+  try{
+    const res = await fetch('https://fincop-backend.onrender.com/kp-send-greeting', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ firstName: p.firstName, phone: p.phone, email: p.email })
+    });
+    const data = await res.json();
+    if(!res.ok || !data.ok){
+      alert('Greeting failed to send: ' + (data.error || 'unknown error') + (data.details ? ('\n\n' + data.details) : ''));
+      return;
+    }
+    alert('Greeting result —\nSMS: ' + data.results.sms + '\nEmail: ' + data.results.email);
+  }catch(err){
+    console.error('sendKpGreeting error:', err);
+    alert('Greeting failed to send (network error): ' + err.message);
+  }
+}
+
+function saveKeyPartner(sendGreeting){
+  const firstName = document.getElementById('kpFirstNameInput').value.trim();
+  const lastName = document.getElementById('kpLastNameInput').value.trim();
+  const company = document.getElementById('kpCompanyInput').value.trim();
+  const phone = document.getElementById('kpPhoneInput').value.trim();
+  const email = document.getElementById('kpEmailInput').value.trim();
+  const profession = currentKpCategory==='referral' ? document.getElementById('kpProfessionInput').value : '';
+  const otherProfession = (profession==='other') ? document.getElementById('kpOtherProfessionInput').value.trim() : '';
+  const notes = document.getElementById('kpNotesInput').value.trim();
+  const birthday = document.getElementById('kpBirthdayInput').value;
+  if(!firstName){ showToast('First name required'); return; }
+
+  if(editingKpId){
+    const p = vikKeyPartners.find(x=>x.id===editingKpId);
+    if(p){
+      p.firstName=firstName; p.lastName=lastName; p.company=company; p.phone=phone; p.email=email;
+      p.category=currentKpCategory; p.profession=profession; p.otherProfession=otherProfession; p.notes=notes; p.birthday=birthday;
+      if(kpCardPhotoData) p.cardPhoto = kpCardPhotoData;
+      saveKeyPartnersToServer();
+      renderKeyPartners();
+    }
+  } else {
+    const p = {
+      id: kpUid(), firstName, lastName, company, phone, email,
+      category: currentKpCategory, profession, otherProfession, notes, birthday, cardPhoto: kpCardPhotoData,
+      createdAt: new Date().toISOString()
+    };
+    vikKeyPartners.push(p);
+    saveKeyPartnersToServer();
+    addVikActionTask('vikkp', firstName, lastName, 'followup', 'partner', 'Connect with new key partner', null);
+    if(sendGreeting){
+      sendKpGreeting(p);
+      showToast('Saved — sending greeting...');
+    } else {
+      showToast('Saved');
+    }
+    renderKeyPartners();
+  }
+  resetKpForm();
+  document.getElementById('kpAddForm').classList.remove('open');
+  document.getElementById('kpScanForm').classList.remove('open');
+}
+
+function editKeyPartner(id){
+  const p = vikKeyPartners.find(x=>x.id===id);
+  if(!p) return;
+  editingKpId = id;
+  document.getElementById('kpFirstNameInput').value = p.firstName;
+  document.getElementById('kpLastNameInput').value = p.lastName;
+  document.getElementById('kpCompanyInput').value = p.company;
+  document.getElementById('kpPhoneInput').value = p.phone;
+  document.getElementById('kpEmailInput').value = p.email;
+  selectKpCategory(p.category);
+  document.getElementById('kpProfessionInput').value = p.profession || '';
+  toggleKpOtherProfession();
+  document.getElementById('kpOtherProfessionInput').value = p.otherProfession || '';
+  document.getElementById('kpNotesInput').value = p.notes || '';
+  document.getElementById('kpBirthdayInput').value = p.birthday || '';
+  document.getElementById('kpSaveOnlyBtn').textContent = 'Update';
+  document.getElementById('kpSaveBtn').style.display = 'none';
+  document.getElementById('kpCancelEditBtn').style.display = '';
+  document.getElementById('kpAddForm').classList.add('open');
+  window.scrollTo(0,0);
+}
+
+function cancelKpEdit(){
+  resetKpForm();
+  document.getElementById('kpAddForm').classList.remove('open');
+}
+
+function deleteKeyPartner(id){
+  vikKeyPartners = vikKeyPartners.filter(x=>x.id!==id);
+  saveKeyPartnersToServer();
+  renderKeyPartners();
+}
+
+function kpCategoryLabel(c){
+  return c==='client' ? 'Client' : c==='recruit' ? 'Recruit' : 'Referral Source';
+}
+
+function kpProfessionLabel(p){
+  return { realtor:'Realtor', accountant:'Accountant', lawyer:'Lawyer', other:'Other' }[p] || '';
+}
+
+let currentKpFilter = 'all';
+let currentKpOtherFilter = null; // specific custom profession text, only used when currentKpFilter === 'others'
+
+function setKpFilter(f){
+  currentKpFilter = f;
+  currentKpOtherFilter = null;
+  renderKeyPartners();
+}
+
+function setKpOtherFilter(text){
+  currentKpOtherFilter = text;
+  renderKeyPartners();
+}
+
+function kpMatchesFilter(p, filter, otherFilter){
+  if(filter === 'all') return true;
+  if(filter === 'others'){
+    if(!(p.category === 'referral' && p.profession === 'other')) return false;
+    if(!otherFilter) return true;
+    return p.otherProfession && p.otherProfession.trim().toLowerCase() === otherFilter;
+  }
+  return p.category === 'referral' && p.profession === filter; // realtor / accountant / lawyer
+}
+
+function renderKeyPartners(){
+  const tabsWrap = document.getElementById('kpFilterTabs');
+  const filters = [
+    ['all','All'], ['realtor','Realtor'], ['accountant','Accountant'], ['lawyer','Lawyer'], ['others','Others']
+  ];
+  tabsWrap.innerHTML = filters.map(function(f){
+    const count = vikKeyPartners.filter(function(p){ return kpMatchesFilter(p, f[0], null); }).length;
+    const activeCls = (currentKpFilter===f[0]) ? ' active' : '';
+    return '<button class="' + activeCls.trim() + '" onclick="setKpFilter(\'' + f[0] + '\')">' + f[1] + ' (' + count + ')</button>';
+  }).join('');
+
+  const otherTabsWrap = document.getElementById('kpOtherSubTabs');
+  if(currentKpFilter === 'others'){
+    const otherCounts = {}; // key: lowercase trimmed custom text -> { label, count }
+    vikKeyPartners.forEach(function(p){
+      if(p.category === 'referral' && p.profession === 'other' && p.otherProfession){
+        const key = p.otherProfession.trim().toLowerCase();
+        if(!otherCounts[key]) otherCounts[key] = { label: p.otherProfession.trim(), count: 0 };
+        otherCounts[key].count++;
+      }
+    });
+    let subHtml = '<button class="' + (currentKpOtherFilter===null?'active':'') + '" onclick="setKpOtherFilter(null)">All Others</button>';
+    subHtml += Object.keys(otherCounts).map(function(key){
+      const oc = otherCounts[key];
+      const activeCls = (currentKpOtherFilter===key) ? 'active' : '';
+      return '<button class="' + activeCls + '" onclick="setKpOtherFilter(\'' + key.replace(/'/g,"\\'") + '\')">' + escapeHtml(oc.label) + ' (' + oc.count + ')</button>';
+    }).join('');
+    otherTabsWrap.innerHTML = subHtml;
+    otherTabsWrap.style.display = '';
+  } else {
+    otherTabsWrap.innerHTML = '';
+    otherTabsWrap.style.display = 'none';
+  }
+
+  const wrap = document.getElementById('kpListWrap');
+  const empty = document.getElementById('kpEmptyState');
+  const filtered = vikKeyPartners.filter(function(p){ return kpMatchesFilter(p, currentKpFilter, currentKpOtherFilter); });
+  if(filtered.length === 0){
+    wrap.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  const sorted = filtered.slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+  wrap.innerHTML = sorted.map(function(p){
+    const fullName = (p.firstName + ' ' + p.lastName).trim();
+    const photoHtml = p.cardPhoto ? '<img class="kp-photo" src="' + p.cardPhoto + '">' : '';
+    const profLabel = (p.profession==='other' && p.otherProfession) ? p.otherProfession : kpProfessionLabel(p.profession);
+    const profStr = p.profession ? (' &middot; ' + escapeHtml(profLabel)) : '';
+    return '<div class="kp-card">' +
+      '<div class="kp-card-main">' + photoHtml +
+        '<div>' +
+          '<div class="task-subject">' + escapeHtml(fullName) + (p.company ? (' &mdash; ' + escapeHtml(p.company)) : '') + '</div>' +
+          '<div class="task-meta">' + kpCategoryLabel(p.category) + profStr + (p.phone?(' &middot; '+escapeHtml(p.phone)):'') + (p.email?(' &middot; '+escapeHtml(p.email)):'') + '</div>' +
+          (p.notes ? ('<div class="task-meta" style="font-style:italic;">' + escapeHtml(p.notes) + '</div>') : '') +
+          (p.birthday ? ('<div class="task-meta">🎂 ' + escapeHtml(p.birthday) + '</div>') : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="task-actions">' +
+        '<button onclick="editKeyPartner(\'' + p.id + '\')">Edit</button>' +
+        '<button onclick="deleteKeyPartner(\'' + p.id + '\')">Delete</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
 const TASKS_ENDPOINT = "https://fincop-backend.onrender.com/app-data/mortgage-guru-tasks";
@@ -2147,6 +3485,7 @@ const res = await fetch(RECRUIT_ENDPOINT);
 const data = await res.json();
 mortgageRecruits = data && data.value ? JSON.parse(data.value) : [];
 mortgageRecruits.forEach(ensureRecruitDefaults);
+assignMissingRecruitDisplayIds(mortgageRecruits);
 syncGuruTasks();
 }catch(e){
 mortgageRecruits = [];
@@ -2320,13 +3659,13 @@ function renderRecruits(){
       dayLabel = cur===0 ? 'Starts ' + r.startDate : (cur===90 ? 'Day 90 — done' : 'Day ' + cur + ' of 90');
     }
     return `<tr onclick="openRecruitDetail('${r.id}')">
-      <td class="name-cell">${escapeHtml(r.firstName+' '+r.lastName)}</td>
+      <td class="name-cell"><span class="task-id-tag">${escapeHtml(r.displayId||'')}</span>${escapeHtml(r.firstName+' '+r.lastName)}</td>
       <td>${escapeHtml(r.email)||'—'}<div class="meta">${escapeHtml(r.phone)||''}</div></td>
       <td onclick="event.stopPropagation()"><label class="checkbox-row" style="margin:0;"><input type="checkbox" ${r.guruAssigned?'checked':''} onchange="toggleGuruAssigned('${r.id}', this.checked)"> ${r.guruAssigned?'Yes':'No'}</label></td>
       <td>${dayLabel}</td>
       <td>${r.guruAssigned && r.startDate ? '<span class="badge Approved">'+prog.green+' green</span> <span class="badge Declined">'+prog.red+' red</span>' : '—'}</td>
       <td>${r.prospects.length} / 100</td>
-      <td onclick="event.stopPropagation()"><button class="call-icon-btn" title="Log a call" onclick="openRecruitCall('${r.id}')">&#128222;</button></td>
+      <td onclick="event.stopPropagation()"><button class="call-icon-btn" title="Call now from browser" onclick="startBrowserCallRecruit('${r.id}')">☎️</button></td>
     </tr>`;
   }).join('');
 
@@ -2340,7 +3679,7 @@ function renderRecruits(){
     return `<div class="card" onclick="openRecruitDetail('${r.id}')">
       <div class="row1">
         <div>
-          <div class="name-cell">${escapeHtml(r.firstName+' '+r.lastName)}</div>
+          <div class="name-cell"><span class="task-id-tag">${escapeHtml(r.displayId||'')}</span>${escapeHtml(r.firstName+' '+r.lastName)}</div>
           <div class="meta">${escapeHtml(r.email)||''} ${escapeHtml(r.phone)||''}</div>
           <div class="meta">${dayLabel} · Top 100: ${r.prospects.length}/100</div>
         </div>
@@ -2579,12 +3918,13 @@ function openRecruitDetail(id){
   wrap.innerHTML = `
     <button class="btn secondary small" onclick="closeRecruitDetail()" style="margin-bottom:16px;">← Back to recruits</button>
     <button class="btn secondary small" onclick="openEditRecruitForm('${r.id}')" style="margin-bottom:16px; margin-left:8px;">Edit details</button>
-    <button class="btn secondary small" style="margin-bottom:16px;margin-left:8px;" onclick="openRecruitCall('${r.id}')">&#128222; Log a call</button>
+    <button class="btn secondary small" style="margin-bottom:16px;margin-left:8px;" onclick="startBrowserCallRecruit('${r.id}')">☎️ Call now</button>
     <button class="btn secondary small" style="margin-bottom:16px;margin-left:8px;" onclick="openRecruitLogin('${r.id}')">&#128273; Login link</button>
-    <h1 style="margin-bottom:4px;">${escapeHtml(r.firstName+' '+r.lastName)}</h1>
+    <h1 style="margin-bottom:4px;"><span class="task-id-tag" style="font-size:13px;">${escapeHtml(r.displayId||'')}</span>${escapeHtml(r.firstName+' '+r.lastName)}</h1>
     <dl class="detail">
       <dt>Email</dt><dd>${escapeHtml(r.email)||'—'}</dd>
       <dt>Phone</dt><dd>${escapeHtml(r.phone)||'—'}</dd>
+      <dt>Birthday</dt><dd>${escapeHtml(r.birthday)||'—'}</dd>
 
       <div class="sechead">Guru training program</div>
       <dd style="margin-top:6px;">
@@ -2659,6 +3999,9 @@ function openEditRecruitForm(id){
       '<div class="field"><label>Guru start date (Day 1)</label><input type="date" id="editRecStart" value="' + (r.startDate||'') + '"></div>',
       '<div class="field"><label>&nbsp;</label><div class="hint">Day 1 is this date. Move it back to jump the recruit forward, forward to push them back. Leave blank to stop the count.</div></div>',
     '</div>',
+    '<div class="field-row">',
+      '<div class="field"><label>Birthday</label><input type="date" id="editRecBirthday" value="' + (r.birthday||'') + '"></div>',
+    '</div>',
     '<div class="panel-actions"><div></div><div class="right">',
       '<button class="btn secondary" onclick="closeRecruitEditPanel()">Cancel</button> ',
       '<button class="btn" onclick="submitEditRecruit()">Save changes</button>',
@@ -2679,6 +4022,7 @@ function submitEditRecruit(){
   r.phone     = document.getElementById('editRecPhone').value.trim();
   const sd = document.getElementById('editRecStart').value.trim();
   r.startDate = sd ? sd : null;
+  r.birthday = document.getElementById('editRecBirthday').value;
   saveRecruits();
   closeRecruitEditPanel();
   renderRecruits();
@@ -2691,10 +4035,12 @@ function submitAddRecruit(){
     firstName: document.getElementById('newRecFirst').value.trim(),
     lastName: document.getElementById('newRecLast').value.trim(),
     email: document.getElementById('newRecEmail').value.trim(),
-    phone: document.getElementById('newRecPhone').value.trim()
+    phone: document.getElementById('newRecPhone').value.trim(),
+    birthday: ''
   });
   if(!r.firstName){ showToast('First name required'); return; }
   mortgageRecruits.push(r);
+  assignMissingRecruitDisplayIds(mortgageRecruits);
   saveRecruits();
   document.getElementById('addRecruitOverlay').classList.remove('show');
   renderRecruits();
@@ -2755,25 +4101,7 @@ async function sendGuruMessage(isVoice){
   if(isVoice) speakSashaReply(replyText, GURU_VOICE_ID);
 }
 function toggleGuruVoice(){
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.getElementById('guruVoiceBtn');
-  const hint = document.getElementById('guruVoiceHint');
-  if(!SpeechRecognitionAPI){ showToast('Voice needs Chrome or Edge.'); return; }
-  if(guruRecognition){ guruRecognition.stop(); return; }
-  guruRecognition = new SpeechRecognitionAPI();
-  guruRecognition.lang = 'en-US';
-  guruRecognition.continuous = false;
-  guruRecognition.interimResults = false;
-  guruRecognition.onstart = function(){ if(btn) btn.classList.add('listening'); if(hint) hint.textContent = 'Listening… speak now.'; };
-  guruRecognition.onresult = function(event){
-    const input = document.getElementById('guruChatInput');
-    if(input) input.value = event.results[0][0].transcript;
-    if(hint) hint.textContent = '';
-    sendGuruMessage(true);
-  };
-  guruRecognition.onerror = function(event){ if(hint) hint.textContent = 'Tap the mic and try again.'; };
-  guruRecognition.onend = function(){ if(btn) btn.classList.remove('listening'); guruRecognition = null; };
-  guruRecognition.start();
+  vcToggle('guru', 'Guru', function(){ return document.getElementById('guruVoiceBtn'); }, function(){ return document.getElementById('guruVoiceHint'); }, 'guruChatInput', function(){ sendGuruMessage(true); });
 }
 
 
@@ -2817,25 +4145,7 @@ async function sendVikramMessage(isVoice){
   if(isVoice) speakSashaReply(replyText, VIKRAM_VOICE_ID);
 }
 function toggleVikramVoice(){
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.getElementById('vikramVoiceBtn');
-  const hint = document.getElementById('vikramVoiceHint');
-  if(!SpeechRecognitionAPI){ showToast('Voice needs Chrome or Edge.'); return; }
-  if(vikramRecognition){ vikramRecognition.stop(); return; }
-  vikramRecognition = new SpeechRecognitionAPI();
-  vikramRecognition.lang = 'en-US';
-  vikramRecognition.continuous = false;
-  vikramRecognition.interimResults = false;
-  vikramRecognition.onstart = function(){ if(btn) btn.classList.add('listening'); if(hint) hint.textContent = 'Listening… speak now.'; };
-  vikramRecognition.onresult = function(event){
-    const input = document.getElementById('vikramChatInput');
-    if(input) input.value = event.results[0][0].transcript;
-    if(hint) hint.textContent = '';
-    sendVikramMessage(true);
-  };
-  vikramRecognition.onerror = function(event){ if(hint) hint.textContent = 'Tap the mic and try again.'; };
-  vikramRecognition.onend = function(){ if(btn) btn.classList.remove('listening'); vikramRecognition = null; };
-  vikramRecognition.start();
+  vcToggle('vikram', 'Vikram', function(){ return document.getElementById('vikramVoiceBtn'); }, function(){ return document.getElementById('vikramVoiceHint'); }, 'vikramChatInput', function(){ sendVikramMessage(true); });
 }
 
 document.getElementById('recruitSearch').addEventListener('input', renderRecruits);
@@ -2861,6 +4171,19 @@ document.getElementById('overlay').addEventListener('click', (e)=>{ if(e.target.
 
 populateFilterOptions();
 loadClients();
+
+// Direct-link support for a home-screen bookmark:
+// ?view=keypartners opens the Key Partners tab; add &scan=1 to also open the
+// "Scan business card" form right away.
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('view') === 'keypartners') {
+    showView('keypartners');
+    if (params.get('scan') === '1') {
+      document.getElementById('kpScanForm').classList.add('open');
+    }
+  }
+})();
 </script>
 
 </body>

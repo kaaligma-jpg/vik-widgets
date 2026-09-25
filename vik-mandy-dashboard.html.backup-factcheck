@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mandy — Marketing Control</title>
+<style>
+  :root{
+    --ink:#152238;
+    --ink-2:#1F3352;
+    --paper:#F6F4EF;
+    --paper-2:#FFFFFF;
+    --brass:#A9762F;
+    --brass-2:#C69350;
+    --slate:#5B6472;
+    --line:#E2DED4;
+    --good:#3C6E47;
+    --warn:#B4762E;
+    --danger:#A23B34;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{ display:flex; min-height:100vh; }
+  .sidebar{
+    width:220px;
+    background:var(--ink);
+    color:#EDE8DD;
+    padding:28px 20px;
+    flex-shrink:0;
+  }
+  @media (max-width: 820px){
+    .app{ flex-direction:column; }
+    .sidebar{ width:100%; padding:18px 20px; }
+  }
+  .brand{
+    font-family:var(--serif);
+    font-size:22px;
+    letter-spacing:0.2px;
+    color:#fff;
+  }
+  .brand small{
+    display:block;
+    font-family:var(--sans);
+    font-size:11px;
+    color:var(--brass-2);
+    margin-top:4px;
+    font-weight:600;
+  }
+  .navlist{ margin-top:36px; display:flex; flex-direction:column; gap:4px; }
+  .navlist a{
+    all:unset; cursor:pointer; padding:10px 12px; border-radius:6px; font-size:14px;
+    color:#C9D0DC; display:block;
+  }
+  .navlist a:hover{ background:rgba(255,255,255,0.06); }
+  .main{ flex:1; padding:32px 40px; max-width:900px; }
+  h1{ font-family:var(--serif); font-size:28px; margin:0 0 4px; }
+  .sub{ color:var(--slate); font-size:14px; margin:0 0 28px; }
+  .card{
+    background:var(--paper-2); border:1px solid var(--line); border-radius:10px;
+    padding:20px 22px; margin-bottom:20px;
+  }
+  .card h2{ font-size:16px; margin:0 0 4px; }
+  .card .hint{ font-size:12px; color:var(--slate); margin:0 0 16px; }
+  .agent-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 0; border-bottom:1px solid var(--line);
+  }
+  .agent-row:last-child{ border-bottom:none; }
+  .agent-name{ font-size:14px; font-weight:600; }
+  .agent-note{ font-size:11px; color:var(--slate); margin-top:2px; }
+  .switch{
+    position:relative; width:44px; height:24px; flex-shrink:0; cursor:pointer;
+  }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch-track{
+    position:absolute; inset:0; background:var(--line); border-radius:24px; transition:background 0.15s;
+  }
+  .switch-track::after{
+    content:''; position:absolute; width:18px; height:18px; left:3px; top:3px;
+    background:#fff; border-radius:50%; transition:transform 0.15s; box-shadow:0 1px 2px rgba(0,0,0,0.25);
+  }
+  .switch input:checked + .switch-track{ background:var(--good); }
+  .switch input:checked + .switch-track::after{ transform:translateX(20px); }
+  .job-row{
+    padding:14px 0; border-bottom:1px solid var(--line);
+  }
+  .job-row:last-child{ border-bottom:none; }
+  .job-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .job-name{ font-size:14px; font-weight:600; }
+  .job-url{ font-size:11px; color:var(--slate); font-family:monospace; word-break:break-all; }
+  .btn{
+    all:unset; cursor:pointer; font-size:13px; font-weight:600; padding:8px 14px;
+    border-radius:6px; background:var(--ink); color:#fff; flex-shrink:0;
+  }
+  .btn:hover{ background:var(--ink-2); }
+  .btn[disabled]{ opacity:0.5; cursor:default; }
+  .job-result{
+    margin-top:10px; font-size:12px; background:var(--paper); border:1px solid var(--line);
+    border-radius:6px; padding:10px 12px; white-space:pre-wrap; font-family:monospace;
+    display:none;
+  }
+  .job-result.show{ display:block; }
+  .job-result.error{ color:var(--danger); }
+  .filter-tab{
+    all:unset; cursor:pointer; font-size:12px; padding:6px 12px; border-radius:14px;
+    background:var(--paper); border:1px solid var(--line); color:var(--slate);
+  }
+  .filter-tab.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .btn-danger{ background:var(--danger) !important; }
+  /* Talk to Mandy (added by fix-mandy-chat.js) */
+  .mc-pdf{ font-size:12px; color:var(--brass); font-weight:600; text-decoration:none; }
+  .mc-pdf:hover{ text-decoration:underline; }
+  .mc-log{ max-height:380px; overflow-y:auto; border:1px solid var(--line); border-radius:8px; background:var(--paper); padding:12px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px; }
+  .mc-empty{ font-size:13px; color:var(--slate); }
+  .mc-msg{ max-width:85%; padding:9px 12px; border-radius:10px; font-size:13.5px; line-height:1.45; white-space:pre-wrap; word-wrap:break-word; }
+  .mc-msg.vik{ align-self:flex-end; background:var(--ink); color:#fff; border-bottom-right-radius:3px; }
+  .mc-msg.mandy{ align-self:flex-start; background:var(--paper-2); border:1px solid var(--line); border-bottom-left-radius:3px; }
+  .mc-msg.mandy a{ color:var(--brass); font-weight:600; }
+  .mc-msg.sys{ align-self:center; background:none; color:var(--slate); font-size:12px; font-style:italic; }
+  .mc-who{ font-size:10.5px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; opacity:0.7; margin-bottom:3px; }
+  .mc-input{ width:100%; min-height:64px; max-height:260px; padding:9px 11px; border:1px solid var(--line); border-radius:8px; font-family:var(--sans); font-size:13.5px; resize:vertical; }
+  .mc-row{ display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap; }
+  .mc-mic{ all:unset; cursor:pointer; width:40px; height:40px; border-radius:50%; background:var(--paper); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .mc-mic.vc-on{ box-shadow:0 0 0 3px var(--brass); }
+  .mc-mic.listening{ background:var(--danger); border-color:var(--danger); animation:mcPulse 1.2s infinite; }
+  @keyframes mcPulse{ 0%{ box-shadow:0 0 0 0 rgba(162,59,52,0.5);} 70%{ box-shadow:0 0 0 10px rgba(162,59,52,0);} 100%{ box-shadow:0 0 0 0 rgba(162,59,52,0);} }
+  .mc-count{ font-size:11px; color:var(--slate); }
+  .mc-hint{ font-size:12px; color:var(--slate); flex:1; min-width:180px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">Mandy<small>MARKETING CONTROL</small></div>
+    <div class="navlist">
+      <a href="vik-mortgage-dashboard.html">🏠 Mortgage Pipeline</a>
+      <a href="vik-insurance-dashboard.html">🛡️ Insurance Pipeline</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <h1>Mandy</h1>
+    <p class="sub">Agent on/off switches and Mandy's automated jobs — greetings, newsletter, touchpoints.</p>
+
+    <div class="card" id="mcCard">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h2 style="margin:0;">💬 Talk to Mandy</h2>
+        <a class="mc-pdf" href="https://fincop-backend.onrender.com/mandy-newsletter-pdf" target="_blank" rel="noopener">📄 Current newsletter PDF</a>
+      </div>
+      <p class="hint" style="margin-top:4px;">Type, paste a whole article, or tap 🎤 once and just talk. Ask her "is the draft ready?" any time. She can save notes for the newsletter, start a new draft, or start post ideas. She cannot approve or send.</p>
+      <div id="mcLog" class="mc-log"><div class="mc-empty">Say hello to Mandy, or ask: "What have you got for the newsletter so far?"</div></div>
+      <textarea id="mcInput" class="mc-input" placeholder="Type here, or paste an article (up to about 10,000 words)…"></textarea>
+      <div class="mc-row">
+        <button class="mc-mic" id="mcVoiceBtn" onclick="toggleMandyVoice()" title="Talk to Mandy">🎤</button>
+        <button class="btn" id="mcSendBtn" onclick="sendMandyMessage(false)">Send</button>
+        <span id="mcCount" class="mc-count"></span>
+        <span id="mcVoiceHint" class="mc-hint"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Agents</h2>
+      <p class="hint">Turn an agent off to pause it — this now actually stops that agent's routes.</p>
+      <div id="agentRows"></div>
+    </div>
+
+    <div class="card">
+      <h2>Mandy's automated jobs</h2>
+      <p class="hint">These normally run on their own schedule via cron. Use "Run now" to trigger one manually and see the result.</p>
+      <div id="jobRows"></div>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:16px;">
+      <button class="filter-tab active" id="tabBtnSocial" style="padding:10px 18px; font-size:13px;" onclick="switchMandyTab('social')">📱 Social Media</button>
+      <button class="filter-tab" id="tabBtnNewsletter" style="padding:10px 18px; font-size:13px;" onclick="switchMandyTab('newsletter')">📰 Newsletter</button>
+    </div>
+
+    <div id="tabContentSocial">
+    <div class="card">
+      <h2>Content Queue — Facebook / Instagram</h2>
+      <p class="hint">Mandy drafts posts (with a live web search for anything current), you approve or reject each one. No auto-posting yet — approved posts are meant to be copied and posted by hand until the Meta app is set up.</p>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px; color:var(--slate); display:block; margin-bottom:6px;">Custom instructions for Mandy (optional) — e.g. "write about closing costs this week"</label>
+        <textarea id="cqInstructions" placeholder="Leave blank for Mandy to pick the topic herself" style="width:100%; min-height:50px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--sans); font-size:13px;"></textarea>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:16px;">
+        <select id="cqPlatform" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px;">
+          <option value="facebook">Facebook</option>
+          <option value="instagram">Instagram</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="tiktok">TikTok</option>
+          <option value="youtube">YouTube</option>
+        </select>
+        <select id="cqType" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px;">
+          <option value="mix">Mix of types</option>
+          <option value="image_post">📷 Image Post</option>
+          <option value="carousel">📑 Carousel</option>
+          <option value="short_video">🎬 Short-form Video</option>
+          <option value="long_video">📹 Long-form Video</option>
+          <option value="text_post">💬 Text Post</option>
+        </select>
+        <select id="cqCount" style="padding:8px 10px; border:1px solid var(--line); border-radius:6px;">
+          <option value="3">3 ideas</option>
+          <option value="5" selected>5 ideas</option>
+          <option value="10">10 ideas</option>
+        </select>
+        <button class="btn" id="cqGenBtn" onclick="generateContent()">Generate ideas</button>
+      </div>
+      <div id="cqStatus" style="font-size:13px; color:var(--slate); margin-bottom:10px;"></div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;" id="cqPlatformTabs"></div>
+      <div id="cqDrafts"></div>
+      <div id="cqApprovedWrap" style="margin-top:20px; display:none;">
+        <div class="sub" style="margin-bottom:8px; font-weight:600; color:var(--ink);">Approved — ready to post by hand</div>
+        <div id="cqApproved"></div>
+      </div>
+    </div>
+    </div>
+
+    <div id="tabContentNewsletter" style="display:none;">
+    <div class="card">
+      <h2>📚 Daily Research Log</h2>
+      <p class="hint">Mandy checks the market, regulatory, and economic news every day at 9am and logs what's genuinely new here. Review her progress through the month before adding your own notes below.</p>
+      <div id="rlStatus" style="font-size:13px; color:var(--slate); margin-bottom:10px;"></div>
+      <div id="rlEntries"></div>
+    </div>
+    <div class="card">
+      <h2>📰 Newsletter — feed &amp; draft</h2>
+      <p class="hint">Add anything you want this month's newsletter to reflect — a milestone, a story, a topic. Mandy weaves it in when she drafts.</p>
+      <div style="margin-bottom:10px;">
+        <textarea id="nlFeed" placeholder="e.g. Mention we just hit 20 years in the industry. Or: focus on first-time buyers this month." style="width:100%; min-height:70px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:var(--sans); font-size:13px;"></textarea>
+      </div>
+      <button class="btn" onclick="saveNewsletterFeed()">Save notes for Mandy</button>
+      <span id="nlFeedStatus" style="font-size:12px; color:var(--slate); margin-left:10px;"></span>
+    </div>
+    <div class="card">
+      <h2>Draft &amp; approve</h2>
+      <p class="hint">Mandy drafts one unified newsletter automatically on the last day of the month, using this month's research log and your notes above. Review and approve it here — sent to mortgage clients and Key Partners together.</p>
+      <div style="display:flex; gap:10px; margin-bottom:16px;">
+        <button class="btn" onclick="draftNewsletter(false)">Check for today's draft</button>
+        <button class="btn" style="background:var(--warn);" onclick="draftNewsletter(true)">Force-draft now (testing)</button>
+      </div>
+      <div id="nlStatus" style="font-size:13px; color:var(--slate); margin-bottom:10px;"></div>
+      <div id="nlSegments"></div>
+    </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const TOGGLES_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/agent-toggles';
+const AGENTS = [
+  { key: 'mandy', label: 'Mandy', note: 'Greetings, newsletter, touchpoints' },
+  { key: 'sasha', label: 'Sasha', note: 'Client chat + sends' },
+  { key: 'vikram', label: 'Vikram', note: 'Research + call analysis' },
+  { key: 'guru', label: 'Guru', note: '90-day recruit training emails' }
+];
+
+const JOBS = [
+  { name: '🎂 Key Partners — birthday check', url: 'https://fincop-backend.onrender.com/kp-birthday-check' },
+  { name: '🎂 Mortgage Clients — birthday/anniversary check', url: 'https://fincop-backend.onrender.com/mortgage-clients-greeting-check' },
+  { name: '🎂 Mortgage Recruits — birthday check', url: 'https://fincop-backend.onrender.com/mortgage-recruits-greeting-check' },
+  { name: '🎂 Insurance Clients — birthday check', url: 'https://fincop-backend.onrender.com/insurance-clients-greeting-check' },
+  { name: '🎂 Insurance Recruits — birthday check', url: 'https://fincop-backend.onrender.com/insurance-recruits-greeting-check' },
+  { name: '🤝 Mortgage touchpoints + renewal review', url: 'https://fincop-backend.onrender.com/mortgage-touchpoint-check' },
+  { name: '📰 Monthly newsletter (sends for real — use on purpose)', url: 'https://fincop-backend.onrender.com/mandy-newsletter-send' }
+];
+
+let toggles = {};
+
+async function loadToggles(){
+  try{
+    const res = await fetch(TOGGLES_ENDPOINT);
+    const data = await res.json();
+    toggles = (data && data.value) ? JSON.parse(data.value) : {};
+  }catch(e){
+    toggles = {};
+  }
+  renderAgents();
+}
+
+async function saveToggles(){
+  try{
+    await fetch(TOGGLES_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ value: JSON.stringify(toggles) })
+    });
+  }catch(e){
+    alert('Could not save — try again');
+  }
+}
+
+function renderAgents(){
+  const wrap = document.getElementById('agentRows');
+  wrap.innerHTML = AGENTS.map(function(a){
+    const on = toggles[a.key] !== false;
+    return '<div class="agent-row">' +
+      '<div><div class="agent-name">' + a.label + '</div><div class="agent-note">' + a.note + '</div></div>' +
+      '<label class="switch">' +
+        '<input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="toggleAgent(\'' + a.key + '\', this.checked)">' +
+        '<span class="switch-track"></span>' +
+      '</label>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleAgent(key, isOn){
+  toggles[key] = isOn;
+  saveToggles();
+}
+
+function renderJobs(){
+  const wrap = document.getElementById('jobRows');
+  wrap.innerHTML = JOBS.map(function(j, i){
+    return '<div class="job-row">' +
+      '<div class="job-head">' +
+        '<div><div class="job-name">' + j.name + '</div><div class="job-url">' + j.url + '</div></div>' +
+        '<button class="btn" id="jobBtn' + i + '" onclick="runJob(' + i + ')">Run now</button>' +
+      '</div>' +
+      '<div class="job-result" id="jobResult' + i + '"></div>' +
+    '</div>';
+  }).join('');
+}
+
+async function runJob(i){
+  const job = JOBS[i];
+  const btn = document.getElementById('jobBtn' + i);
+  const resultBox = document.getElementById('jobResult' + i);
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  resultBox.className = 'job-result show';
+  resultBox.textContent = 'Running...';
+  try{
+    const res = await fetch(job.url);
+    const data = await res.json();
+    resultBox.textContent = JSON.stringify(data, null, 2);
+    resultBox.className = 'job-result show' + (data.error ? ' error' : '');
+  }catch(err){
+    resultBox.textContent = 'Network error: ' + err.message;
+    resultBox.className = 'job-result show error';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Run now';
+}
+
+loadToggles();
+renderJobs();
+
+// ===== Content Queue =====
+const CONTENT_QUEUE_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/mandy-content-queue';
+const GENERATE_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-generate-content';
+const APPROVE_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-content-approve';
+
+let cqQueue = [];
+let cqPlatformFilter = 'all';
+
+function cqTypeLabel(t){
+  return { image_post:'📷 Image', short_video:'🎬 Short Video', long_video:'📹 Long Video', carousel:'📑 Carousel', text_post:'💬 Text' }[t] || t || '';
+}
+
+async function loadContentQueue(){
+  try{
+    const res = await fetch(CONTENT_QUEUE_ENDPOINT);
+    const data = await res.json();
+    const queue = (data && data.value) ? JSON.parse(data.value) : [];
+    cqQueue = Array.isArray(queue) ? queue : [];
+  }catch(e){
+    cqQueue = [];
+  }
+  renderContentQueue();
+}
+
+function setCqPlatformFilter(p){ cqPlatformFilter = p; renderContentQueue(); }
+
+function cqMatchesFilters(item){
+  if(cqPlatformFilter !== 'all' && item.platform !== cqPlatformFilter) return false;
+  return true;
+}
+
+function renderContentQueue(){
+  const queue = cqQueue;
+
+  const platformTabsWrap = document.getElementById('cqPlatformTabs');
+  const platformLabels = { facebook:'Facebook', instagram:'Instagram', linkedin:'LinkedIn', tiktok:'TikTok', youtube:'YouTube' };
+  const seenPlatforms = [];
+  queue.forEach(function(q){ if(q.platform && seenPlatforms.indexOf(q.platform) === -1) seenPlatforms.push(q.platform); });
+  if(seenPlatforms.length <= 1){
+    platformTabsWrap.innerHTML = '';
+  } else {
+    const platformTabs = [['all','All']].concat(seenPlatforms.map(function(p){ return [p, platformLabels[p] || p]; }));
+    platformTabsWrap.innerHTML = platformTabs.map(function(p){
+      const cls = (cqPlatformFilter === p[0]) ? 'filter-tab active' : 'filter-tab';
+      return '<button class="' + cls + '" onclick="setCqPlatformFilter(\'' + p[0] + '\')">' + p[1] + '</button>';
+    }).join('');
+  }
+
+  const drafts = queue.filter(function(q){ return q.status === 'draft' && cqMatchesFilters(q); });
+  const approved = queue.filter(function(q){ return q.status === 'approved' && cqMatchesFilters(q); });
+
+  const draftsWrap = document.getElementById('cqDrafts');
+  if(!drafts.length){
+    draftsWrap.innerHTML = '<div class="hint">No drafts matching this filter. Click "Generate ideas" above, or change the filter.</div>';
+  } else {
+    draftsWrap.innerHTML = drafts.map(function(d){
+      return '<div class="job-row">' +
+        '<div style="font-size:11px; color:var(--brass); text-transform:uppercase; margin-bottom:4px;">' + d.platform + ' · ' + cqTypeLabel(d.contentType) + '</div>' +
+        '<div style="font-size:14px; margin-bottom:10px; white-space:pre-wrap;">' + escapeHtmlMandy(d.draftText) + '</div>' +
+        '<div style="display:flex; gap:8px;">' +
+          '<button class="btn" onclick="approveContent(\'' + d.id + '\', \'approve\')">Approve</button>' +
+          '<button class="btn" style="background:var(--warn);" onclick="approveContent(\'' + d.id + '\', \'reject\')">Reject</button>' +
+          '<button class="btn btn-danger" onclick="deleteContent(\'' + d.id + '\')">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  const approvedWrap = document.getElementById('cqApprovedWrap');
+  const approvedList = document.getElementById('cqApproved');
+  if(approved.length){
+    approvedWrap.style.display = '';
+    approvedList.innerHTML = approved.map(function(d){
+      return '<div class="job-row">' +
+        '<div style="font-size:11px; color:var(--good); text-transform:uppercase; margin-bottom:4px;">' + d.platform + ' · ' + cqTypeLabel(d.contentType) + '</div>' +
+        '<div style="font-size:14px; margin-bottom:10px; white-space:pre-wrap;">' + escapeHtmlMandy(d.draftText) + '</div>' +
+        '<div style="display:flex; gap:8px;">' +
+          '<button class="btn" onclick="copyContentText(this, ' + JSON.stringify(d.draftText) + ')">Copy text</button>' +
+          '<button class="btn btn-danger" onclick="deleteContent(\'' + d.id + '\')">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } else {
+    approvedWrap.style.display = 'none';
+  }
+}
+
+function escapeHtmlMandy(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function copyContentText(btn, text){
+  navigator.clipboard.writeText(text).then(function(){
+    const old = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = old; }, 1500);
+  });
+}
+
+async function generateContent(){
+  const platform = document.getElementById('cqPlatform').value;
+  const count = document.getElementById('cqCount').value;
+  const type = document.getElementById('cqType').value;
+  const instructions = document.getElementById('cqInstructions').value.trim();
+  const btn = document.getElementById('cqGenBtn');
+  const status = document.getElementById('cqStatus');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  status.textContent = 'Mandy is checking current trends and drafting ideas — this can take a bit.';
+  try{
+    const res = await fetch(GENERATE_ENDPOINT + '?platform=' + encodeURIComponent(platform) + '&count=' + encodeURIComponent(count) + '&type=' + encodeURIComponent(type) + '&instructions=' + encodeURIComponent(instructions));
+    const data = await res.json();
+    if(!res.ok || data.error){
+      status.textContent = 'Error: ' + (data.error || 'unknown error');
+    } else if(data.skipped){
+      status.textContent = data.reason || 'Mandy is turned off.';
+    } else {
+      status.textContent = 'Added ' + (data.added ? data.added.length : 0) + ' new drafts.';
+      loadContentQueue();
+    }
+  }catch(err){
+    status.textContent = 'Network error: ' + err.message;
+  }
+  btn.disabled = false;
+  btn.textContent = 'Generate ideas';
+}
+
+async function approveContent(id, action){
+  try{
+    await fetch(APPROVE_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ id: id, action: action })
+    });
+    loadContentQueue();
+  }catch(e){
+    alert('Could not update — try again');
+  }
+}
+
+async function deleteContent(id){
+  if(!confirm('Delete this one for good?')) return;
+  try{
+    await fetch(APPROVE_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ id: id, action: 'delete' })
+    });
+    loadContentQueue();
+  }catch(e){
+    alert('Could not delete — try again');
+  }
+}
+
+loadContentQueue();
+
+// ===== Newsletter draft/approve =====
+const NEWSLETTER_DRAFT_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-newsletter-draft';
+const NEWSLETTER_APPROVE_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-newsletter-approve';
+const NEWSLETTER_DRAFTS_DATA_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/mandy-newsletter-drafts';
+
+async function loadNewsletterDrafts(){
+  try{
+    const res = await fetch(NEWSLETTER_DRAFTS_DATA_ENDPOINT);
+    const data = await res.json();
+    const draftRecord = (data && data.value) ? JSON.parse(data.value) : null;
+    renderNewsletterDrafts(draftRecord);
+  }catch(e){
+    renderNewsletterDrafts(null);
+  }
+}
+
+function renderNewsletterDrafts(draftRecord){
+  const wrap = document.getElementById('nlSegments');
+  if(!draftRecord || !draftRecord.subject){
+    wrap.innerHTML = '<div class="hint">No draft yet this month. It generates automatically on the last day of the month, or click "Force-draft now" to test.</div>';
+    return;
+  }
+  const statusColor = draftRecord.status === 'approved' ? 'var(--good)' : (draftRecord.status === 'sent' ? 'var(--slate)' : (draftRecord.status === 'rejected' ? 'var(--danger)' : 'var(--brass)'));
+  let buttons = '';
+  if(draftRecord.status === 'draft'){
+    buttons = '<button class="btn" onclick="approveNewsletter(\'approve\')">Approve</button>' +
+      '<button class="btn" style="background:var(--warn); margin-left:8px;" onclick="approveNewsletter(\'reject\')">Reject</button>';
+  } else if(draftRecord.status === 'approved'){
+    buttons = '<span style="font-size:12px; color:var(--good);">Approved — will send on next newsletter run</span>';
+  } else if(draftRecord.status === 'sent'){
+    buttons = '<span style="font-size:12px; color:var(--slate);">Already sent this month</span>';
+  } else if(draftRecord.status === 'rejected'){
+    buttons = '<span style="font-size:12px; color:var(--danger);">Rejected — will not be sent</span>';
+  } else {
+    buttons = '<span style="font-size:12px; color:var(--danger);">Content generation failed</span>';
+  }
+  wrap.innerHTML = '<div class="hint" style="margin-bottom:10px;">Draft for ' + draftRecord.month + ', generated ' + new Date(draftRecord.generatedAt).toLocaleString() + '</div>' +
+    '<div class="job-row">' +
+      '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
+        '<div style="font-weight:600; font-size:14px;">Dream Home + Life Monthly <span style="font-size:11px; color:var(--slate); font-weight:400;">(' + draftRecord.recipientCount + ' recipients)</span></div>' +
+        '<div style="font-size:11px; text-transform:uppercase; color:' + statusColor + ';">' + draftRecord.status + '</div>' +
+      '</div>' +
+      (draftRecord.subject ? '<div style="font-size:13px; font-weight:600; margin-bottom:4px;">' + escapeHtmlMandy(draftRecord.subject) + '</div>' : '') +
+      (draftRecord.body ? '<div style="font-size:13px; white-space:pre-wrap; margin-bottom:10px;">' + escapeHtmlMandy(draftRecord.body) + '</div>' : '') +
+      buttons +
+    '</div>';
+}
+
+async function draftNewsletter(force){
+  const status = document.getElementById('nlStatus');
+  status.textContent = 'Checking / drafting from this month\\u2019s research log — this can take a bit...';
+  try{
+    const res = await fetch(NEWSLETTER_DRAFT_ENDPOINT + (force ? '?force=1' : ''));
+    const data = await res.json();
+    if(!res.ok || data.error){
+      status.textContent = 'Error: ' + (data.error || 'unknown error');
+    } else if(data.skipped){
+      status.textContent = data.reason || 'Skipped.';
+    } else {
+      status.textContent = 'Draft ready for ' + (data.draft ? data.draft.month : '') + '.';
+      loadNewsletterDrafts();
+    }
+  }catch(err){
+    status.textContent = 'Network error: ' + err.message;
+  }
+}
+
+async function approveNewsletter(action){
+  try{
+    await fetch(NEWSLETTER_APPROVE_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action: action })
+    });
+    loadNewsletterDrafts();
+  }catch(e){
+    alert('Could not update — try again');
+  }
+}
+
+loadNewsletterDrafts();
+
+function switchMandyTab(tab){
+  document.getElementById('tabContentSocial').style.display = (tab === 'social') ? '' : 'none';
+  document.getElementById('tabContentNewsletter').style.display = (tab === 'newsletter') ? '' : 'none';
+  document.getElementById('tabBtnSocial').className = (tab === 'social') ? 'filter-tab active' : 'filter-tab';
+  document.getElementById('tabBtnNewsletter').className = (tab === 'newsletter') ? 'filter-tab active' : 'filter-tab';
+}
+
+const NEWSLETTER_FEED_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/mandy-newsletter-feed';
+
+async function loadNewsletterFeed(){
+  try{
+    const res = await fetch(NEWSLETTER_FEED_ENDPOINT);
+    const data = await res.json();
+    document.getElementById('nlFeed').value = (data && data.value) ? data.value : '';
+  }catch(e){ /* leave blank */ }
+}
+
+async function saveNewsletterFeed(){
+  const status = document.getElementById('nlFeedStatus');
+  try{
+    await fetch(NEWSLETTER_FEED_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ value: document.getElementById('nlFeed').value })
+    });
+    status.textContent = 'Saved.';
+    setTimeout(function(){ status.textContent = ''; }, 2000);
+  }catch(e){
+    status.textContent = 'Could not save — try again';
+  }
+}
+
+loadNewsletterFeed();
+
+// ===== Daily Research Log =====
+function currentMonthKeyToronto(){
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Toronto', year: 'numeric', month: '2-digit'
+  }).formatToParts(new Date());
+  const y = parts.find(p => p.type === 'year').value;
+  const m = parts.find(p => p.type === 'month').value;
+  return y + '-' + m;
+}
+
+async function loadResearchLog(){
+  const monthKey = currentMonthKeyToronto();
+  const endpoint = 'https://fincop-backend.onrender.com/app-data/mandy-research-log-' + monthKey;
+  const status = document.getElementById('rlStatus');
+  const wrap = document.getElementById('rlEntries');
+  try{
+    const res = await fetch(endpoint);
+    const data = await res.json();
+    const log = (data && data.value) ? JSON.parse(data.value) : [];
+    if(!Array.isArray(log) || !log.length){
+      status.textContent = 'No entries yet for ' + monthKey + '. The first one lands after the next 9am run (or trigger it manually).';
+      wrap.innerHTML = '';
+      return;
+    }
+    status.textContent = log.length + ' day' + (log.length === 1 ? '' : 's') + ' logged so far this month (' + monthKey + ').';
+    const sorted = log.slice().sort(function(a, b){ return b.date.localeCompare(a.date); });
+    wrap.innerHTML = sorted.map(function(entry){
+      return '<div class="job-row">' +
+        '<div style="font-weight:600; font-size:13px; margin-bottom:6px;">' + entry.date + '</div>' +
+        '<div style="font-size:13px; white-space:pre-wrap;">' + escapeHtmlMandy(entry.findings) + '</div>' +
+      '</div>';
+    }).join('');
+  }catch(e){
+    status.textContent = 'Could not load the research log.';
+    wrap.innerHTML = '';
+  }
+}
+
+loadResearchLog();
+
+// ===== Talk to Mandy (added by fix-mandy-chat.js) =====
+const MANDY_CHAT_ENDPOINT = 'https://fincop-backend.onrender.com/mandy-chat';
+const MANDY_SPEAK_ENDPOINT = 'https://fincop-backend.onrender.com/sasha-speak';
+let mcHistory = [];
+let mcBusy = false;
+
+function mcLinkify(s){
+  return escapeHtmlMandy(s).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+}
+function mcAdd(from, text){
+  const log = document.getElementById('mcLog');
+  const empty = log.querySelector('.mc-empty'); if (empty) empty.remove();
+  const div = document.createElement('div');
+  if (from === 'sys') { div.className = 'mc-msg sys'; div.textContent = text; }
+  else {
+    div.className = 'mc-msg ' + (from === 'Vik' ? 'vik' : 'mandy');
+    let shown = text;
+    if (from === 'Vik' && text.length > 1200) shown = text.slice(0, 600) + '\n\n… [' + text.length.toLocaleString() + ' characters pasted] …';
+    div.innerHTML = '<div class="mc-who">' + (from === 'Vik' ? 'You' : 'Mandy') + '</div>' + (from === 'Vik' ? escapeHtmlMandy(shown) : mcLinkify(shown));
+  }
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+function mcUpdateCount(){
+  const n = (document.getElementById('mcInput').value || '').length;
+  document.getElementById('mcCount').textContent = n > 300 ? n.toLocaleString() + ' characters' + (n > 60000 ? ' — too long, only the first 60,000 will be read' : '') : '';
+}
+
+async function sendMandyMessage(fromVoice){
+  if (mcBusy) return;
+  const input = document.getElementById('mcInput');
+  const text = (input.value || '').trim();
+  if (!text) { if (fromVoice) vcAfterSpeak(); return; }
+  mcBusy = true;
+  document.getElementById('mcSendBtn').setAttribute('disabled', 'disabled');
+  input.value = ''; mcUpdateCount();
+  mcAdd('Vik', text);
+  const thinking = mcAdd('sys', 'Mandy is thinking…');
+  try {
+    const res = await fetch(MANDY_CHAT_ENDPOINT, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: mcHistory.slice(-16) })
+    });
+    const data = await res.json();
+    thinking.remove();
+    if (!res.ok || data.error) {
+      mcAdd('sys', 'Mandy could not answer: ' + (data.error || ('error ' + res.status)) + '. Try again in a minute.');
+      if (fromVoice) vcAfterSpeak();
+    } else {
+      const reply = data.reply || '';
+      mcHistory.push({ from: 'Vik', text: text });
+      mcHistory.push({ from: 'Mandy', text: reply });
+      mcAdd('Mandy', reply);
+      mcDoActions(data.actions || []);
+      if (fromVoice) mcSpeak(reply);
+    }
+  } catch (err) {
+    thinking.remove();
+    mcAdd('sys', 'Network problem: ' + err.message + '. The server may be waking up — try again in 30 seconds.');
+    if (fromVoice) vcAfterSpeak();
+  }
+  mcBusy = false;
+  document.getElementById('mcSendBtn').removeAttribute('disabled');
+}
+
+function mcDoActions(actions){
+  actions.forEach(function(a){
+    if (a.type === 'note_saved') {
+      try { loadNewsletterFeed(); } catch (e) {}
+      mcAdd('sys', 'Saved in the Newsletter tab under "Notes for Mandy".');
+    } else if (a.type === 'draft_started') {
+      mcAdd('sys', 'New draft started. It takes 2–4 minutes; you will get an email, and it will show on the Newsletter tab.');
+      [120000, 240000, 360000].forEach(function(ms){ setTimeout(function(){ try { loadNewsletterDrafts(); } catch (e) {} }, ms); });
+    } else if (a.type === 'posts') {
+      try {
+        switchMandyTab('social');
+        document.getElementById('cqPlatform').value = a.platform;
+        document.getElementById('cqType').value = a.postType;
+        document.getElementById('cqCount').value = String(a.count);
+        document.getElementById('cqInstructions').value = a.instructions;
+        generateContent();
+        mcAdd('sys', 'Post ideas started — they will appear below in the Content Queue.');
+      } catch (e) { mcAdd('sys', 'Could not start the post ideas: ' + e.message); }
+    }
+  });
+}
+
+function mcSpeak(text){
+  const clean = String(text || '').replace(/https?:\/\/\S+/g, '').replace(/[*#_`>]/g, '').trim();
+  if (!clean) { vcAfterSpeak(); return; }
+  fetch(MANDY_SPEAK_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: clean }) })
+    .then(function(r){ if (!r.ok) throw new Error('tts'); return r.blob(); })
+    .then(function(blob){
+      if (window.sashaAudio) { try { window.sashaAudio.pause(); } catch (e) {} }
+      window.sashaAudio = new Audio(URL.createObjectURL(blob));
+      window.sashaAudio.onended = function(){ vcAfterSpeak(); };
+      window.sashaAudio.play().catch(function(){ vcAfterSpeak(); });
+    })
+    .catch(function(){
+      if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance(clean); u.lang = 'en-IN'; u.onend = function(){ vcAfterSpeak(); }; window.speechSynthesis.speak(u); }
+      else vcAfterSpeak();
+    });
+}
+
+// Conversation mode: tap the mic once and talk. When you pause, it sends; Mandy answers
+// out loud; then it listens again by itself. Tap the mic again to end.
+// If an article is already pasted in the box, what you say is added under it.
+let vcSession = null;
+function vcAfterSpeak(){
+  if (!vcSession) return;
+  const s = vcSession;
+  if (s.waitTimer) { clearTimeout(s.waitTimer); s.waitTimer = null; }
+  setTimeout(function(){ if (vcSession === s) vcListen(s); }, 350);
+}
+function vcStop(msg){
+  const s = vcSession; vcSession = null;
+  if (!s) return;
+  if (s.waitTimer) clearTimeout(s.waitTimer);
+  try { if (s.rec) s.rec.abort(); } catch (e) {}
+  try { if (window.sashaAudio) window.sashaAudio.pause(); } catch (e) {}
+  try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+  const btn = s.btn(), hint = s.hint();
+  if (btn) { btn.classList.remove('listening'); btn.classList.remove('vc-on'); }
+  if (hint) hint.textContent = msg || '';
+}
+function vcListen(s){
+  const API = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!API || vcSession !== s) return;
+  const rec = new API(); s.rec = rec;
+  rec.lang = 'en-IN'; rec.continuous = false; rec.interimResults = false;
+  const btn = s.btn(), hint = s.hint();
+  rec.onstart = function(){ if (btn) btn.classList.add('listening'); if (hint) hint.textContent = 'Listening… just talk. Tap the mic to end the conversation.'; };
+  rec.onresult = function(ev){
+    s.noSpeech = 0;
+    const t = ev.results[0][0].transcript;
+    const input = document.getElementById(s.inputId);
+    if (input) input.value = (input.value || '').trim() ? input.value.trim() + '\n\n' + t : t;
+    if (hint) hint.textContent = s.name + ' is thinking…';
+    s.gotText = true;
+    s.waitTimer = setTimeout(function(){ if (vcSession === s) vcListen(s); }, 90000);
+    s.send();
+  };
+  rec.onerror = function(ev){
+    if (vcSession !== s) return;
+    if (ev.error === 'not-allowed') { vcStop('Microphone access was blocked. Allow it in the browser.'); return; }
+    if (ev.error === 'no-speech') s.noSpeech++;
+  };
+  rec.onend = function(){
+    if (btn) btn.classList.remove('listening');
+    if (vcSession !== s) return;
+    if (s.gotText) { s.gotText = false; return; }
+    if (s.noSpeech >= 3) { vcStop('Conversation ended because nobody spoke. Tap the mic to start again.'); return; }
+    setTimeout(function(){ if (vcSession === s) vcListen(s); }, 250);
+  };
+  try { rec.start(); } catch (e) {}
+}
+function vcToggle(key, name, btnFn, hintFn, inputId, send){
+  if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) { alert('Voice needs Chrome or Edge.'); return; }
+  if (vcSession && vcSession.key === key) { vcStop(''); return; }
+  if (vcSession) vcStop('');
+  vcSession = { key: key, name: name, btn: btnFn, hint: hintFn, inputId: inputId, send: send, rec: null, noSpeech: 0, gotText: false, waitTimer: null };
+  const b = btnFn(); if (b) b.classList.add('vc-on');
+  vcListen(vcSession);
+}
+function toggleMandyVoice(){
+  vcToggle('mandy', 'Mandy', function(){ return document.getElementById('mcVoiceBtn'); }, function(){ return document.getElementById('mcVoiceHint'); }, 'mcInput', function(){ sendMandyMessage(true); });
+}
+document.getElementById('mcInput').addEventListener('input', mcUpdateCount);
+// ===== End Talk to Mandy =====
+</script>
+
+</body>
+</html>
