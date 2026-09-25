@@ -239,7 +239,6 @@
       </div>
       <button class="btn" onclick="saveNewsletterFeed()">Save notes for Mandy</button>
       <span id="nlFeedStatus" style="font-size:12px; color:var(--slate); margin-left:10px;"></span>
-      <div id="nlFeedList" style="margin-top:16px;"></div>
     </div>
     <div class="card">
       <h2>Draft &amp; approve</h2>
@@ -608,7 +607,7 @@ async function loadNewsletterFeed(){
   try{
     const res = await fetch(NEWSLETTER_FEED_ENDPOINT);
     const data = await res.json();
-    /* notes history takes over below */
+    document.getElementById('nlFeed').value = (data && data.value) ? data.value : '';
   }catch(e){ /* leave blank */ }
 }
 
@@ -866,113 +865,5 @@ function mcFactCheckHtml(d){
 // ===== End Mandy fact-check view =====
 </script>
 
-
-<script>
-/* ---- Mandy newsletter notes: dated history, newest first ---- */
-(function(){
-  var NL_SEP = '\n\n-----\n\n';
-
-  function nlFmtDate(d){
-    var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return m[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
-  }
-
-  function nlParse(raw){
-    if (!raw || !raw.trim()) return [];
-    return raw.split(NL_SEP).map(function(s){ return s.trim(); }).filter(Boolean);
-  }
-
-  function nlJoin(list){ return list.join(NL_SEP); }
-
-  window.nlEntries = [];
-
-  function nlRender(){
-    var box = document.getElementById('nlFeedList');
-    if (!box) return;
-    box.innerHTML = '';
-
-    if (!window.nlEntries.length){
-      var empty = document.createElement('p');
-      empty.className = 'hint';
-      empty.textContent = 'No notes yet. Anything you add here goes to Mandy for this month\'s newsletter.';
-      box.appendChild(empty);
-      return;
-    }
-
-    window.nlEntries.forEach(function(text, i){
-      var row = document.createElement('div');
-      row.style.cssText = 'border:1px solid var(--line); border-radius:6px; padding:10px 12px; margin-bottom:8px; display:flex; gap:10px; align-items:flex-start;';
-
-      var body = document.createElement('div');
-      body.style.cssText = 'flex:1; font-size:13px; white-space:pre-wrap; line-height:1.5;';
-      body.textContent = text;
-
-      var del = document.createElement('button');
-      del.textContent = '🗑';
-      del.title = 'Delete this note';
-      del.style.cssText = 'background:none; border:none; cursor:pointer; font-size:15px; line-height:1; padding:2px 4px;';
-      del.onclick = function(){
-        if (!confirm('Delete this note?')) return;
-        window.nlEntries.splice(i, 1);
-        nlPush('Deleted.');
-      };
-
-      row.appendChild(body);
-      row.appendChild(del);
-      box.appendChild(row);
-    });
-  }
-
-  function nlSay(msg){
-    var s = document.getElementById('nlFeedStatus');
-    if (!s) return;
-    s.textContent = msg;
-    setTimeout(function(){ s.textContent = ''; }, 2500);
-  }
-
-  async function nlPush(okMsg){
-    try{
-      await fetch(NEWSLETTER_FEED_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value: nlJoin(window.nlEntries) })
-      });
-      nlRender();
-      nlSay(okMsg || 'Saved.');
-    }catch(e){
-      nlSay('Could not save — try again');
-    }
-  }
-
-  window.loadNewsletterFeed = async function(){
-    try{
-      var r = await fetch(NEWSLETTER_FEED_ENDPOINT);
-      var data = await r.json();
-      window.nlEntries = nlParse(data && data.value ? data.value : '');
-    }catch(e){
-      window.nlEntries = [];
-    }
-    var ta = document.getElementById('nlFeed');
-    if (ta) ta.value = '';
-    nlRender();
-  };
-
-  window.saveNewsletterFeed = async function(){
-    var ta = document.getElementById('nlFeed');
-    if (!ta) return;
-    var txt = (ta.value || '').trim();
-    if (!txt){ nlSay('Write a note first.'); return; }
-    window.nlEntries.unshift('[' + nlFmtDate(new Date()) + '] ' + txt);
-    ta.value = '';
-    await nlPush('Added.');
-  };
-
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', function(){ window.loadNewsletterFeed(); });
-  } else {
-    window.loadNewsletterFeed();
-  }
-})();
-</script>
 </body>
 </html>
