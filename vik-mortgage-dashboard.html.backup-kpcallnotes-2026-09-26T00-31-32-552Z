@@ -3520,12 +3520,11 @@ function renderKeyPartners(){
         '<div>' +
           '<div class="task-subject">' + escapeHtml(fullName) + (p.company ? (' &mdash; ' + escapeHtml(p.company)) : '') + '</div>' +
           '<div class="task-meta">' + kpCategoryLabel(p.category) + profStr + (p.phone?(' &middot; '+escapeHtml(p.phone)):'') + (p.email?(' &middot; '+escapeHtml(p.email)):'') + '</div>' +
-          kpNotesHtml(p) +
+          (p.notes ? ('<div class="task-meta" style="font-style:italic;">' + escapeHtml(p.notes) + '</div>') : '') +
           (p.birthday ? ('<div class="task-meta">🎂 ' + escapeHtml(p.birthday) + '</div>') : '') +
         '</div>' +
       '</div>' +
       '<div class="task-actions">' +
-        (p.phone ? ('<button onclick="kpStartCall(\'' + p.id + '\')">\u260E Call</button>') : '') +
         '<button onclick="editKeyPartner(\'' + p.id + '\')">Edit</button>' +
         (p.archived ? '<button onclick="kpRestoreArchived(\'' + p.id + '\')">Restore</button>' : '<button onclick="kpArchive(\'' + p.id + '\')">Archive</button>') +
         '<button onclick="deleteKeyPartner(\'' + p.id + '\')">Delete</button>' +
@@ -4876,98 +4875,5 @@ saveKeyPartnersToServer = async function(){
 // ===== End Key Partners small photos =====
 </script>
 
-
-<script>
-/* ===== Key Partners: call button + dated notes history ===== */
-(function(){
-
-  var KP_SEP = '\n---\n';
-
-  function kpFmt(d){
-    var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return m[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ', ' +
-      d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  }
-
-  window.kpParseNotes = function(raw){
-    if (!raw || !String(raw).trim()) return [];
-    return String(raw).split(KP_SEP).map(function(s){ return s.trim(); }).filter(Boolean);
-  };
-
-  window.kpJoinNotes = function(list){ return list.join(KP_SEP); };
-
-  /* ---- render the notes stack inside a partner card ---- */
-  window.kpNotesHtml = function(p){
-    var list = window.kpParseNotes(p.notes);
-    if (!list.length) return '';
-    return list.map(function(txt, i){
-      return '<div class="task-meta" style="font-style:italic; display:flex; gap:8px; align-items:flex-start; margin-top:3px;">' +
-        '<span style="flex:1;">' + escapeHtml(txt) + '</span>' +
-        '<span style="cursor:pointer;" title="Delete this note" ' +
-        'onclick="kpDeleteNote(\'' + p.id + '\', ' + i + ')">&#128465;</span>' +
-        '</div>';
-    }).join('');
-  };
-
-  /* ---- delete one note ---- */
-  window.kpDeleteNote = function(id, idx){
-    if (!confirm('Delete this note?')) return;
-    var p = vikKeyPartners.find(function(x){ return x.id === id; });
-    if (!p) return;
-    var list = window.kpParseNotes(p.notes);
-    list.splice(idx, 1);
-    p.notes = window.kpJoinNotes(list);
-    saveKeyPartnersToServer();
-    renderKeyPartners();
-  };
-
-  /* ---- add a dated note ---- */
-  window.kpAddNote = function(id, text){
-    if (!text || !text.trim()) return;
-    var p = vikKeyPartners.find(function(x){ return x.id === id; });
-    if (!p) return;
-    var list = window.kpParseNotes(p.notes);
-    list.unshift('[' + kpFmt(new Date()) + '] ' + text.trim());
-    p.notes = window.kpJoinNotes(list);
-    saveKeyPartnersToServer();
-    renderKeyPartners();
-  };
-
-  /* ---- call a Key Partner through the browser, like a client ---- */
-  window.kpStartCall = async function(id){
-    var p = vikKeyPartners.find(function(x){ return x.id === id; });
-    if (!p) return;
-    if (!p.phone) { showToast('No phone number on file for this partner'); return; }
-
-    var dialNumber = normalizePhone(p.phone);
-    if (!dialNumber) { showToast('This phone number looks invalid'); return; }
-
-    var name = ((p.firstName || '') + ' ' + (p.lastName || '')).trim() || p.company || 'Key Partner';
-
-    showCallStatusOverlay(name, 'Connecting\u2026');
-
-    try {
-      var device = await ensureTwilioDevice();
-      if (device.state !== 'registered') {
-        await new Promise(function(resolve){ setTimeout(resolve, 1200); });
-      }
-      var conn = await device.connect({ params: { To: dialNumber, ClientId: id } });
-      conn.on('accept', function(){ updateCallStatusText('In call \u2014 recording'); });
-      conn.on('disconnect', function(){
-        updateCallStatusText('Call ended \u2014 Vikram is reviewing the recording');
-        window.kpAddNote(id, 'Called. Vikram is writing up the conversation.');
-        setTimeout(hideCallStatusOverlay, 2000);
-      });
-      conn.on('cancel', function(){ hideCallStatusOverlay(); });
-      conn.on('reject', function(){ hideCallStatusOverlay(); });
-    } catch (err) {
-      console.error('KP call failed', err);
-      hideCallStatusOverlay();
-      showToast('Could not start the call');
-    }
-  };
-
-})();
-</script>
 </body>
 </html>
