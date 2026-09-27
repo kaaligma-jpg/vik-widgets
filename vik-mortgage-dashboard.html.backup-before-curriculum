@@ -2669,189 +2669,98 @@ function openDetail(id){
 // ===================== Recruits / Guru (mortgage-side 90-day training) =====================
 const RECRUIT_ENDPOINT = 'https://fincop-backend.onrender.com/app-data/mortgage-recruits';
 const PROSPECT_TYPES = ["Referral Source","Client"];
-const MORTGAGE_GURU_DAY0 = "Day 0 — Before the First Day\n\nRead this slowly. There is no task today.\n\nYOU ARE NOT LOOKING FOR A JOB ANYMORE\n\nSomething changed the day your licence was issued, and most people miss it because nothing visible happened. No uniform arrived. Nobody moved a desk for you.\n\nHere is what changed. Until that day, you were a person with an income. From that day, you are a person with a practice. A job pays you for hours. A practice pays you for judgment. Nobody will hand you a list. Nobody will tell you what time to start. The entire thing — the clients, the reputation, the income, the failure — is now yours.\n\nThat sentence frightens some people and wakes others up. Which one you are will be visible within thirty days.\n\nThe business you have entered is almost invisible from the outside. People think a mortgage agent fills a form and sends it to a bank. What you actually do is stand between an ordinary family and the largest financial decision they will ever make, and make sure they walk into it seeing clearly. The paperwork is the smallest part.\n\nWHAT YOU ARE ACTUALLY HANDLING\n\nSit with this number for a moment.\n\nA family buys a home in the GTA. They put down what they have saved for eleven years. They sign a commitment for six hundred thousand dollars, amortised over twenty-five years. Over the life of that mortgage, with interest, they will hand over close to a million dollars of their working life.\n\nYou are the professional who arranged it.\n\nNot a bank. Not a computer. You. If you put them in the wrong product, they feel it for decades. If you did not ask about the job change coming in four months, the file blows up two weeks before closing and a family with two children has nowhere to move. If you did not explain the prepayment penalty, they discover it three years later in the worst possible week of their life.\n\nAnd if you get it right — if you ask the right questions, choose the right lender, explain the road honestly — they will never fully know how much you protected them from. That is the strange dignity of this profession. The best work you do is invisible to the person you did it for.\n\nThis is why the job is not selling mortgages. It is removing confusion from a decision that is too large to make in confusion.\n\n\"Selling begins where confusion breaks and courage becomes possible.\"\n\nTHE TRUSTED ADVISOR APPROACH\n\nThere are two ways to work in this industry, and the difference is not honesty. Both can be honest.\n\nThe first is transactional. A person arrives wanting a mortgage. You find the best rate available, you place the deal, you get paid, you move on. Nothing wrong with it. It is legal, it is fast, and it is how most of the industry operates.\n\nThe second is advisory. A person arrives wanting a mortgage. Before you talk about a single product, you find out what they are actually trying to do with their life. Are they buying because they want to, or because the lease is ending and they panicked? Is the sister on the application going to be on the title in five years? Is the self-employed income going to be declared next year, which would change everything? What happens to this mortgage if one of the two incomes stops?\n\nThen — and only then — you bring a product.\n\nThe difference in outcome is not subtle. The transactional agent gets a deal. The advisory agent gets a client, their brother, their realtor, their renewal in five years, and their refinance in eight. One is income. The other is a career.\n\n\"A single sale creates income. Trust creates a career.\"\n\nBeing a trusted advisor is not a personality. It is a set of habits: you ask before you answer, you say the uncomfortable thing early, you tell people when the answer is no, and you follow up when there is nothing in it for you. None of that requires charm. All of it requires discipline.\n\nWhich brings us to the part of this profession nobody warns you about.\n\nTHREE ALIGNMENTS\n\nYou are about to operate inside three relationships at once, and if any one of them is out of alignment, the other two will not save you.\n\n1. Align with your brokerage.\n\nPineapple is not your employer. It is your licence, your compliance, your lender access, your systems and your name in the market. You are practising under Pineapple Financial Inc., FSRA Brokerage Licence #12830, and everything you send out carries that.\n\nAlignment here is mostly unglamorous. Learn the systems properly rather than half-learning them and improvising forever — Core, Connections, ONE, Insights, Juice, Plus. Submit clean files. Meet compliance the first time instead of being chased for it. Use the brokerage's rate sheet instead of guessing. Answer your underwriter the same day.\n\nAgents who are misaligned here are easy to spot. They complain that the systems are slow, so they keep clients in their phone. They complain that compliance is fussy, so their files come back three times. Two years later their pipeline is a mess and they blame the brokerage. The brokerage was never the problem.\n\n2. Align with your lenders.\n\nA lender is not a vending machine. A lender is a relationship with a memory.\n\nEvery file you submit teaches your lenders something about you. Submit organised, well-documented, honestly-presented files and, over time, underwriters begin to trust your name — exceptions get considered, calls get returned, deals that were borderline get done. Submit sloppy files with missing documents and optimistic income, and you quietly join a list you will never see.\n\nThis matters enormously and almost nobody teaches it. Your lender relationships are an asset you are building from your very first deal, whether you intend to or not.\n\nAnd know what you are selling. A lender is not just a rate. It is an approval timeline, a document review time, a prepayment structure, a set of rules about rentals and self-employment. The cheapest rate placed with the wrong lender is a worse outcome for your client than a slightly higher rate placed correctly.\n\n\"Price speaks to the present. Value speaks to the future.\"\n\n3. Align with yourself.\n\nThis is the alignment that decides everything, and it is the one nobody checks.\n\nNobody is going to make you work. There is no manager watching the clock. In this business you can do nothing for three weeks and nobody will notice until the month is empty. The structure that used to come from outside has to now come from inside you, and building that structure is genuinely harder than learning mortgage products.\n\nSo be honest before you start. Why are you doing this? If the answer is only money, you will quit in month four, because the money does not arrive in month four. Find a reason that survives a bad month.\n\nDecide what this actually is for you. Part-time is a completely legitimate answer — most people start that way, and there is no shame in it. But part-time with no fixed hours is not part-time. It is a hobby that occasionally produces income. Choose your hours and defend them.\n\nAnd hold your own standard when no one is looking. You will have a week where you can place a client in a product that pays you better and serves them slightly worse. Nobody will catch it. Nobody will ever know. What you do in that week is who you actually are.\n\n\"Great professionals are not defined by occasional brilliance, but by disciplined consistency.\"\n\nWHAT THE NEXT NINETY DAYS WILL BE\n\nOne email a day. Ten to fifteen minutes. Ninety days.\n\nDays 1–30 — Preparation. Your systems, your identity in the market, your first list of names, and your first real conversations. By the end of this block you will have spoken to people and taken your first discovery call.\n\nDays 31–60 — Origination. The live deal. Application, documents, finding the right solution, submission, approval, conditions. This is where you learn the craft.\n\nDays 61–90 — Follow-up. Everything after the approval — instructions, funding, closing, compliance, getting paid, and then the part that builds a career: the follow-up, the referral, the renewal. Most agents are never taught this block at all, which is exactly why most agents start from zero every single month.\n\nThis programme will not make you an expert. Ninety days does not make anybody an expert. What it will do is make sure that on Day 91 you have systems that work, a list that is real, habits that hold, and at least one deal you took from a conversation to a closing table.\n\nThat is a foundation. The career is what you build on it.\n\nOne last thing. Reply to every email, even the ones where you got nothing done. Especially those. A day that went badly, said out loud, is a day I can help you with. A day that went badly in silence is how people disappear.\n\nSee you tomorrow.\n\n— Vikas Sharma";
-
 const MORTGAGE_GURU_TASKS = [
-"Day 1 · Why you are here\n\nStory: The Fisherman and the Sea That Wouldn't Listen — a fisherman stops fighting the storm and builds in bamboo instead of stone.\n\nToday: Write three answers and send them back to me: why you took this licence, what this has to cost you to be worth it, and what you will be doing in three years if this works. Keep them. I will send them back to you on Day 90.\n\nWhy it matters: Everything that follows is built on an answer that survives a bad month.\n\n\"Selling begins where confusion breaks and courage becomes possible.\"",
-
-"Day 2 · Your hours\n\nStory: The Monk Who Cleaned the Mirror for 30 Years — devotion without drama.\n\nToday: Decide the exact hours you will work this business — days and times, written down, even if it is only seven hours a week. Send them to me.\n\nWhy it matters: Part-time with no fixed hours is not part-time. It is a hobby.\n\n\"Great professionals are not defined by occasional brilliance, but by disciplined consistency.\"",
-
-"Day 3 · Pineapple Plus\n\nStory: The Girl Who Drew Roads — she stops waiting for the road and sketches it herself.\n\nToday: Log into Pineapple Plus. Open all four icons — Core, ONE, Connections, Insights — and write me one sentence on what each one is for.\n\nWhy it matters: You cannot run a practice on tools you are guessing at.\n\n\"Information is everywhere. Attention is rare.\"",
-
-"Day 4 · Your Core profile\n\nStory: The Tailor of Lost Buttons — attention to small details is an act of love.\n\nToday: Complete every field in Pineapple Core — photo, mobile, addresses, brokerage details. No blanks.\n\nWhy it matters: Core is the source your website, application link and signature all pull from. Half-finished here means half-finished everywhere.\n\n\"A strong reputation speaks long before the conversation begins.\"",
-
-"Day 5 · Your website and application link\n\nStory: The Janitor Who Wrote in the Dust — work done with love becomes a signature.\n\nToday: Find your broker website (gopineapple.ca/yourname) and your Online Application link in Core. Open both. Send me the two links.\n\nWhy it matters: From today you have somewhere to send people. Before today you did not.\n\n\"A strong reputation speaks long before the conversation begins.\"",
-
-"Day 6 · Your email signature\n\nStory: The Tailor Who Sewed for the Sky — old things given new purpose.\n\nToday: Set up the Core email signature on your phone and your computer. It must show your photo, your licence number, and Pineapple Financial Inc., FSRA #12830.\n\nWhy it matters: Your licence number in every email is not decoration. It is the law and it is credibility.\n\n\"People hear your words. But they believe your presence.\"",
-
-"Day 7 · The first thirty-five names\n\nStory: The Boy Who Counted Stars — in darkness, awareness becomes a map.\n\nToday: Write down thirty-five people you already know. Family, old colleagues, neighbours, your barber, your kids' friends' parents. Not clients — people. Get to thirty-five before you stop.\n\nWhy it matters: Every successful practice in this industry started with a list somebody was slightly embarrassed to write.\n\n\"Opportunities rarely disappear. They quietly wait for the person who remembers them.\"",
-
-"Day 8 · The list goes into Connections\n\nStory: The Librarian of Forgotten Names — care keeps memory alive.\n\nToday: Enter all thirty-five into Pineapple Connections. Every one gets a stage and a segment — First-Time Homebuyer, Renewal, Investor, whatever fits.\n\nWhy it matters: A name with no tag is a name you will never find again. Untagged contacts are the most common dead weight in this business.\n\n\"Awareness must be polished daily — like a mirror.\"",
-
-"Day 9 · Business card and social\n\nStory: The Woman Who Planted Memory — healing grows quietly underfoot.\n\nToday: Order your business cards. Update your LinkedIn, Instagram or Facebook headline to say what you now are, with your website link.\n\nWhy it matters: People cannot refer someone whose job they are unsure of.\n\n\"A strong reputation speaks long before the conversation begins.\"",
-
-"Day 10 · The first five calls\n\nStory: The Seamstress Who Faced the Door — courage is moving the idea from the dark to the doorway.\n\nToday: Call five people from your list. No pitch. Tell them what you are now doing and ask how they are. That is the whole call.\n\nWhy it matters: The first five are the hardest five you will ever make. After today they are behind you.\n\n\"Selling begins where confusion breaks and courage becomes possible.\"",
-
-"Day 11 · Ask for the referral\n\nStory: The Barber Who Cut for Free — what you plant in others grows where you cannot see.\n\nToday: Five more calls. At the end of each, ask one question: \"Who do you know who might be buying or renewing this year?\"\n\nWhy it matters: Asked on day eleven, it is natural. Saved for day sixty, it becomes an event you dread.\n\n\"The strongest opportunities are often carried by the voices of those who trust you.\"",
-
-"Day 12 · Pineapple Juice\n\nStory: The Grandmother Who Learned to Code — the mind ages only when it stops asking why.\n\nToday: Log into Pineapple Juice. Complete \"Introduction to Pineapple Core\" and \"Navigating Pineapple Juice.\"\n\nWhy it matters: Twenty-five courses sit there, free, and most agents finish none of them.\n\n\"Tools may accelerate progress, but judgment still decides the direction.\"",
-
-"Day 13 · Compliance\n\nStory: The Miner Who Refused the Shortcut — protecting life when speed tries to buy silence.\n\nToday: Complete \"Introduction to Compliance\" and \"How to Submit for Compliance\" in Juice.\n\nWhy it matters: Compliance is not admin. It is the reason you still have a licence in five years.\n\n\"Courage is the choice to protect life when speed tries to buy your silence.\"",
-
-"Day 14 · Week two review\n\nStory: The Mirror Maker — the mirror must be polished daily.\n\nToday: Send me four numbers from this week: calls made, conversations held, names added, referrals asked for.\n\nWhy it matters: From here on you manage yourself by numbers, not by feeling.\n\n\"Human behavior rarely surprises those who take the time to observe it carefully.\"",
-
-"Day 15 · PineappleONE\n\nStory: The Watchmaker Who Refused to Rush — defending quality against convenience.\n\nToday: Open PineappleONE. Find Search Deal, Create Deal, and the two calculators. Do not create anything yet.\n\nWhy it matters: You need to know where the machinery is before a live client is on the phone.\n\n\"Tools may accelerate progress, but judgment still decides the direction.\"",
-
-"Day 16 · The rate sheet, part one\n\nStory: The Doctor Who Listened to Silence — hearing what is not said.\n\nToday: Open the Pineapple rate sheet. Find the five-year fixed column and read across: Insured, Insurable, Uninsurable Purchase, Uninsurable Refi. Tell me what makes a deal insured.\n\nWhy it matters: Almost every product question a client asks is really this question.\n\n\"Confusion delays decisions. Clarity releases them.\"",
-
-"Day 17 · The rate sheet, part two\n\nStory: The Girl Who Spoke to Machines — noticing what others miss.\n\nToday: Same sheet. Find the approval-days and document-review columns, and find the lenders marked UW Only. Send me the three fastest lenders this week.\n\nWhy it matters: Speed of approval closes deals that rate alone would lose.\n\n\"Price speaks to the present. Value speaks to the future.\"",
-
-"Day 18 · Refinance is uninsurable\n\nStory: The Teacher Who Returned the Test — courage is changing the rules when they hide the truth.\n\nToday: Look at the refinance columns on the rate sheet. Answer in one line: why is there no high-ratio refinance in Canada?\n\nWhy it matters: Getting this wrong in front of a client costs you the client.\n\n\"Confusion delays decisions. Clarity releases them.\"",
-
-"Day 19 · Five calls, and the first question\n\nStory: The Woman Who Taught Water to Wait — patience is stronger than force.\n\nToday: Five conversations today. In each, ask one question before you say anything about mortgages: \"What are you thinking about for the next couple of years?\"\n\nWhy it matters: The person who asks first controls the conversation. The person who explains first loses it.\n\n\"The right question can reveal more truth than a thousand explanations.\"",
-
-"Day 20 · Segmentation\n\nStory: The Farmer and the Silent Seeds — nature is trying to tell you something.\n\nToday: Go back into Connections and segment every contact you have. No contact left on \"New.\"\n\nWhy it matters: A segmented list is a marketing list. An unsegmented list is a phone book.\n\n\"Awareness must be polished daily — like a mirror.\"",
-
-"Day 21 · The Lead stage\n\nStory: The Diver Who Found Air in Fear — feeling fear without obeying it.\n\nToday: Study the nineteen deal stages in the dashboard. Today write down what has to be true for someone to move from Lead to Discovery.\n\nWhy it matters: Agents lose deals because they cannot tell a lead from a client, and treat both wrongly.\n\n\"A decision rarely waits for pressure. It waits for clarity.\"",
-
-"Day 22 · Listening\n\nStory: The Barber Who Listened More Than He Cut — purpose can speak through stillness.\n\nToday: Five conversations. In each one, count how many seconds you talk versus them. Send me your rough ratio.\n\nWhy it matters: Most new agents talk seventy percent of the time and call it a good call.\n\n\"The professional who listens deeply discovers what others miss.\"",
-
-"Day 23 · The First-Time Buyer guide\n\nStory: The Teacher Who Collected Rain — problems are invitations to learn.\n\nToday: Read the First-Time Home Buyer Conversation Guide end to end. Learn its five sections in order.\n\nWhy it matters: This is your script for the single most common conversation you will have.\n\n\"The right question can reveal more truth than a thousand explanations.\"",
-
-"Day 24 · Income by employment type\n\nStory: The Tailor Who Sewed the Flag — doing quietly what you wish others would do.\n\nToday: From the guide, write out what documents you need for each of: full-time salaried, part-time, incorporated self-employed, sole proprietor.\n\nWhy it matters: Asking for the wrong documents on day one is how a file dies in week six.\n\n\"A strong future is built long before the harvest appears.\"",
-
-"Day 25 · Down payment\n\nStory: The Man Who Found Rain in Dust — awareness sees what maps cannot.\n\nToday: Learn the three down-payment sources and what each one needs: savings (ninety days of statements), gift (gift letter), HBP. Explain each in one line as you would to a client.\n\nWhy it matters: Unverifiable down payment is one of the most common reasons a deal collapses late.\n\n\"Most people do not need a better offer. They need a safer understanding of the road ahead.\"",
-
-"Day 26 · Credit\n\nStory: The Banker Who Returned the Bonus — credibility over currency.\n\nToday: Learn what a lender actually looks at: score, history length, utilisation, recent inquiries. Write one line you could say to someone with a 610 score without making them feel judged.\n\nWhy it matters: How you deliver bad credit news decides whether they come back in six months.\n\n\"An objection is not the end of a conversation. It is the beginning of understanding.\"",
-
-"Day 27 · Your first Discovery\n\nStory: The Girl Who Raised the Curtain — courage is not waiting for permission.\n\nToday: Book one real discovery call with someone from your list. Use the guide. Take notes in Connections, not on paper. If you do not have anyone real yet, tell me — we will do it as a role play instead.\n\nWhy it matters: Everything so far was preparation for this one hour.\n\n\"Every purchase is a story about what someone hopes life will become.\"",
-
-"Day 28 · Debrief\n\nStory: The Engineer Who Crashed the Drone — owning the fall builds a stronger foundation.\n\nToday: Send me three things about that call: what you learned about them, what you missed, and what you will ask differently next time.\n\nWhy it matters: An undebriefed call teaches you almost nothing.\n\n\"Failure is not a verdict; it's a cleansing.\"",
-
-"Day 29 · Activity Management\n\nStory: The Old Man Who Waited for the Train That Never Came — becoming peace while waiting.\n\nToday: Put every follow-up you owe anyone into Pineapple Activity Management with a due date.\n\nWhy it matters: Tasks overdue by ninety days are deleted automatically. So are the clients attached to them.\n\n\"A strong future is built long before the harvest appears.\"",
-
-"Day 30 · Thirty-day review\n\nStory: The Accountant Who Counted Blessings — gratitude made measurable.\n\nToday: Send me your first month's numbers: contacts in Connections, conversations held, referrals asked for, referrals received, discovery calls booked. And tell me honestly which of the three alignments is weakest right now.\n\nWhy it matters: Day 30 should show activity, not results. Activity is the only thing you control.\n\n\"Across every industry and every era, people exchange value for improvement in their lives.\"",
-
-"Day 31 · Creating the deal\n\nStory: The Mason Who Built for Centuries — great effort outlives the worker.\n\nToday: Create your first deal in PineappleONE. Property address, closing date, stage set to Application.\n\nWhy it matters: A deal that lives in your head is a deal nobody can help you with.\n\n\"Great professionals are not defined by occasional brilliance, but by disciplined consistency.\"",
-
-"Day 32 · The application interview\n\nStory: The Surgeon Who Heard the Pulse of Doubt — clarity comes from befriending fear, not removing it.\n\nToday: Take one full application by phone using the guide. Do not email a form and wait. If you do not have a live client yet, tell me — we will run it as a role play instead.\n\nWhy it matters: The form captures data. The conversation captures the truth behind the data.\n\n\"The professional who listens deeply discovers what others miss.\"",
-
-"Day 33 · The document list\n\nStory: The Tailor of Lost Buttons — attention to detail is an act of love.\n\nToday: Send one complete document request using Doc Genius. Everything at once, nothing forgotten.\n\nWhy it matters: Three separate document requests tells a client you do not know your own job.\n\n\"Confusion delays decisions. Clarity releases them.\"",
-
-"Day 34 · Reading a pay stub\n\nStory: The Watchmaker Who Found God in Gears — mastery is awareness married to detail.\n\nToday: Take one real pay stub. Identify gross, net, frequency, year-to-date, and whether the YTD supports the stated annual income.\n\nWhy it matters: The YTD is where overstated income is caught — by you, or later by the lender.\n\n\"Human behavior rarely surprises those who take the time to observe it carefully.\"",
-
-"Day 35 · Self-employed income\n\nStory: The Startup That Collapsed in Six Months — failure is mentorship without a fee.\n\nToday: Learn what two years of T1 Generals and a Notice of Assessment actually prove, and why line 15000 matters more than revenue.\n\nWhy it matters: Self-employed clients are the most misunderstood and most loyal segment you will serve.\n\n\"Most people do not need a better offer. They need a safer understanding of the road ahead.\"",
-
-"Day 36 · Debt service\n\nStory: The Scientist Who Measured Silence — deeper listening, not new data.\n\nToday: Calculate GDS and TDS by hand for one file. Then check it against the calculator.\n\nWhy it matters: An agent who only trusts a calculator cannot explain a decline.\n\n\"Information is everywhere. Attention is rare.\"",
-
-"Day 37 · Solution finding\n\nStory: The Sculptor Who Could See Inside Stone — listen deeply to what resists you.\n\nToday: For your live file, shortlist three lenders from the rate sheet. Write one line on why each could fit, and one line on why it might not.\n\nWhy it matters: This is the actual skill. Everything else is administration.\n\n\"The wise professional studies not only the move, but the entire board.\"",
-
-"Day 38 · Rate is not the product\n\nStory: The Chef Who Served No Menu — remove excess until essence remains.\n\nToday: Write a short explanation you could say out loud: why a 4.29% with a fair penalty may beat a 4.19% with a harsh one.\n\nWhy it matters: If you cannot say this clearly, you will lose every rate conversation.\n\n\"Price speaks to the present. Value speaks to the future.\"",
-
-"Day 39 · Presenting options\n\nStory: The Chess Player Who Stopped Playing for Victory — clarity comes from surrendering the scoreboard.\n\nToday: Present two options to a real client. Two, not five. Say which you recommend and why.\n\nWhy it matters: Five options is not service. It is you moving the decision onto them.\n\n\"A decision rarely waits for pressure. It waits for clarity.\"",
-
-"Day 40 · Submission\n\nStory: The Pilot Who Confessed His Panic — failure starts when ego refuses assistance.\n\nToday: Submit one file. Before you hit send, read it as though you were the underwriter receiving it.\n\nWhy it matters: Every file you send teaches your lenders something about you.\n\n\"A strong reputation speaks long before the conversation begins.\"",
-
-"Day 41 · Your underwriter\n\nStory: The Mechanic Who Fixed the Air — honest work when nobody is watching.\n\nToday: Introduce yourself properly to your underwriter and your deal co-agent. If those fields are empty in Core, get them filled.\n\nWhy it matters: The relationship you build before you need a favour is the one that works.\n\n\"The strongest opportunities are often carried by the voices of those who trust you.\"",
-
-"Day 42 · \"Your rate is too high\"\n\nStory: The Woman Who Taught Water to Wait — patience is stronger than force.\n\nToday: Practise this out loud three times. Do not defend. Ask: \"Compared to what, and what does that one include?\"\n\nWhy it matters: Almost every rate objection dissolves the moment you ask what they are comparing against.\n\n\"An objection is not the end of a conversation. It is the beginning of understanding.\"",
-
-"Day 43 · \"I'll just go to my bank\"\n\nStory: The Diver Who Breathed Under Fear — when fear floods, hold still and clarity floats.\n\nToday: Write your answer in three sentences. Not an attack on banks — a description of what you do that one lender cannot.\n\nWhy it matters: Attacking the bank makes you look small. Describing your access makes you look useful.\n\n\"Communicating value begins where comparison ends.\"",
-
-"Day 44 · \"Let me think about it\"\n\nStory: The Ferryman Who Crossed Twice — courage is steady breath inside a storm.\n\nToday: Learn the one question that opens this up: \"Of course — what part is still unclear?\"\n\nWhy it matters: \"Let me think about it\" is almost never hesitation. It is an unasked question.\n\n\"The best close does not push the door open. It notices that the door is already unlocked.\"",
-
-"Day 45 · Mid-block review\n\nStory: The Mirror Maker — polished daily.\n\nToday: Send me your numbers: applications taken, files submitted, conversations held, referrals asked for.\n\nWhy it matters: Two weeks of activity you have not counted is two weeks you cannot learn from.\n\n\"Human behavior rarely surprises those who take the time to observe it carefully.\"",
-
-"Day 46 · Reading the commitment\n\nStory: The Librarian Who Stayed During the Fire — protect what gives meaning.\n\nToday: Read one commitment letter line by line. Find the rate hold expiry, the conditions, and the prepayment terms.\n\nWhy it matters: Clients sign what you explain. You are responsible for what you did not read.\n\n\"Most people do not need a better offer. They need a safer understanding of the road ahead.\"",
-
-"Day 47 · Conditions\n\nStory: The Builder Who Refused to Rush — resilience is slower than success and lasts longer.\n\nToday: List every condition on your live file with a name and a date beside each. Put them into Activity Management.\n\nWhy it matters: Conditions are where deals die, and always quietly.\n\n\"A strong future is built long before the harvest appears.\"",
-
-"Day 48 · The appraisal\n\nStory: The Potter Who Listened to Clay — balance creates, control fractures.\n\nToday: Learn the difference between an AVM and a full appraisal, when each is used, and who pays.\n\nWhy it matters: A low appraisal is a conversation you will have. Better to know the mechanics first.\n\n\"Facts explain the road. Stories allow people to walk it.\"",
-
-"Day 49 · When it is declined\n\nStory: The Mountaineer Who Turned Back — courage sometimes walks down.\n\nToday: Write what you would say to a client who has just been declined. Then write what you would do next for them.\n\nWhy it matters: How you handle a decline is the most-remembered thing you will ever do for someone.\n\n\"Rejection rarely closes the road. It simply asks you to walk it with greater clarity.\"",
-
-"Day 50 · Alt and B lending\n\nStory: The Gardener Who Grew Flowers in Barren Soil — trusting life to return.\n\nToday: Open the ALT RATES tab on the rate sheet. Learn what makes a file an alt file and what it costs the client.\n\nWhy it matters: Declined at an A lender is not the end. But you must know the real cost before you present it.\n\n\"Price speaks to the present. Value speaks to the future.\"",
-
-"Day 51 · Your protected block\n\nStory: The Woman Who Lived by a Compass, Not a Clock — alignment is orientation, not scheduling.\n\nToday: Fix two hours a week that belong only to prospecting. Same slot, every week. Put it in your calendar as an appointment with yourself.\n\nWhy it matters: The work that has no fixed time is the work that never happens.\n\n\"Great professionals are not defined by occasional brilliance, but by disciplined consistency.\"",
-
-"Day 52 · Your one thing\n\nStory: The Athlete Who Stopped Counting Reps — routine becomes ritual.\n\nToday: Each morning this week, write the single task that would make the day worthwhile before you open anything else.\n\nWhy it matters: A full day of small tasks feels productive and moves nothing.\n\n\"Confusion delays decisions. Clarity releases them.\"",
-
-"Day 53 · The energy audit\n\nStory: The Teen Who Deleted His Social Media — mastery of attention, not absence of technology.\n\nToday: For one day, note every time you check your phone during work hours. Just count. Send me the number.\n\nWhy it matters: Your attention is the entire asset. Everything else is rented.\n\n\"Information is everywhere. Attention is rare.\"",
-
-"Day 54 · Partners\n\nStory: The Bridge Builder Who Never Crossed — faith is the unseen infrastructure of progress.\n\nToday: Identify three realtors, one accountant, one insurance advisor. Enter them as Partners in Connections. Contact one.\n\nWhy it matters: Partners send deals for years. Clients send one.\n\n\"The strongest opportunities are often carried by the voices of those who trust you.\"",
-
-"Day 55 · What you bring a partner\n\nStory: The Baker Who Never Advertised — purpose creates demand without design.\n\nToday: Write down what a realtor gets from working with you that they do not get elsewhere. If you cannot answer, you are not ready to ask.\n\nWhy it matters: Nobody refers you because you asked. They refer you because you were useful first.\n\n\"A single sale creates income. Trust creates a career.\"",
-
-"Day 56 · Content\n\nStory: The Musician Who Played for One Listener — how deeply one heart feels you.\n\nToday: Post one useful thing publicly. Not a rate. Answer a question a client actually asked you this month.\n\nWhy it matters: Your digital presence answers questions while you sleep.\n\n\"A strong reputation speaks long before the conversation begins.\"",
-
-"Day 57 · Following up without pestering\n\nStory: The Taxi Driver Who Waited — small patience creates great trust.\n\nToday: Contact three people who went quiet on you. No apology, no pressure — just a useful update.\n\nWhy it matters: Most lost deals were never lost. They were dropped.\n\n\"Opportunities rarely disappear. They quietly wait for the person who remembers them.\"",
-
-"Day 58 · Insights\n\nStory: The Accountant Who Counted Blessings — gratitude made measurable.\n\nToday: Open Pineapple Insights. Find your close ratio — deals created against deals paid. Send me the number, whatever it is.\n\nWhy it matters: A low close ratio is not shameful. Not knowing it is.\n\n\"The wise professional studies not only the move, but the entire board.\"",
-
-"Day 59 · Your seven numbers\n\nStory: The Girl Who Counted Kindness — awareness begins where numbers turn into feelings.\n\nToday: Start a weekly count from today: conversations, new names, applications taken, files submitted, approvals, referrals asked, referrals received.\n\nWhy it matters: These seven numbers explain every good and bad month you will ever have.\n\n\"Human behavior rarely surprises those who take the time to observe it carefully.\"",
-
-"Day 60 · Sixty-day review\n\nStory: The Potter Who Threw a Thousand Cracks — failure as teacher, not enemy.\n\nToday: Send me your seven numbers for the last thirty days, plus one file you would handle completely differently now.\n\nWhy it matters: You are two-thirds through. From here the work is not learning — it is finishing.\n\n\"Across every industry and every era, people exchange value for improvement in their lives.\"",
-
-"Day 61 · File complete\n\nStory: The Tailor's Last Stitch — the unseen seam in every community.\n\nToday: Take one file to File Complete. Every condition satisfied, nothing outstanding, nothing \"almost.\"\n\nWhy it matters: \"Almost complete\" is the most expensive phrase in this business.\n\n\"Great professionals are not defined by occasional brilliance, but by disciplined consistency.\"",
-
-"Day 62 · Instructing the lawyer\n\nStory: The Watchmaker Who Refused to Rush — quality against convenience.\n\nToday: Learn what goes to the lawyer, who sends it, and what the client must do before closing. Write the checklist.\n\nWhy it matters: Clients panic in the last two weeks. A calm agent with a checklist is worth everything then.\n\n\"Most people do not need a better offer. They need a safer understanding of the road ahead.\"",
-
-"Day 63 · The week before closing\n\nStory: The Midwife of the Storm — presence that refuses to run.\n\nToday: Call your closing client for no reason other than to tell them where things stand. Even if nothing has changed.\n\nWhy it matters: Silence in the last week is when clients decide whether they will ever refer you.\n\n\"People hear your words. But they believe your presence.\"",
-
-"Day 64 · Funded\n\nStory: The Farmer Who Sowed in Drought — sowing while others forecast failure.\n\nToday: Move the file to Funded in PineappleONE the day it funds, not the week after.\n\nWhy it matters: Your dashboard is only as honest as the day you update it.\n\n\"Awareness must be polished daily — like a mirror.\"",
-
-"Day 65 · Closing day\n\nStory: The Street Sweeper Who Danced at Dawn — duty becomes art.\n\nToday: Do one thing for your client on closing day that costs you almost nothing and is not expected.\n\nWhy it matters: People forget rates within a month. They remember closing day for years.\n\n\"Every purchase is a story about what someone hopes life will become.\"",
-
-"Day 66 · Compliance\n\nStory: The Prisoner Who Wrote Apologies by Hand — accountability as the highest form of care.\n\nToday: Submit your file for compliance and get it through the first time. Use the Juice course if you need to.\n\nWhy it matters: Compliance chased three times is a pattern that follows your name.\n\n\"Courage is doing honest work even when no one is watching.\"",
-
-"Day 67 · Getting paid\n\nStory: The Janitor Who Played the Piano — waiting turned into flowering.\n\nToday: Complete \"How to Read a Commission Statement\" in Juice. Check your Scarlett Pay details are correct.\n\nWhy it matters: Agents who do not read their statements do not notice when something is wrong.\n\n\"Tools may accelerate progress, but judgment still decides the direction.\"",
-
-"Day 68 · The business of you\n\nStory: The Dharma of Wealth — money is a responsibility before it is a reward.\n\nToday: Work out what one deal actually leaves you after tax and expenses. Then work out how many deals a year your life requires.\n\nWhy it matters: Almost nobody in this industry knows this number, and it is the only number that matters.\n\n\"Price speaks to the present. Value speaks to the future.\"",
-
-"Day 69 · Thirty days after\n\nStory: The Waitress Who Remembered Every Birthday — remembrance through kindness.\n\nToday: Set a thirty-days-after-closing task in Activity Management for every client you have funded. Call the first one.\n\nWhy it matters: The thirty-day call is where you stop being a transaction.\n\n\"Opportunities rarely disappear. They quietly wait for the person who remembers them.\"",
-
-"Day 70 · Asking for the referral properly\n\nStory: The Barber Who Cut for Free — what you plant grows where you cannot see.\n\nToday: Ask one funded client this exact question: \"Who else is going through this right now that I could help the same way?\"\n\nWhy it matters: \"Let me know if you know anyone\" produces nothing. A specific question produces a name.\n\n\"The strongest opportunities are often carried by the voices of those who trust you.\"",
-
-"Day 71 · The referral system\n\nStory: The Mason Who Built for Centuries — effort outlives the worker.\n\nToday: Write your referral routine: when you ask, what you say, how you thank, how you report back. Four lines.\n\nWhy it matters: A routine produces referrals every month. Good intentions produce them occasionally.\n\n\"Great professionals are not defined by occasional brilliance, but by disciplined consistency.\"",
-
-"Day 72 · The renewal list\n\nStory: The Farmer and the Silent Seeds — nature is trying to tell you something.\n\nToday: Segment every contact whose mortgage renews in the next eighteen months. Set a reminder for a hundred and eighty days before each.\n\nWhy it matters: A renewal you contact at six months is yours. At thirty days it belongs to their bank.\n\n\"A strong future is built long before the harvest appears.\"",
-
-"Day 73 · The annual review\n\nStory: The Doctor Who Prescribed Music — treat the patient, not the illness.\n\nToday: Design your annual client review: what you check, what you send, how long it takes. This is the habit that turns clients into a practice.\n\nWhy it matters: Every advisory profession has an annual review. Mortgage agents are the only ones who skipped it.\n\n\"A single sale creates income. Trust creates a career.\"",
-
-"Day 74 · The database is the business\n\nStory: The Librarian of Forgotten Names — care keeps memory alive.\n\nToday: Audit Connections. Every contact must have a stage, a segment, and a next action. Fix everything that does not.\n\nWhy it matters: In five years your database is worth more than your best year of commission.\n\n\"Awareness must be polished daily — like a mirror.\"",
-
-"Day 75 · Refinance and ETO\n\nStory: The Woman Who Sold Time — redefining currency.\n\nToday: Learn when an equity take-out genuinely helps and when it just moves a problem. Write one example of each.\n\nWhy it matters: The agent who talks a client out of a bad refinance gets the good one two years later.\n\n\"A decision rarely waits for pressure. It waits for clarity.\"",
-
-"Day 76 · The client who should not buy\n\nStory: The Miner Who Refused the Shortcut — protecting life when speed tries to buy silence.\n\nToday: Practise saying no. Write what you would tell someone who qualifies on paper but should wait a year.\n\nWhy it matters: The no you give honestly today is the yes you receive in twelve months.\n\n\"Selling begins where confusion breaks and courage becomes possible.\"",
-
-"Day 77 · New to Canada\n\nStory: The Refugee with a Backpack of Letters — gratitude is the migration of hope.\n\nToday: Learn the newcomer programs: what counts as credit history, what down payment is required, what documents replace a Canadian file.\n\nWhy it matters: This is the fastest-growing segment in the GTA and the worst-served.\n\n\"Confusion delays decisions. Clarity releases them.\"",
-
-"Day 78 · Financial literacy as service\n\nStory: The Teacher Who Shared Her Lunch — gratitude multiplies when it is not named charity.\n\nToday: Explain compound interest, or amortisation, to one person who did not ask. Client, friend, your own child.\n\nWhy it matters: Teaching is the most durable form of marketing there is.\n\n\"Facts explain the road. Stories allow people to walk it.\"",
-
-"Day 79 · When the market turns\n\nStory: The Sailor Who Steered by Stars He Couldn't See — navigation written in memory, not machines.\n\nToday: Write what you will say to clients the week rates move sharply. Write it now, while it is calm.\n\nWhy it matters: The agent who is silent in a volatile week loses the clients they earned in a calm one.\n\n\"The wise professional studies not only the move, but the entire board.\"",
-
-"Day 80 · Your reputation online\n\nStory: The Girl Who Thanked Her Mirror — gratitude heals the gaze.\n\nToday: Search your own name. Then ask two funded clients for a review.\n\nWhy it matters: People check you before they call you. What they find was decided months ago.\n\n\"A strong reputation speaks long before the conversation begins.\"",
-
-"Day 81 · Partners, again\n\nStory: The Carpenter Who Built Benches for Strangers — permanence carved from kindness.\n\nToday: Go back to the partners from Day 54. Give one of them something useful with no ask attached.\n\nWhy it matters: One partner relationship built properly outproduces a hundred cold calls.\n\n\"A single sale creates income. Trust creates a career.\"",
-
-"Day 82 · Failure\n\nStory: The Author Whose Book Sold Seven Copies — failure often delivers the audience that needs you most.\n\nToday: Write down the deal you lost that still bothers you. Then write the one sentence you would change.\n\nWhy it matters: A loss you have named stops repeating. A loss you avoid repeats for years.\n\n\"Rejection rarely closes the road. It simply asks you to walk it with greater clarity.\"",
-
-"Day 83 · The alchemy of a bad month\n\nStory: The Alchemy of Failure — what breaks you is also what builds the capacity to carry more.\n\nToday: Decide now, in writing, what you will do in a month with no deals. Activity, not mood.\n\nWhy it matters: You will have that month. The only question is whether you planned for it in advance.\n\n\"Courage is not the absence of fear. It is a promise you keep while fear is in the room.\"",
-
-"Day 84 · Saying no to work\n\nStory: The Chef Who Served No Menu — remove excess until essence remains.\n\nToday: Identify one thing you are doing weekly that produces nothing. Stop it.\n\nWhy it matters: Growth in this business is usually subtraction, not addition.\n\n\"Information is everywhere. Attention is rare.\"",
-
-"Day 85 · Protection\n\nStory: The Widow and the Sparrow — gratitude does not echo; it migrates and finds you.\n\nToday: Learn how to raise mortgage protection with a client in two sentences without selling anything.\n\nWhy it matters: The family who loses an income and still keeps the house is the whole reason this profession exists.\n\n\"Most people do not need a better offer. They need a safer understanding of the road ahead.\"",
-
-"Day 86 · The next ninety days\n\nStory: The Woman Who Lived by a Compass, Not a Clock — orientation, not scheduling.\n\nToday: Write your plan for days 91 to 180. Three numbers: conversations a week, applications a month, deals for the quarter.\n\nWhy it matters: The day this programme ends is the day nobody is checking. Decide in advance what holds.\n\n\"A strong future is built long before the harvest appears.\"",
-
-"Day 87 · Who you will be\n\nStory: Becoming the Pineapple — you do not chase opportunity; you become one.\n\nToday: Write one paragraph: what someone should say about you after working with you. Then name one thing you do not yet do that this requires.\n\nWhy it matters: Reputation is not what you claim. It is the gap between the claim and the habit.\n\n\"People hear your words. But they believe your presence.\"",
-
-"Day 88 · The three alignments, checked\n\nStory: The Warrior of Balance — order maintained inwardly before it is visible outwardly.\n\nToday: Score yourself out of ten on each: brokerage, lenders, yourself. Send me the three numbers and one line on the lowest.\n\nWhy it matters: Ninety days ago these were abstract. Now you know exactly what they cost.\n\n\"Great professionals are not defined by occasional brilliance, but by disciplined consistency.\"",
-
-"Day 89 · Your numbers, ninety days\n\nStory: The Accountant Who Counted Blessings — gratitude made measurable.\n\nToday: Send me the full ninety-day count: conversations, names, applications, submissions, approvals, funded deals, referrals asked, referrals received.\n\nWhy it matters: This is your baseline. Everything from here is measured against it.\n\n\"Human behavior rarely surprises those who take the time to observe it carefully.\"",
-
-"Day 90 · Day Ninety\n\nStory: The Child Who Became the Light — remembering yourself as the source.\n\nToday: Here are the three answers you sent me on Day 1. Read them. Then tell me one thing: are you still that person, or has the answer changed?\n\nWhy it matters: Ninety days ago you had a licence. Today you have a practice. What you do with it is now entirely yours.\n\n\"Products may evolve, markets may transform, but the professional who brings clarity and trust into every decision will always remain valuable.\""
-]
+"Announce your hire on social media with a brief introduction of yourself",
+"Download the Gmail app and activate your Pineapple email account",
+"Pineapple Core: complete your account setup and generate your broker website and email signature",
+"Set up your calendar and social media handles; read one sample lender rate sheet and identify 3 key numbers on it",
+"Upload your contacts into the system and start using Capture",
+"Get your headshot done at a Pineapple Day event (or book one if none is scheduled yet)",
+"Pineapple Juice self-training — complete Module 1, pass its quiz; register for Pineapple's lender training sessions",
+"Pineapple Juice self-training — complete Module 2, pass its quiz",
+"Pineapple Juice self-training — complete Module 3, pass its quiz",
+"Pineapple Juice self-training — complete Module 4, pass its quiz",
+"Complete lender registration with Scotia (mandatory)",
+"Complete lender registration with one additional A lender",
+"Complete lender registration with one B lender",
+"Dummy application for a T4 employee — run the numbers as a Conventional Purchase",
+"Same T4 dummy file — run the numbers as a High Ratio Purchase",
+"Same T4 dummy file — run the numbers as a Conventional Refinance",
+"Same T4 dummy file — run the numbers as a High Ratio Refinance",
+"Dummy application for a BFS (business-for-self) client — run the numbers as a Conventional Purchase",
+"Same BFS dummy file — run the numbers as a High Ratio Purchase",
+"Same BFS dummy file — run the numbers as a Conventional Refinance",
+"Same BFS dummy file — run the numbers as a High Ratio Refinance",
+"Take the T4 or BFS dummy file and run the numbers applicable to B lending",
+"Gemini Pro: log in, complete the intro tutorial, practice answering one client-style and one realtor-style query",
+"Canva: log in, complete one template tutorial, design one sample social graphic",
+"Learn the application link and how to request documents through Doc Genius",
+"Start calling your uploaded contacts; send introduction emails to at least 5 of them",
+"Continue calling/emailing contacts; organize your calendar and add your first tasks into it",
+"Learn to track your contacts and tasks in Pineapple Plus",
+"Set your first performance target: book at least 2 appointments for next week",
+"Intro to Pineapple Insights — review how to read your performance and pipeline; Phase 1 checkpoint call with Vik/Guru",
+"PineappleONE: tour the dashboard, locate application, docs, and conditions tabs",
+"PineappleONE: fill out one full mock application start to finish",
+"PineappleONE: validate the mock application from Day 32 — fix any flagged errors",
+"Write one underwriting (UW) note for the mock application",
+"Doc Genius: upload sample docs, confirm auto-generated conditions match the file",
+"MAUI (deal system, not the website tool): walk through its workflow features once, end to end",
+"MAUI: use it to speed up one real task in your pipeline",
+"Loop: set up one client communication thread and send a test message",
+"Task tool: create and assign 3 sample tasks tied to the mock file",
+"Write your personal follow-up cadence (e.g. day 1, day 3, day 7 touch points)",
+"Walk the mock file through full submission in PineappleONE",
+"Pull one sample credit report and identify 3 key numbers (score, utilization, derogatory marks)",
+"A-lender basics: list 3 A lenders and one qualifying rule for each",
+"B-lender basics: list 3 B lenders and one scenario where you'd use one",
+"Private lender basics: list 2 private lenders and one scenario where you'd use one",
+"Lender portal: walk through condition fulfillment on one sample file",
+"Lender portal: walk through the signing package process on one sample file",
+"FSRA compliance: complete the compliance checklist for the mock file",
+"Scarlett Pay: log in, confirm setup, review how a commission payout works",
+"Export your current connects list into Pineapple Connect (should be 200+ by now)",
+"Run a second mock application, intake to submission, unaided",
+"Pull and review a second credit report — flag any issues that would affect lender choice",
+"Given the Day 52 file, pick A/B/Private and write one sentence justifying the choice",
+"Write a UW note for the Day 51 mock file",
+"Walk the Day 51 file through mock conditions fulfillment",
+"Run the FSRA compliance checklist on the Day 51 file",
+"Read Pineapple's appraisal-process guide; write 3 steps in your own words",
+"Read Pineapple's closing/lawyer-communication guide; write 3 steps in your own words",
+"Self-test: explain PineappleONE, Doc Genius, MAUI, and Loop out loud in under 2 minutes each",
+"Phase 2 checkpoint call with Vik/Guru: 2 mock files completed end-to-end, systems self-test passed",
+"Handle one mock complex application (self-employed or bruised-credit scenario) in PineappleONE",
+"Troubleshoot one deliberately broken MAUI task (ask Guru/Vik to plant an error)",
+"Review a complex credit file (multiple accounts, collections) and write your lending recommendation",
+"Given 3 different client profiles, match each to A/B/Private with one-line reasoning",
+"Coordinate a mock appraisal booking end to end",
+"Draft a full closing-communication email to a lawyer for a mock file",
+"Draft a referral follow-up message for a mock closed file",
+"Run the full file-closing checklist on a mock file, start to finish",
+"Draft a post-closing appreciation message using Gemini Pro",
+"Draft a Google review request message for a closed client",
+"Draft a testimonial request message for a closed client",
+"Draft a referral thank-you message",
+"Plan one real value-addition meeting with a referral source (topic + who)",
+"Renewal follow-up: draft the renewal-follow-up message you'd send a mock client approaching their RenewalFollowUp stage, and log it the way you'd log a real one",
+"Attend or review one lender product training session — write 3 takeaways",
+"Attend or review a second lender product training session — write 3 takeaways",
+"Run one full mock file lead-to-funded, solo, timed",
+"Take a mock declined file and write the next 3 steps you'd take with the client",
+"List the 5 most common client objections you've seen or expect",
+"Role-play (with Vik/Guru) responses to the 5 objections from Day 79",
+"Read Pineapple's cold-calling guide; write your own 30-second opener script",
+"Make 10 real cold calls using your Day 81 script; log outcomes",
+"Use Gemini Pro + Canva to create one advanced marketing piece (e.g. a mini case study post)",
+"Publish the Day 83 marketing piece",
+"Make 10 more real cold calls; log outcomes and compare to Day 82",
+"Role-play 3 fresh objections with Vik/Guru, no prep time",
+"Review full connects list — confirm status/type tagged correctly for every entry",
+"Re-run the FSRA compliance checklist and file-closing checklist from memory, no notes",
+"Write a 1-page self-assessment: strongest phase, weakest phase, what needs more practice",
+"Graduation checkpoint with Vik: full program review, Day 89 self-assessment discussed"
+];
 
 let mortgageRecruits = [];
 let recruitEditingId = null;
