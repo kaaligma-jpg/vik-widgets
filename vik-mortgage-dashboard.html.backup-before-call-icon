@@ -2204,7 +2204,7 @@ async function startBrowserCall(id){
     }
     const conn = await device.connect({ params: { To: dialNumber, ClientId: id } });
     activeCallConn = conn;
-    conn.on('accept', function(){ updateCallStatusText('In call — recording'); markLeadCalled(id); });
+    conn.on('accept', () => updateCallStatusText('In call — recording'));
     conn.on('disconnect', () => {
       updateCallStatusText('Call ended — Vikram is reviewing the recording');
       setTimeout(hideCallStatusOverlay, 2000);
@@ -5059,20 +5059,6 @@ saveKeyPartnersToServer = async function(){
   };
 
 })();
-
-// ===== Phone icon marks the lead as called =====
-async function markLeadCalled(id){
-  try {
-    const c = clients.find(function(x){ return x.id === id; });
-    if (!c) return;
-    if (c.stage === 'Lead') c.calledByVik = true;
-    if (!Array.isArray(c.commHistory)) c.commHistory = [];
-    c.commHistory.push({ text: 'Called from the dashboard', direction: 'outbound', ts: Date.now(), author: 'Vik' });
-    await saveClients();
-    try { render(); } catch (e) {}
-  } catch (e) { console.error('[markLeadCalled]', e); }
-}
-// ===== End phone icon =====
 </script>
 </body>
 </html>
