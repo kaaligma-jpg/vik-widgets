@@ -193,17 +193,6 @@
   .task-card.status-red{ border-left-color:var(--danger); }
   .task-card.status-yellow{ border-left-color:var(--future); }
   .task-card.status-purple{ border-left-color:var(--stale); }
-  .task-card.cat-vikmtg{ background:#EAF2FB; }
-  .task-card.cat-vikins{ background:#EAF7EE; }
-  .task-card.cat-vikrecm{ background:#F3EEFB; }
-  .task-card.cat-vikreci{ background:#FDF2E7; }
-  .task-card.cat-vikkp{ background:#FBF0F4; }
-  .task-cat-chip{ display:inline-block; font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; padding:2px 7px; border-radius:10px; margin-right:6px; }
-  .task-cat-chip.cat-vikmtg{ background:#2E5B7C; color:#fff; }
-  .task-cat-chip.cat-vikins{ background:#2F7A4B; color:#fff; }
-  .task-cat-chip.cat-vikrecm{ background:#5B4B8A; color:#fff; }
-  .task-cat-chip.cat-vikreci{ background:#A8651E; color:#fff; }
-  .task-cat-chip.cat-vikkp{ background:#8A4458; color:#fff; }
   .task-dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; }
   .task-dot.status-green{ background:var(--good); }
   .task-dot.status-red{ background:var(--danger); }
@@ -1570,10 +1559,8 @@ async function saveForm(){
   };
   if(editingId){
     const idx = clients.findIndex(c=>c.id===editingId);
-    const prevStage = clients[idx] ? clients[idx].stage : '';
     clients[idx] = {...clients[idx], ...data};
     showToast('Client updated');
-    maybeCreateInstructedInsuranceTask(clients[idx], prevStage);
   }else{
     const newId = uid();
     clients.push({ id: newId, createdAt: Date.now(), dealCode: nextDealCode(), notesList: [], researchNotes: [], commHistory: [], agentNotes: [], topSummary: '', researchStatus: 'pending', sashaChat: [], sashaAutoSend: false, documents: [], ...data });
@@ -3151,21 +3138,6 @@ function vtUpdateTabCounts(){
   });
 }
 
-// When a mortgage file reaches Instructed, the deal is done — that is the moment
-// to talk insurance, investment and education planning. Fires once per client.
-function maybeCreateInstructedInsuranceTask(c, prevStage){
-  if(!c) return;
-  if(c.stage !== 'Instructed') return;
-  if(prevStage === 'Instructed') return;
-  if(c.instructedInsuranceTaskDone) return;
-  c.instructedInsuranceTaskDone = true;
-  const due = new Date(Date.now() + 24*60*60*1000).toISOString();
-  const who = ((c.firstName||'') + ' ' + (c.lastName||'')).trim() || (c.name||'this client');
-  addVikActionTask('vikins', c.firstName||'', c.lastName||'', 'call', 'deal',
-    'Talk about insurance, investment and education plan with ' + who + ' - file is complete and instructed', due);
-  showToast('Insurance follow-up task created for ' + who);
-}
-
 function renderVikActionTasks(){
   const filtered = currentTaskCategory==='all' ? vikTaskState.tasks : vikTaskState.tasks.filter(t=>taskPrefixOf(t.id)===currentTaskCategory);
   vtUpdateTabCounts();
@@ -3192,10 +3164,9 @@ function renderVikActionTasks(){
     const dueStr = new Date(t.dueAt).toLocaleString();
     const fullName = (t.firstName + ' ' + t.lastName).trim();
     const nameStr = fullName ? (' &mdash; ' + escapeHtml(fullName)) : '';
-    const catPrefix = taskPrefixOf(t.id);
-    return '<div class="task-card status-' + status + ' cat-' + catPrefix + '">' +
+    return '<div class="task-card status-' + status + '">' +
       '<div>' +
-        '<div class="task-subject"><span class="task-dot status-' + status + '"></span><span class="task-cat-chip cat-' + catPrefix + '">' + taskCategoryLabel(catPrefix) + '</span><span class="task-id-tag">' + t.id + '</span>' + escapeHtml(taskTypeLabel(t.taskType)) + ': ' + escapeHtml(t.subject) + nameStr + '</div>' +
+        '<div class="task-subject"><span class="task-dot status-' + status + '"></span><span class="task-id-tag">' + t.id + '</span>' + escapeHtml(taskTypeLabel(t.taskType)) + ': ' + escapeHtml(t.subject) + nameStr + '</div>' +
         '<div class="task-meta">' + taskCategoryLabel(taskPrefixOf(t.id)) + ' &middot; ' + relatedTypeLabel(t.relatedType) + ' &middot; due ' + dueStr + '</div>' +
       '</div>' +
       '<div class="task-actions">' +
