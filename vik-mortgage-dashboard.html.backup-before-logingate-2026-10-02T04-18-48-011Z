@@ -342,66 +342,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-<!-- ===== VIK LOGIN GATE (added by fix-add-login-screen.js) ===== -->
-<div id="vikLoginGate" style="position:fixed;inset:0;z-index:2147483600;background:linear-gradient(160deg,#0f172a 0%,#1e293b 100%);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <div style="width:100%;max-width:340px;padding:28px 26px;background:#1e293b;border:1px solid #334155;border-radius:14px;">
-    <div style="font-size:21px;font-weight:700;color:#f8fafc;margin-bottom:4px;">Vik Super System</div>
-    <div style="font-size:13px;color:#94a3b8;margin-bottom:20px;">Dream Home + Life</div>
-    <input id="vikLoginUser" type="text" placeholder="Username" autocomplete="username" style="width:100%;padding:11px 12px;margin-bottom:10px;border-radius:9px;border:1px solid #334155;background:#0f172a;color:#f8fafc;font-size:15px;">
-    <input id="vikLoginPass" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;padding:11px 12px;margin-bottom:14px;border-radius:9px;border:1px solid #334155;background:#0f172a;color:#f8fafc;font-size:15px;">
-    <button id="vikLoginBtn" style="width:100%;padding:11px;border:0;border-radius:9px;background:#2563eb;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">Sign in</button>
-    <div id="vikLoginMsg" style="margin-top:12px;font-size:13px;color:#f87171;min-height:17px;"></div>
-  </div>
-</div>
-<script>
-(function(){
-  var API = 'https://fincop-backend.onrender.com';
-  var KEY = 'vikDashToken';
-  var gate = document.getElementById('vikLoginGate');
-  var btn  = document.getElementById('vikLoginBtn');
-  var msg  = document.getElementById('vikLoginMsg');
-  var u    = document.getElementById('vikLoginUser');
-  var p    = document.getElementById('vikLoginPass');
-
-  function open(){ if(gate && gate.parentNode) gate.parentNode.removeChild(gate); }
-
-  function tryToken(){
-    var t = localStorage.getItem(KEY);
-    if(!t) return;
-    fetch(API + '/auth-check', { headers: { 'x-vik-token': t } })
-      .then(function(r){ if(r.ok) open(); else localStorage.removeItem(KEY); })
-      .catch(function(){ open(); });
-  }
-
-  function doLogin(){
-    msg.textContent = '';
-    btn.disabled = true; btn.textContent = 'Checking...';
-    fetch(API + '/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: u.value, password: p.value })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      btn.disabled = false; btn.textContent = 'Sign in';
-      if(d && d.ok && d.token){ localStorage.setItem(KEY, d.token); open(); }
-      else { msg.textContent = (d && d.error) ? d.error : 'Login failed'; }
-    })
-    .catch(function(){
-      btn.disabled = false; btn.textContent = 'Sign in';
-      msg.textContent = 'Cannot reach server. Try again.';
-    });
-  }
-
-  btn.addEventListener('click', doLogin);
-  p.addEventListener('keydown', function(e){ if(e.key === 'Enter') doLogin(); });
-  u.addEventListener('keydown', function(e){ if(e.key === 'Enter') p.focus(); });
-  setTimeout(function(){ u.focus(); }, 60);
-  tryToken();
-})();
-</script>
-<!-- ===== END VIK LOGIN GATE ===== -->
-
 
 <div class="app">
   <div class="sidebar">

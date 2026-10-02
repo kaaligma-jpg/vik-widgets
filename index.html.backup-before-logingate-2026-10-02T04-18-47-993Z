@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vik Super System</title>
+<style>
+* { box-sizing: border-box; }
+body { margin:0; min-height:100vh; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:linear-gradient(160deg,#0f172a 0%,#1e293b 100%); color:#f8fafc; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 20px; }
+h1 { font-size:30px; font-weight:700; margin:0 0 6px; letter-spacing:-0.5px; }
+.sub { color:#94a3b8; font-size:15px; margin:0 0 34px; }
+.grid { display:grid; gap:16px; width:100%; max-width:430px; }
+a.card { display:flex; align-items:center; gap:16px; background:#1e293b; border:1px solid #334155; border-radius:14px; padding:20px 22px; text-decoration:none; color:#f8fafc; transition:transform .12s ease, border-color .12s ease, background .12s ease; }
+a.card:hover { transform:translateY(-2px); border-color:#64748b; background:#243247; }
+.ico { font-size:30px; line-height:1; }
+.t { font-size:19px; font-weight:600; display:block; }
+.d { font-size:13px; color:#94a3b8; margin-top:3px; display:block; }
+.foot { margin-top:34px; color:#64748b; font-size:12px; text-align:center; }
+</style>
+</head>
+<body>
+<h1>Vik Super System</h1>
+<p class="sub">Dream Home + Life</p>
+<div class="grid">
+<a class="card" href="vik-mortgage-dashboard.html"><span class="ico">&#127968;</span><span><span class="t">Mortgage</span><span class="d">Leads, deals, Vikram, Guru</span></span></a>
+<a class="card" href="vik-insurance-dashboard.html"><span class="ico">&#128737;</span><span><span class="t">Insurance</span><span class="d">WFG clients, recruits, Sasha</span></span></a>
+<a class="card" href="vik-mandy-dashboard.html"><span class="ico">&#128226;</span><span><span class="t">Mandy</span><span class="d">Marketing, newsletter, content</span></span></a>
+</div>
+<p class="foot">Vikas Sharma &middot; Pineapple Financial Inc.</p>
+</body>
+</html>
