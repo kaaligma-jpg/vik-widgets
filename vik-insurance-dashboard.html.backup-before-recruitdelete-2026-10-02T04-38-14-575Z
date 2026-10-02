@@ -1597,7 +1597,7 @@ function renderRecruits(){
         <td>${recruitLicensingLabel(r)}</td>
         <td>${recruitRiskBadge(r)}</td>
         <td onclick="event.stopPropagation()">${r.phone ? `<button class="call-icon-btn" title="Call now from browser" onclick="startBrowserCallRecruit('${r.id}')">☎️</button>` : ''}</td>
-        <td><button class="btn ghost small" type="button" onclick="event.stopPropagation(); openRecruitDetail('${r.id}')">Edit</button> <button class="btn small danger" type="button" onclick="event.stopPropagation(); deleteRecruit('${r.id}')">Delete</button></td>
+        <td><button class="btn ghost small" type="button" onclick="event.stopPropagation(); openRecruitDetail('${r.id}')">Edit</button></td>
       </tr>`;
     }).join('');
 
@@ -1622,16 +1622,6 @@ function renderRecruits(){
     if(r) renderRecruitDetailPanel(r);
     else { openRecruitId = null; closeOverlay(); }
   }
-}
-
-function deleteRecruit(id){
-  const r = recruits.find(x=>x.id===id);
-  if(!r) return;
-  const nm = (r.name||'').trim() || 'this recruit';
-  if(!confirm('Delete ' + nm + ' permanently? This cannot be undone.')) return;
-  recruits = recruits.filter(x=>x.id!==id);
-  saveRecruits();
-  renderRecruits();
 }
 
 function renderRecruitDetailPanel(r){

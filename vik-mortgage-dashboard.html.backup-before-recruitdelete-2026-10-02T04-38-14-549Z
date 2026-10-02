@@ -3910,7 +3910,7 @@ function renderRecruits(){
       <td>${dayLabel}</td>
       <td>${r.guruAssigned && r.startDate ? '<span class="badge Approved">'+prog.green+' green</span> <span class="badge Declined">'+prog.red+' red</span>' : '—'}</td>
       <td>${r.prospects.length} / 100</td>
-      <td onclick="event.stopPropagation()"><button class="call-icon-btn" title="Call now from browser" onclick="startBrowserCallRecruit('${r.id}')">☎️</button> <button class="btn small danger" title="Delete recruit" onclick="deleteRecruit('${r.id}')">Delete</button></td>
+      <td onclick="event.stopPropagation()"><button class="call-icon-btn" title="Call now from browser" onclick="startBrowserCallRecruit('${r.id}')">☎️</button></td>
     </tr>`;
   }).join('');
 
@@ -3934,16 +3934,6 @@ function renderRecruits(){
       </div>
     </div>`;
   }).join('');
-}
-
-function deleteRecruit(id){
-  const r = mortgageRecruits.find(x=>x.id===id);
-  if(!r) return;
-  const nm = ((r.firstName||'')+' '+(r.lastName||'')).trim() || 'this recruit';
-  if(!confirm('Delete ' + nm + ' permanently? This cannot be undone.')) return;
-  mortgageRecruits = mortgageRecruits.filter(x=>x.id!==id);
-  saveRecruits();
-  renderRecruits();
 }
 
 function renderProspectList(r){
