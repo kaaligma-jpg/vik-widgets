@@ -3243,7 +3243,6 @@ function renderVikActionTasks(){
   if(filtered.length === 0){
     wrap.innerHTML = '';
     empty.style.display = '';
-    kpRenderPager(0, 1);
     return;
   }
   empty.style.display = 'none';
@@ -3627,14 +3626,12 @@ let currentKpFilter = 'all';
 let currentKpOtherFilter = null; // specific custom profession text, only used when currentKpFilter === 'others'
 
 function setKpFilter(f){
-  if(typeof kpPageState !== "undefined") kpPageState.page = 1;
   currentKpFilter = f;
   currentKpOtherFilter = null;
   renderKeyPartners();
 }
 
 function setKpOtherFilter(text){
-  if(typeof kpPageState !== "undefined") kpPageState.page = 1;
   currentKpOtherFilter = text;
   renderKeyPartners();
 }
@@ -3648,55 +3645,6 @@ function kpMatchesFilter(p, filter, otherFilter){
   }
   return p.category === 'referral' && p.profession === filter; // realtor / accountant / lawyer
 }
-
-let kpPageState = { page: 1, size: 25 };
-
-function kpSetPageSize(n){
-  kpPageState.size = parseInt(n, 10) || 25;
-  kpPageState.page = 1;
-  try{ localStorage.setItem('kpPageSize', String(kpPageState.size)); }catch(e){}
-  renderKeyPartners();
-}
-
-function kpGoPage(n){
-  kpPageState.page = n;
-  renderKeyPartners();
-  const w = document.getElementById('kpListWrap');
-  if(w && w.scrollIntoView) w.scrollIntoView({ behavior:'smooth', block:'start' });
-}
-
-function kpRenderPager(total, totalPages){
-  let bar = document.getElementById('kpPagerBar');
-  if(!bar){
-    const wrap = document.getElementById('kpListWrap');
-    if(!wrap) return;
-    bar = document.createElement('div');
-    bar.id = 'kpPagerBar';
-    bar.style.cssText = 'display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin:12px 0; font-size:14px;';
-    wrap.parentNode.insertBefore(bar, wrap);
-  }
-  if(total === 0){ bar.innerHTML = ''; return; }
-  const p = kpPageState.page;
-  const from = (p - 1) * kpPageState.size + 1;
-  const to = Math.min(total, p * kpPageState.size);
-  const sizes = [25, 50, 75, 100];
-  const opts = sizes.map(function(n){
-    return '<option value="' + n + '"' + (n === kpPageState.size ? ' selected' : '') + '>' + n + ' per page</option>';
-  }).join('');
-  bar.innerHTML =
-    '<div>Showing ' + from + '\u2013' + to + ' of ' + total + '</div>' +
-    '<div style="display:flex; gap:8px; align-items:center;">' +
-      '<select onchange="kpSetPageSize(this.value)" style="padding:6px 8px;">' + opts + '</select>' +
-      '<button class="btn small" ' + (p <= 1 ? 'disabled' : '') + ' onclick="kpGoPage(' + (p - 1) + ')">Prev</button>' +
-      '<span>Page ' + p + ' of ' + totalPages + '</span>' +
-      '<button class="btn small" ' + (p >= totalPages ? 'disabled' : '') + ' onclick="kpGoPage(' + (p + 1) + ')">Next</button>' +
-    '</div>';
-}
-
-try{
-  const savedKpSize = parseInt(localStorage.getItem('kpPageSize'), 10);
-  if([25,50,75,100].indexOf(savedKpSize) !== -1) kpPageState.size = savedKpSize;
-}catch(e){}
 
 function renderKeyPartners(){
   const tabsWrap = document.getElementById('kpFilterTabs');
@@ -3741,13 +3689,7 @@ function renderKeyPartners(){
     return;
   }
   empty.style.display = 'none';
-  const sortedAll = filtered.slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
-  const kpTotalPages = Math.max(1, Math.ceil(sortedAll.length / kpPageState.size));
-  if(kpPageState.page > kpTotalPages) kpPageState.page = kpTotalPages;
-  if(kpPageState.page < 1) kpPageState.page = 1;
-  const kpStart = (kpPageState.page - 1) * kpPageState.size;
-  const sorted = sortedAll.slice(kpStart, kpStart + kpPageState.size);
-  kpRenderPager(sortedAll.length, kpTotalPages);
+  const sorted = filtered.slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
   wrap.innerHTML = sorted.map(function(p){
     const fullName = (p.firstName + ' ' + p.lastName).trim();
     const photoHtml = p.cardPhoto ? '<img class="kp-photo" src="' + p.cardPhoto + '">' : '';
