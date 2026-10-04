@@ -3835,6 +3835,11 @@ function progressCounts(r){
 function toggleGuruAssigned(id, checked){
   const r = mortgageRecruits.find(x=>x.id===id);
   if(!r) return;
+  if(checked){
+    if(!confirm('Assign Guru to ' + (r.firstName||'this recruit') + '?\n\nThey will start receiving daily training emails.')){ renderRecruits(); return; }
+  } else {
+    if(!confirm('Take Guru OFF ' + (r.firstName||'this recruit') + '?\n\nThey will STOP receiving daily training emails.')){ renderRecruits(); return; }
+  }
   r.guruAssigned = checked;
   if(checked && !r.startDate){
     const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(0,0,0,0);
@@ -3936,6 +3941,7 @@ function renderRecruits(){
     const hay = [r.firstName,r.lastName,r.email,r.phone].join(' ').toLowerCase();
     return hay.includes(search);
   });
+  filtered.sort((a,b)=>String(a.displayId||'zzz').localeCompare(String(b.displayId||'zzz')));
   const tbody = document.getElementById('recruitTbody');
   const cardsWrap = document.getElementById('recruitCardsWrap');
   const emptyEl = document.getElementById('recruitEmptyState');
