@@ -3797,10 +3797,33 @@ mortgageRecruits = [];
 
 async function saveRecruits(){
 try{
+  let out = mortgageRecruits;
+  try{
+    const fres = await fetch(RECRUIT_ENDPOINT);
+    const fdata = await fres.json();
+    const live = fdata && fdata.value ? JSON.parse(fdata.value) : null;
+    if(Array.isArray(live)){
+      out = mortgageRecruits.map(function(mine){
+        const srv = live.find(function(x){ return x.id===mine.id; });
+        if(!srv) return mine;
+        const merged = Object.assign({}, mine);
+        if(Array.isArray(srv.prospects)){
+          const have = {}; (mine.prospects||[]).forEach(function(p){ have[p.id]=1; });
+          merged.prospects = (mine.prospects||[]).concat(srv.prospects.filter(function(p){ return !have[p.id]; }));
+        }
+        if(Array.isArray(srv.dailyReplies)){
+          const seen = {}; (mine.dailyReplies||[]).forEach(function(d){ seen[(d.day||"")+"|"+(d.ts||"")+"|"+(d.text||"")]=1; });
+          merged.dailyReplies = (mine.dailyReplies||[]).concat(srv.dailyReplies.filter(function(d){ return !seen[(d.day||"")+"|"+(d.ts||"")+"|"+(d.text||"")]; }));
+        }
+        return merged;
+      });
+      mortgageRecruits = out;
+    }
+  }catch(e){}
 await fetch(RECRUIT_ENDPOINT, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ value: JSON.stringify(mortgageRecruits) })
+body: JSON.stringify({ value: JSON.stringify(out) })
 });
 }catch(e){
 showToast('Could not save recruit — try again');
