@@ -4015,13 +4015,29 @@ function renderProspectList(r){
   return `<div class="notes-list">` + r.prospects.map(p=>`
     <div class="note-item" style="display:flex; justify-content:space-between; align-items:center;">
       <div><b>${escapeHtml(p.firstName+' '+p.lastName)}</b> — ${escapeHtml(p.type)}<div class="note-meta">${escapeHtml(p.email)||'—'} ${escapeHtml(p.phone)||''}</div></div>
-      <button class="btn small danger" onclick="removeProspect('${r.id}','${p.id}')">Remove</button>
+      <div style="display:flex; gap:6px;"><button class="btn small" onclick="prospectToKeyPartner('${r.id}','${p.id}')">Key Partner</button><button class="btn small danger" onclick="removeProspect('${r.id}','${p.id}')">Remove</button></div>
     </div>`).join('') + `</div>`;
+}
+
+function prospectToKeyPartner(recruitId, prospectId){
+  const r = mortgageRecruits.find(x=>x.id===recruitId);
+  if(!r) return;
+  const p = r.prospects.find(x=>x.id===prospectId);
+  if(!p) return;
+  const nm = (p.firstName+" "+p.lastName).trim();
+  const dup = vikKeyPartners.find(k=>(k.email&&p.email&&k.email.toLowerCase()===p.email.toLowerCase())||(k.phone&&p.phone&&k.phone.replace(/[^0-9]/g,"")===p.phone.replace(/[^0-9]/g,"")));
+  if(dup){ showToast(nm+" is already in Key Partners"); return; }
+  if(!confirm("Add "+nm+" to your Key Partners?")) return;
+  vikKeyPartners.push({ id: kpUid(), firstName: p.firstName||"", lastName: p.lastName||"", company: "", phone: p.phone||"", email: p.email||"", category: "referral", profession: "other", otherProfession: "", notes: "From "+r.firstName+" "+r.lastName+" Top 100 list", birthday: "", cardPhoto: null, createdAt: new Date().toISOString() });
+  saveKeyPartnersToServer();
+  showToast(nm+" added to Key Partners");
 }
 
 function removeProspect(recruitId, prospectId){
   const r = mortgageRecruits.find(x=>x.id===recruitId);
   if(!r) return;
+  const px = r.prospects.find(x=>x.id===prospectId);
+  if(px && !confirm("Remove "+(px.firstName+" "+px.lastName).trim()+" from this list?")) return;
   r.prospects = r.prospects.filter(p=>p.id!==prospectId);
   saveRecruits();
   openRecruitDetail(recruitId);
