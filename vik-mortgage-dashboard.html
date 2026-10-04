@@ -3387,6 +3387,9 @@ function importDcBatch(){
       added++;
     });
     saveKeyPartnersToServer();
+  p.inKeyPartners = true;
+  saveRecruits();
+  openRecruitDetail(recruitId);
     renderKeyPartners();
     showToast('Imported ' + added + ' Key Partners');
     document.getElementById('dcForm').classList.remove('open');
@@ -4038,7 +4041,7 @@ function renderProspectList(r){
   return `<div class="notes-list">` + r.prospects.map(p=>`
     <div class="note-item" style="display:flex; justify-content:space-between; align-items:center;">
       <div><b>${escapeHtml(p.firstName+' '+p.lastName)}</b> — ${escapeHtml(p.type)}<div class="note-meta">${escapeHtml(p.email)||'—'} ${escapeHtml(p.phone)||''}</div></div>
-      <div style="display:flex; gap:6px;"><button class="btn small" onclick="prospectToKeyPartner('${r.id}','${p.id}')">Key Partner</button><button class="btn small danger" onclick="removeProspect('${r.id}','${p.id}')">Remove</button></div>
+      <div style="display:flex; gap:6px;">${p.inKeyPartners ? `<span class="note-meta" style="color:#2e7d32;">Added in KP</span>` : `<button class="btn small" onclick="prospectToKeyPartner('${r.id}','${p.id}')">Key Partner</button>`}<button class="btn small danger" onclick="removeProspect('${r.id}','${p.id}')">Remove</button></div>
     </div>`).join('') + `</div>`;
 }
 
