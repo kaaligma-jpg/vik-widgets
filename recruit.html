@@ -95,6 +95,7 @@
     <div class="card">
       <h1>Top 100 list</h1>
       <div class="sub" id="prospCount"></div>
+      <div id="prospList" style="margin-top:10px;"></div>
       <div class="row2">
         <div><label>First name</label><input id="pFirst"></div>
         <div><label>Last name</label><input id="pLast"></div>
@@ -158,6 +159,31 @@ async function signIn(){
   }
 }
 
+var PROSPECTS = [];
+function esc(t){ return String(t==null?"":t).replace(/[&<>"]/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+function renderProspects(list){
+  PROSPECTS = list || [];
+  var el = document.getElementById("prospList");
+  if(!el) return;
+  if(!PROSPECTS.length){ el.innerHTML = ""; return; }
+  el.innerHTML = PROSPECTS.map(function(p,i){
+    return "<div style=\"padding:8px 0;border-top:1px solid rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center;gap:8px;\"><div><b>"+esc((p.firstName||"")+" "+(p.lastName||""))+"</b> — "+esc(p.type||"")+"<div class=\"sub\">"+esc(p.email||"")+" "+esc(p.phone||"")+"</div></div><button class=\"btn secondary\" style=\"padding:4px 10px;\" onclick=\"editProspect("+i+")\">Edit</button></div>";
+  }).join("");
+}
+async function editProspect(i){
+  var p = PROSPECTS[i];
+  if(!p) return;
+  var fn = prompt("First name", p.firstName||""); if(fn===null) return;
+  var ln = prompt("Last name", p.lastName||""); if(ln===null) return;
+  var em = prompt("Email", p.email||""); if(em===null) return;
+  var ph = prompt("Phone", p.phone||""); if(ph===null) return;
+  try{
+    var res = await fetch(API + "/recruit-prospect-edit", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ s:SIDE, r:RID, code:CODE, prospectId:p.id, firstName:fn, lastName:ln, email:em, phone:ph }) });
+    var d = await res.json();
+    if(d && d.prospects) renderProspects(d.prospects);
+  }catch(e){}
+}
+
 function paint(d){
   DAY = d.day || 0;
   document.getElementById('hello').textContent = 'Hello ' + (d.firstName || '');
@@ -167,6 +193,7 @@ function paint(d){
   document.getElementById('taskText').textContent =
     d.task || (DAY ? 'No task loaded for today. Tell Vik.' : 'Vik will start you shortly.');
   document.getElementById('prospCount').textContent = (d.prospectCount || 0) + ' of 100 added';
+  renderProspects(d.prospects || []);
   document.getElementById('replyText').value = '';
   document.getElementById('todayThread').innerHTML = renderThread(d.chat || [], d.firstName);
   outcome = d.outcome || '';
@@ -233,6 +260,7 @@ async function addProspect(){
     if(!res.ok){ say('prospMsg', d.error || 'Could not add. Try again.', false); return; }
     ['pFirst','pLast','pEmail','pPhone'].forEach(i => document.getElementById(i).value = '');
     document.getElementById('prospCount').textContent = (d.count || 0) + ' of 100 added';
+    if(d.prospects) renderProspects(d.prospects);
     say('prospMsg','Added.', true);
   }catch(e){ say('prospMsg','Could not add. Try again.', false); }
 }
