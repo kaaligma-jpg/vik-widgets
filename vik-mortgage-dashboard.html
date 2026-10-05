@@ -4045,12 +4045,17 @@ function renderProspectList(r){
     </div>`).join('') + `</div>`;
 }
 
-function prospectToKeyPartner(recruitId, prospectId){
+async function prospectToKeyPartner(recruitId, prospectId){
   const r = mortgageRecruits.find(x=>x.id===recruitId);
   if(!r) return;
   const p = r.prospects.find(x=>x.id===prospectId);
   if(!p) return;
   const nm = (p.firstName+" "+p.lastName).trim();
+  try {
+    const fresh = await fetch(VIK_KEY_PARTNERS_ENDPOINT).then(x=>x.json());
+    const srv = JSON.parse(fresh.value||"[]");
+    if(Array.isArray(srv) && srv.length >= vikKeyPartners.length) vikKeyPartners = srv;
+  } catch(e) { alert("Could not reach server. Not saving, try again."); return; }
   const dup = vikKeyPartners.find(k=>(k.email&&p.email&&k.email.toLowerCase()===p.email.toLowerCase())||(k.phone&&p.phone&&k.phone.replace(/[^0-9]/g,"")===p.phone.replace(/[^0-9]/g,"")));
   if(dup){ showToast(nm+" is already in Key Partners"); return; }
   if(!confirm("Add "+nm+" to your Key Partners?")) return;
