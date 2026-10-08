@@ -3414,6 +3414,26 @@ async function loadKeyPartners(){
 
 async function saveKeyPartnersToServer(){
   try{
+    let srvLen = -1;
+    try{
+      const fresh = await fetch(VIK_KEY_PARTNERS_ENDPOINT).then(function(x){ return x.json(); });
+      const srv = JSON.parse(fresh.value || '[]');
+      if(Array.isArray(srv)) srvLen = srv.length;
+    }catch(e){
+      showToast('Could not reach server — not saved. Try again.');
+      return;
+    }
+    if(srvLen > 0 && vikKeyPartners.length === 0){
+      alert('Stopped: this would erase all ' + srvLen + ' Key Partners. Nothing was saved. Reload the page and try again.');
+      return;
+    }
+    const drop = srvLen - vikKeyPartners.length;
+    if(srvLen > 0 && drop > 25){
+      if(!confirm('This will remove ' + drop + ' Key Partners (from ' + srvLen + ' down to ' + vikKeyPartners.length + '). Are you sure?')){
+        showToast('Not saved');
+        return;
+      }
+    }
     await fetch(VIK_KEY_PARTNERS_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -4713,16 +4733,29 @@ async function sendKpMessage(isVoice){
   renderKpChat();
   let replyText;
   try {
-    const partners = vikKeyPartners.map(function(p){
+    let kvSource = vikKeyPartners.filter(function(p){ return kpMatchesFilter(p, currentKpFilter, currentKpOtherFilter); });
+    if(typeof kpSearchQuery !== 'undefined' && kpSearchQuery){
+      const qd = kpSearchQuery.replace(/[^0-9]/g,'');
+      kvSource = kvSource.filter(function(p){
+        const hay = ((p.firstName||'')+' '+(p.lastName||'')+' '+(p.company||'')+' '+(p.email||'')+' '+(p.phone||'')+' '+(p.notes||'')).toLowerCase();
+        if(hay.indexOf(kpSearchQuery) >= 0) return true;
+        if(qd.length >= 4 && (p.phone||'').replace(/[^0-9]/g,'').indexOf(qd) >= 0) return true;
+        return false;
+      });
+    }
+    const kvTotal = kvSource.length;
+    kvSource = kvSource.slice(0, 200);
+    const partners = kvSource.map(function(p){
       return { id: p.id, firstName: p.firstName, lastName: p.lastName, company: p.company, phone: p.phone, email: p.email, category: p.category,
-        profession: p.profession, otherProfession: p.otherProfession, birthday: p.birthday, notes: String(p.notes || '').slice(0, 600), added: p.createdAt ? String(p.createdAt).slice(0, 10) : '' };
+        profession: p.profession, otherProfession: p.otherProfession, birthday: p.birthday, notes: String(p.notes || '').slice(0, 200), added: p.createdAt ? String(p.createdAt).slice(0, 10) : '' };
     });
+    const kvCtx = ' [Context: you can see ' + partners.length + ' key partners' + (kvTotal > partners.length ? (' out of ' + kvTotal + ' matching') : '') + '. Vik has ' + vikKeyPartners.length + ' in total. If what he asks about is not in the list you can see, tell him to search for it first in the search box above the list.]';
     const tasks = (vikTaskState.tasks || []).filter(function(t){ return taskPrefixOf(t.id) === 'vikkp'; }).map(function(t){
       return { name: ((t.firstName || '') + ' ' + (t.lastName || '')).trim(), type: taskTypeLabel(t.taskType), subject: t.subject, due: tkLocal(t.dueAt).replace('T', ' '), done: !!t.completed };
     });
     const res = await fetch('https://fincop-backend.onrender.com/vikram-kp-chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: kvChat.slice(0, -1).slice(-12), partners: partners, tasks: tasks })
+      body: JSON.stringify({ message: text + kvCtx, history: kvChat.slice(0, -1).slice(-12), partners: partners, tasks: tasks })
     });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || ('error ' + res.status));
