@@ -3701,6 +3701,23 @@ try{
   if([25,50,75,100].indexOf(savedKpSize) !== -1) kpPageState.size = savedKpSize;
 }catch(e){}
 
+let kpSearchQuery = '';
+function setKpSearch(v){
+  kpSearchQuery = (v||'').trim().toLowerCase();
+  if(typeof kpPageState !== "undefined") kpPageState.page = 1;
+  renderKeyPartners();
+}
+function kpEnsureSearchBox(){
+  if(document.getElementById('kpSearchBox')) return;
+  const tabs = document.getElementById('kpFilterTabs');
+  if(!tabs || !tabs.parentNode) return;
+  const d = document.createElement('div');
+  d.style.margin = '10px 0';
+  d.innerHTML = '<input id="kpSearchBox" type="text" placeholder="Search name, company, email, phone or city" style="width:100%;max-width:480px;padding:10px 12px;border:1px solid #ccc;border-radius:8px;font-size:15px;">';
+  tabs.parentNode.insertBefore(d, tabs);
+  d.querySelector('input').addEventListener('input', function(e){ setKpSearch(e.target.value); });
+}
+
 function renderKeyPartners(){
   const tabsWrap = document.getElementById('kpFilterTabs');
   const filters = [
@@ -3737,7 +3754,17 @@ function renderKeyPartners(){
 
   const wrap = document.getElementById('kpListWrap');
   const empty = document.getElementById('kpEmptyState');
-  const filtered = vikKeyPartners.filter(function(p){ return kpMatchesFilter(p, currentKpFilter, currentKpOtherFilter); });
+  kpEnsureSearchBox();
+  let filtered = vikKeyPartners.filter(function(p){ return kpMatchesFilter(p, currentKpFilter, currentKpOtherFilter); });
+  if(kpSearchQuery){
+    const qd = kpSearchQuery.replace(/[^0-9]/g,'');
+    filtered = filtered.filter(function(p){
+      const hay = ((p.firstName||'')+' '+(p.lastName||'')+' '+(p.company||'')+' '+(p.email||'')+' '+(p.phone||'')+' '+(p.notes||'')+' '+(p.otherProfession||'')).toLowerCase();
+      if(hay.indexOf(kpSearchQuery) >= 0) return true;
+      if(qd.length >= 4 && (p.phone||'').replace(/[^0-9]/g,'').indexOf(qd) >= 0) return true;
+      return false;
+    });
+  }
   if(filtered.length === 0){
     wrap.innerHTML = '';
     empty.style.display = '';
