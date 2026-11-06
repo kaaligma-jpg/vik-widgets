@@ -1152,7 +1152,7 @@ function renderReminders(){
     // renewal date explicit
     if(c.renewalDate){
       const days = daysUntil(c.renewalDate);
-      if(days !== null && days <= 60) items.push({ id:c.id, type:'Renewal', label: nameWithCode(c) + ' — mortgage renewal', date: new Date(c.renewalDate), days });
+      if(days !== null && days <= 120) items.push({ id:c.id, type:'Renewal', label: nameWithCode(c) + ' — mortgage renewal', date: new Date(c.renewalDate), days });
     }
 
     // Lender qualification check — main deal (B-Lending or Private)
@@ -1163,7 +1163,7 @@ function renderReminders(){
         items.push({ id:c.id, type:'Check A-lending eligibility', label: nameWithCode(c) + ' — private lending, quarterly check', date: new Date(), days: 0, quarterlyCheck:true });
       } else if(c.renewalDate){
         const days = daysUntil(c.renewalDate);
-        if(days !== null && days <= 60) items.push({ id:c.id, type:'Check A-lending eligibility', label: nameWithCode(c) + ' — B-lending, renewal approaching', date: new Date(c.renewalDate), days });
+        if(days !== null && days <= 120) items.push({ id:c.id, type:'Check A-lending eligibility', label: nameWithCode(c) + ' — B-lending, renewal approaching', date: new Date(c.renewalDate), days });
       }
     }
 
@@ -1173,11 +1173,11 @@ function renderReminders(){
         items.push({ id:c.id, type:'Check A-lending eligibility', label: nameWithCode(c) + ' — ' + (p.address||'additional property') + ', private lending, quarterly check', date: new Date(), days: 0, quarterlyCheck:true });
       } else if(p.lenderType === 'B Lender' && p.renewalDate){
         const days = daysUntil(p.renewalDate);
-        if(days !== null && days <= 60) items.push({ id:c.id, type:'Check A-lending eligibility', label: nameWithCode(c) + ' — ' + (p.address||'additional property') + ', B-lending, renewal approaching', date: new Date(p.renewalDate), days });
+        if(days !== null && days <= 120) items.push({ id:c.id, type:'Check A-lending eligibility', label: nameWithCode(c) + ' — ' + (p.address||'additional property') + ', B-lending, renewal approaching', date: new Date(p.renewalDate), days });
       }
       if(p.renewalDate){
         const days = daysUntil(p.renewalDate);
-        if(days !== null && days <= 60) items.push({ id:c.id, type:'Property renewal', label: nameWithCode(c) + ' — ' + (p.address||'additional property') + ' renewal', date: new Date(p.renewalDate), days });
+        if(days !== null && days <= 120) items.push({ id:c.id, type:'Property renewal', label: nameWithCode(c) + ' — ' + (p.address||'additional property') + ' renewal', date: new Date(p.renewalDate), days });
       }
     });
   });
@@ -3331,10 +3331,10 @@ function dcGuessColumn(possibleNames){
 function renderDcColumnMapping(){
   const wrap = document.getElementById('dcMappingWrap');
   const fields = [
-    {key:'firstName', label:'First Name', guesses:['first name','firstname','first']},
-    {key:'lastName', label:'Last Name', guesses:['last name','lastname','last','surname']},
-    {key:'phone', label:'Phone', guesses:['phone','mobile','cell','phone number']},
-    {key:'email', label:'Email', guesses:['email','email address']},
+    {key:'firstName', label:'First Name', guesses:['first name','firstname','first','primary applicant first name']},
+    {key:'lastName', label:'Last Name', guesses:['last name','lastname','last','surname','primary applicant last name']},
+    {key:'phone', label:'Phone', guesses:['phone','mobile','cell','phone number','primary applicant phone']},
+    {key:'email', label:'Email', guesses:['email','email address','primary applicant email']},
     {key:'company', label:'Company', guesses:['company','brokerage','firm']}
   ];
   let html = '<label style="font-size:12px; color:var(--slate); display:block; margin:10px 0 6px;">' + dcParsedRows.length + ' rows found. Match each field to a column from your file:</label>';
@@ -3347,14 +3347,32 @@ function renderDcColumnMapping(){
       dcHeaders.map(h => '<option value="'+escapeHtml(h)+'"'+(h===guess?' selected':'')+'>'+escapeHtml(h)+'</option>').join('') +
       '</select></div>';
   });
+  html += '<div id="dcClientMappingWrap" style="display:none; border-top:1px solid #e5e7eb; margin-top:10px; padding-top:10px;">' +
+    '<div style="font-size:12px; color:var(--slate); margin-bottom:6px;">Mortgage deal details (matched automatically from a Pineapple One export — change if needed):</div>';
+  DC_CLIENT_FIELDS.forEach(f=>{
+    const guess = dcGuessColumn(f.guesses);
+    html += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">' +
+      '<span style="width:130px; font-size:13px;">' + f.label + '</span>' +
+      '<select id="dcMap_' + f.key + '" style="flex:1;">' +
+      '<option value="">-- none --</option>' +
+      dcHeaders.map(h => '<option value="'+escapeHtml(h)+'"'+(h===guess?' selected':'')+'>'+escapeHtml(h)+'</option>').join('') +
+      '</select></div>';
+  });
+  html += '<label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-top:8px;">' +
+    '<input type="checkbox" id="dcAlsoInsurance" checked> Also create an insurance lead for each client (for LLQP follow-up)</label>' +
+    '<div class="hint" style="margin-top:6px;">Rows whose Pineapple deal # is already in the dashboard are skipped, so you can re-import the same export safely.</div>' +
+    '</div>';
   wrap.innerHTML = html;
   document.getElementById('dcDestinationWrap').style.display = '';
+  onDcDestinationChange();
 }
 
 function onDcDestinationChange(){
   const dest = document.getElementById('dcDestination').value;
   document.getElementById('dcPipelineWrap').style.display = (dest==='recruits'||dest==='clients') ? '' : 'none';
   document.getElementById('dcKpOptionsWrap').style.display = (dest==='keypartners') ? 'flex' : 'none';
+  const cw = document.getElementById('dcClientMappingWrap');
+  if(cw) cw.style.display = (dest==='clients') ? '' : 'none';
 }
 
 function importDcBatch(){
@@ -3387,9 +3405,6 @@ function importDcBatch(){
       added++;
     });
     saveKeyPartnersToServer();
-  p.inKeyPartners = true;
-  saveRecruits();
-  openRecruitDetail(recruitId);
     renderKeyPartners();
     showToast('Imported ' + added + ' Key Partners');
     document.getElementById('dcForm').classList.remove('open');
@@ -3397,10 +3412,232 @@ function importDcBatch(){
     dcParsedRows = []; dcHeaders = [];
     document.getElementById('dcMappingWrap').innerHTML = '';
     document.getElementById('dcDestinationWrap').style.display = 'none';
+  } else if(dest === 'clients'){
+    importDcClients();
   } else {
-    showToast('Bulk import for Recruits/Clients is coming soon — Key Partners import is ready now');
+    showToast('Bulk import for Recruits is coming soon');
   }
 }
+
+// ===== Data Center — Clients import (added by fix-data-center-clients-import.js) =====
+const DC_CLIENT_FIELDS = [
+  {key:'dealRef',      label:'Pineapple deal #', guesses:['deal #','deal number','deal id','deal']},
+  {key:'closingDate',  label:'Closing date',     guesses:['closing date','funded date','funding date','closing']},
+  {key:'maturityDate', label:'Maturity / renewal date', guesses:['maturity date','renewal date','maturity']},
+  {key:'lender',       label:'Lender',           guesses:['lender','lender name']},
+  {key:'purpose',      label:'Purpose',          guesses:['application purpose','purpose','deal type']},
+  {key:'rate',         label:'Rate',             guesses:['net rate','rate','interest rate']},
+  {key:'rateType',     label:'Rate type',        guesses:['rate type']},
+  {key:'volume',       label:'Mortgage amount',  guesses:['total volume','mortgage amount','amount','loan amount']},
+  {key:'ltv',          label:'LTV',              guesses:['combined ltv','ltv']},
+  {key:'insured',      label:'Insured flag',     guesses:['insured flag','insured']},
+  {key:'agent',        label:'Agent',            guesses:['agent','agent name','broker']},
+  {key:'dob',          label:'Date of birth',    guesses:['date of birth','dob','birthday','primary applicant date of birth','primary applicant dob']},
+  {key:'coFirst',      label:'Co-applicant first', guesses:['secondary applicant first name','co-applicant first name']},
+  {key:'coLast',       label:'Co-applicant last',  guesses:['secondary applicant last name','co-applicant last name']},
+  {key:'coEmail',      label:'Co-applicant email', guesses:['secondary applicant email','co-applicant email']},
+  {key:'coPhone',      label:'Co-applicant phone', guesses:['secondary applicant phone','co-applicant phone']}
+];
+// Lenders treated as B-lending so the "check A-lending eligibility" reminder fires before renewal.
+const DC_B_LENDERS = ['home trust','community trust','oppono','square lending','haventree','equitable','cwb optimum','bridgewater','marathon','cmls aveo','first national excalibur'];
+
+function dcVal(row, key){
+  const sel = document.getElementById('dcMap_' + key);
+  const col = sel ? sel.value : '';
+  if(!col) return '';
+  const v = row[col];
+  return (v === null || v === undefined) ? '' : v;
+}
+// Excel gives dates as serial numbers; CSV gives text. Returns YYYY-MM-DD or ''.
+function dcToISODate(v){
+  if(v === '' || v === null || v === undefined) return '';
+  let d;
+  if(v instanceof Date) d = v;
+  else if(typeof v === 'number') d = new Date(Math.round((v - 25569) * 86400000));
+  else d = new Date(String(v).trim());
+  if(isNaN(d.getTime())) return '';
+  return d.toISOString().slice(0,10);
+}
+function dcMonthsBetween(a, b){
+  const d1 = new Date(a), d2 = new Date(b);
+  return (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+}
+function dcTermYears(closing, maturity){
+  if(!closing || !maturity) return '';
+  const months = dcMonthsBetween(closing, maturity);
+  if(months <= 0) return '';
+  const years = Math.round(months / 12);
+  return (years >= 1 && years <= 5) ? String(years) : '';
+}
+function dcProductFor(purpose){
+  const p = String(purpose || '').toLowerCase();
+  if(p.startsWith('purchase')) return 'Purchase (Resale)';
+  if(p.startsWith('refinance') || p === 'eto') return 'Refinance';
+  if(p.startsWith('switch')) return 'Switch';
+  if(p.includes('heloc')) return 'HELOC';
+  return '';
+}
+function dcMortgageTypeFor(lender, insured){
+  const l = String(lender || '').toLowerCase();
+  if(l.includes('private')) return 'Private';
+  if(DC_B_LENDERS.some(b => l.includes(b))) return 'B-Lending';
+  const ins = String(insured).toLowerCase();
+  if(ins === 'true' || ins === 'yes' || ins === '1') return 'High Ratio';
+  return 'Conventional';
+}
+function dcMoney(v){
+  const n = parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
+  return isNaN(n) ? '' : n.toLocaleString('en-CA', {style:'currency', currency:'CAD', maximumFractionDigits:0});
+}
+
+async function importDcClients(){
+  const mapFirst = document.getElementById('dcMap_firstName').value;
+  const mapLast = document.getElementById('dcMap_lastName').value;
+  const mapPhone = document.getElementById('dcMap_phone').value;
+  const mapEmail = document.getElementById('dcMap_email').value;
+  const alsoInsurance = document.getElementById('dcAlsoInsurance') && document.getElementById('dcAlsoInsurance').checked;
+  const importedAt = new Date().toISOString().slice(0,10);
+
+  // 1. Start from the server's current list so nothing added elsewhere gets lost.
+  showToast('Importing… fetching current clients');
+  try{
+    const res = await fetch('https://fincop-backend.onrender.com/app-data/mortgage-clients');
+    const data = await res.json();
+    const fresh = data && data.value ? JSON.parse(data.value) : null;
+    if(Array.isArray(fresh)){ mergeBackgroundNotes(fresh); }
+  }catch(e){ console.warn('Could not refresh clients before import', e); }
+
+  const existingRefs = new Set(clients.map(c => String(c.pineappleDealId || '').trim()).filter(Boolean));
+  const existingEmails = new Set(clients.map(c => String(c.email || '').trim().toLowerCase()).filter(Boolean));
+  const newClients = [];
+  let skipped = 0;
+
+  dcParsedRows.forEach(row => {
+    const firstName = String(row[mapFirst] || '').trim();
+    if(!firstName) return;
+    const lastName = mapLast ? String(row[mapLast] || '').trim() : '';
+    const phone = normalizePhone(mapPhone ? row[mapPhone] : '');
+    const email = mapEmail ? String(row[mapEmail] || '').trim() : '';
+    const dealRef = String(dcVal(row, 'dealRef')).trim();
+    if(dealRef && existingRefs.has(dealRef)){ skipped++; return; }
+    if(!dealRef && email && existingEmails.has(email.toLowerCase())){ skipped++; return; }
+
+    const closingDate = dcToISODate(dcVal(row, 'closingDate'));
+    const maturityDate = dcToISODate(dcVal(row, 'maturityDate'));
+    const dob = dcToISODate(dcVal(row, 'dob'));
+    const lender = String(dcVal(row, 'lender')).trim();
+    const purpose = String(dcVal(row, 'purpose')).trim();
+    const rate = String(dcVal(row, 'rate')).trim();
+    const rateType = String(dcVal(row, 'rateType')).trim();
+    const volume = dcVal(row, 'volume');
+    const ltv = String(dcVal(row, 'ltv')).trim();
+    const agent = String(dcVal(row, 'agent')).trim();
+    const coFirst = String(dcVal(row, 'coFirst')).trim();
+    const coLast = String(dcVal(row, 'coLast')).trim();
+    const coName = (coFirst + ' ' + coLast).trim();
+    const coEmail = String(dcVal(row, 'coEmail')).trim();
+    const coPhone = normalizePhone(dcVal(row, 'coPhone'));
+    const term = dcTermYears(closingDate, maturityDate);
+
+    const summaryBits = [];
+    if(lender) summaryBits.push(lender);
+    if(purpose) summaryBits.push(purpose);
+    if(volume !== '') summaryBits.push(dcMoney(volume));
+    if(rate) summaryBits.push(rate + '%' + (rateType ? ' ' + rateType.toLowerCase() : ''));
+    if(term) summaryBits.push(term + '-yr term');
+    if(maturityDate) summaryBits.push('renews ' + maturityDate);
+    const topSummary = 'Funded deal (Pineapple' + (dealRef ? ' ' + dealRef : '') + '): ' + summaryBits.join(' · ');
+
+    const noteLines = ['Imported from Pineapple One export on ' + importedAt + '.'];
+    if(dealRef) noteLines.push('Pineapple deal #: ' + dealRef);
+    if(agent) noteLines.push('Agent on file: ' + agent);
+    if(lender) noteLines.push('Lender: ' + lender);
+    if(purpose) noteLines.push('Purpose: ' + purpose);
+    if(volume !== '') noteLines.push('Mortgage amount: ' + dcMoney(volume));
+    if(rate) noteLines.push('Rate: ' + rate + '%' + (rateType ? ' (' + rateType + ')' : ''));
+    if(ltv) noteLines.push('LTV: ' + ltv + '%');
+    if(closingDate) noteLines.push('Closed: ' + closingDate);
+    if(maturityDate) noteLines.push('Maturity: ' + maturityDate + (term ? ' (' + term + '-year term)' : ' (term could not be worked out — set it by hand)'));
+    if(coName) noteLines.push('Co-applicant: ' + coName + (coEmail ? ', ' + coEmail : '') + (coPhone ? ', ' + coPhone : ''));
+
+    newClients.push({
+      id: uid(), createdAt: Date.now(), dealCode: '',
+      notesList: [], researchNotes: [], commHistory: [],
+      agentNotes: [{ text: noteLines.join('\n'), ts: Date.now(), author: 'Data Center' }],
+      topSummary, researchStatus: 'pending', sashaChat: [], sashaAutoSend: false, documents: [],
+      name: (firstName + ' ' + lastName).trim(), firstName, lastName, phone, email, city: '', dob, anniversary: '', religion: '',
+      dealCategory: 'Residential', product: dcProductFor(purpose), mortgageType: dcMortgageTypeFor(lender, dcVal(row, 'insured')),
+      stage: 'Paid', propertyAddress: '', propertyType: 'Residential', propertyTypeOther: '', multipleProperties: 'No',
+      insuranceSoldWithDeal: '', calledByVik: '', closingDate, mortgageTerm: term, renewalDate: maturityDate,
+      insuranceStatus: '', retirementStatus: '', dependents: [], additionalProperties: [], educationPlanStatus: '',
+      referralType: 'Other', referralOther: 'Pineapple One import', referralName: agent, referralEmail: '', referralPhone: '',
+      coApplicant: coName ? { name: coName, firstName: coFirst, lastName: coLast, email: coEmail, phone: coPhone } : null,
+      lender, rate, rateType, mortgageAmount: volume, ltv, purpose,
+      pineappleDealId: dealRef, pineappleAgent: agent, importedFrom: 'Pineapple One', importedAt
+    });
+    if(dealRef) existingRefs.add(dealRef);
+    if(email) existingEmails.add(email.toLowerCase());
+  });
+
+  if(!newClients.length){
+    showToast(skipped ? 'Nothing new — all ' + skipped + ' rows are already in the dashboard' : 'No usable rows found');
+    return;
+  }
+
+  // 2. Deal codes in sequence, then one save.
+  newClients.forEach((c, i) => { c.dealCode = 'vmtg 1' + String(clients.length + i + 1).padStart(4, '0'); });
+  clients.push(...newClients);
+  await saveClients();
+  render();
+  showToast('Imported ' + newClients.length + ' mortgage clients' + (skipped ? ' (' + skipped + ' already in)' : ''));
+
+  // 3. Insurance leads — one fetch, one save.
+  let insAdded = 0;
+  if(alsoInsurance){
+    const endpoint = 'https://fincop-backend.onrender.com/app-data/insurance-clients';
+    try{
+      const res = await fetch(endpoint);
+      const data = await res.json();
+      const insClients = data && data.value ? JSON.parse(data.value) : [];
+      const insRefs = new Set(insClients.map(c => String(c.pineappleDealId || '').trim()).filter(Boolean));
+      const insLinked = new Set(insClients.map(c => String(c.linkedMortgageDealCode || '').trim()).filter(Boolean));
+      newClients.forEach(c => {
+        if(c.pineappleDealId && insRefs.has(c.pineappleDealId)) return;
+        if(insLinked.has(c.dealCode)) return;
+        insClients.push({
+          id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+          createdAt: Date.now(),
+          dealCode: 'vinc 1' + String(insClients.length + 1).padStart(4, '0'),
+          notesList: [],
+          name: c.name, firstName: c.firstName, lastName: c.lastName, phone: c.phone, email: c.email, dob: c.dob || '',
+          age: ageFromDob(c.dob), ageBand: ageBandFor(ageFromDob(c.dob)) || '',
+          leadCategory: 'Insurance', stage: 'Lead',
+          insuranceStatus: '', retirementStatus: '',
+          researchNotes: [], researchStatus: 'pending', sashaChat: [], sashaAutoSend: false,
+          sourceAgent: 'Pineapple import',
+          sourceNotes: 'Existing mortgage client imported from Pineapple One (' + c.dealCode + (c.pineappleDealId ? ', Pineapple ' + c.pineappleDealId : '') + '). ' +
+            (c.lender ? 'Lender ' + c.lender + '. ' : '') + (c.renewalDate ? 'Mortgage renews ' + c.renewalDate + '. ' : '') +
+            'Potential client for LLQP products — keep in touch.',
+          linkedMortgageDealCode: c.dealCode, pineappleDealId: c.pineappleDealId, importedFrom: 'Pineapple One', importedAt
+        });
+        insAdded++;
+      });
+      if(insAdded){
+        await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value: JSON.stringify(insClients) }) });
+      }
+    }catch(e){
+      console.error('Insurance lead import failed', e);
+      showToast('Mortgage side saved, but the insurance leads could not be saved — try again later');
+    }
+  }
+
+  showToast('Done: ' + newClients.length + ' mortgage clients, ' + insAdded + ' insurance leads' + (skipped ? ', ' + skipped + ' skipped as duplicates' : ''));
+  document.getElementById('dcFileInput').value = '';
+  dcParsedRows = []; dcHeaders = [];
+  document.getElementById('dcMappingWrap').innerHTML = '';
+  document.getElementById('dcDestinationWrap').style.display = 'none';
+}
+// ===== End Clients import =====
 
 async function loadKeyPartners(){
   try{
