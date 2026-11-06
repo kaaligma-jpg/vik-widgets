@@ -772,7 +772,9 @@ const STAGE_LABELS = {
   RenewalFollowUp:"Renewal follow-up"
 };
 const PROPERTY_TYPES = ["Residential","Mixed use","Commercial","Multi-unit residential","Land","Farm land","Recreational / Mobile home / Modular home","Other"];
-const PRODUCTS = ["Purchase (Resale)","Purchase (Builder)","Refinance","HELOC","Second Mortgage","Switch","Home Equity Visa/Mastercard"];
+const PRODUCTS = ["Purchase (Resale)","Purchase (Builder)","Refinance","Renewal","HELOC","Second Mortgage","Switch","Home Equity Visa/Mastercard"];
+const MORTGAGE_POSITIONS = ["1st","2nd","3rd"];
+const CO_RELATIONSHIPS = ["Spouse","Partner","Parent","Child","Sibling","Friend","Business partner","Other"];
 const DEAL_CATEGORIES = ["Residential","Mixed use","Commercial","Multi-unit residential (NHA)"];
 const MORTGAGE_TYPES = ["Conventional","High Ratio","Alt-A","B-Lending","Private","Second Mortgage","Reverse Mortgage"];
 const AGE_BANDS = ["Under 40","40–45","46–50","51–55","56–60","61–65","65+"];
@@ -785,6 +787,7 @@ let clients = [];
 let editingId = null;
 let dependentDraft = [];
 let propertyDraft = [];
+let coAppDraft = [];
 let viewArchived = false;
 let formFieldDraft = null;
 
@@ -1143,6 +1146,13 @@ function renderReminders(){
       const days = daysUntil(bday.toISOString().slice(0,10));
       if(days <= 30) items.push({ id:c.id, type:'Birthday', label: nameWithCode(c) + ' — birthday', date: bday, days });
     }
+    // co-applicant birthdays
+    (c.coApplicants||[]).forEach(a=>{
+      if(!a.dob) return;
+      const bday = nextAnnualDate(a.dob);
+      const days = daysUntil(bday.toISOString().slice(0,10));
+      if(days <= 30) items.push({ id:c.id, type:'Birthday', label: nameWithCode(c) + ' — ' + ((a.firstName||'')+' '+(a.lastName||'')).trim() + ' (' + (a.relationship||'co-applicant') + ') birthday', date: bday, days });
+    });
     // anniversary
     if(c.anniversary){
       const anniv = nextAnnualDate(c.anniversary);
@@ -1267,12 +1277,13 @@ function escapeHtml(s){
 }
 
 function openOverlay(){ document.getElementById('overlay').classList.add('show'); }
-function closeOverlay(){ document.getElementById('overlay').classList.remove('show'); editingId = null; dependentDraft = []; formFieldDraft = null; }
+function closeOverlay(){ document.getElementById('overlay').classList.remove('show'); editingId = null; dependentDraft = []; coAppDraft = []; formFieldDraft = null; }
 
 function openAddForm(){
   editingId = null;
   dependentDraft = [];
   propertyDraft = [];
+  coAppDraft = [];
   formFieldDraft = null;
   renderForm();
   openOverlay();
@@ -1283,9 +1294,56 @@ function openEditForm(id){
   const c = clients.find(x=>x.id===id);
   dependentDraft = c && c.dependents ? JSON.parse(JSON.stringify(c.dependents)) : [];
   propertyDraft = c && c.additionalProperties ? JSON.parse(JSON.stringify(c.additionalProperties)) : [];
+  coAppDraft = c && c.coApplicants ? JSON.parse(JSON.stringify(c.coApplicants)) : [];
   formFieldDraft = null;
   renderForm();
   openOverlay();
+}
+
+function addCoAppRow(){
+  coAppDraft.push({ firstName:'', lastName:'', relationship:'Spouse', email:'', phone:'', dob:'' });
+  renderForm(true);
+}
+function removeCoAppRow(idx){
+  coAppDraft.splice(idx,1);
+  renderForm(true);
+}
+function syncCoAppDraftFromDom(){
+  coAppDraft = coAppDraft.map((a,i)=>{
+    const g = id => document.getElementById(id + '_' + i);
+    return {
+      firstName: g('co_first') ? g('co_first').value.trim() : a.firstName,
+      lastName: g('co_last') ? g('co_last').value.trim() : a.lastName,
+      relationship: g('co_rel') ? g('co_rel').value : a.relationship,
+      email: g('co_email') ? g('co_email').value.trim() : a.email,
+      phone: g('co_phone') ? normalizePhone(g('co_phone').value) : a.phone,
+      dob: g('co_dob') ? g('co_dob').value : a.dob
+    };
+  });
+}
+function renderCoAppRows(){
+  if(coAppDraft.length === 0){
+    return `<div class="hint" style="margin-bottom:10px;">No co-applicants added yet.</div>`;
+  }
+  return coAppDraft.map((a,i)=>`
+    <div class="dep-row">
+      <div class="field-row3">
+        <div class="field"><label>First name</label><input id="co_first_${i}" value="${escapeHtml(a.firstName||'')}"></div>
+        <div class="field"><label>Last name</label><input id="co_last_${i}" value="${escapeHtml(a.lastName||'')}"></div>
+        <div class="field"><label>Relationship</label>
+          <select id="co_rel_${i}">
+            ${CO_RELATIONSHIPS.map(r=>`<option value="${r}" ${a.relationship===r?'selected':''}>${r}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="field-row3">
+        <div class="field"><label>Email</label><input id="co_email_${i}" value="${escapeHtml(a.email||'')}"></div>
+        <div class="field"><label>Phone</label><input id="co_phone_${i}" value="${escapeHtml(a.phone||'')}"></div>
+        <div class="field"><label>Date of birth</label><input id="co_dob_${i}" type="date" value="${a.dob||''}"></div>
+      </div>
+      <button class="remove-dep" onclick="captureFormFieldDraft(); syncDependentDraftFromDom(); syncCoAppDraftFromDom(); removeCoAppRow(${i})">Remove co-applicant</button>
+    </div>
+  `).join('');
 }
 
 function addDependentRow(){
@@ -1379,7 +1437,7 @@ function renderDependentRows(){
         </div>
         <div class="field"><label>${d.type==='Working' ? 'Profession / field' : 'Field of study / interests'}</label><input id="dep_detail_${i}" value="${escapeHtml(d.detail)}"></div>
       </div>
-      <button class="remove-dep" onclick="captureFormFieldDraft(); syncDependentDraftFromDom(); removeDependentRow(${i})">Remove dependent</button>
+      <button class="remove-dep" onclick="captureFormFieldDraft(); syncDependentDraftFromDom(); syncCoAppDraftFromDom(); removeDependentRow(${i})">Remove dependent</button>
     </div>
   `).join('');
 }
@@ -1402,6 +1460,7 @@ function captureFormFieldDraft(){
     dealCategory: val('f_dealCategory'),
     product: val('f_product'),
     mortgageType: val('f_mortgageType'),
+    mortgagePosition: val('f_mortgagePosition'),
     stage: val('f_stage'),
     propertyAddress: val('f_address'),
     propertyType: val('f_propertyType'),
@@ -1477,6 +1536,15 @@ function renderForm(keepScroll){
         </select>
       </div>
     </div>
+    <div class="field-row">
+      <div class="field"><label>Mortgage position</label>
+        <select id="f_mortgagePosition">
+          <option value="">Select…</option>
+          ${MORTGAGE_POSITIONS.map(p=>`<option value="${p}" ${c.mortgagePosition===p?'selected':''}>${p} mortgage</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"></div>
+    </div>
     <div class="field"><label>Property address</label><input id="f_address" value="${escapeHtml(c.propertyAddress||'')}"></div>
     <div class="field"><label>Property type</label>
       <select id="f_propertyType" onchange="document.getElementById('f_propertyTypeOtherWrap').style.display = this.value==='Other' ? 'block' : 'none';">
@@ -1539,9 +1607,13 @@ function renderForm(keepScroll){
       </div>
     </div>
 
+    <div class="sechead">Co-applicants</div>
+    <div id="coAppWrap">${renderCoAppRows()}</div>
+    <button class="btn secondary small" onclick="captureFormFieldDraft(); syncDependentDraftFromDom(); syncCoAppDraftFromDom(); addCoAppRow()">+ Add co-applicant</button>
+
     <div class="sechead">Dependents</div>
     <div id="dependentsWrap">${renderDependentRows()}</div>
-    <button class="btn secondary small" onclick="captureFormFieldDraft(); syncDependentDraftFromDom(); addDependentRow()">+ Add dependent</button>
+    <button class="btn secondary small" onclick="captureFormFieldDraft(); syncDependentDraftFromDom(); syncCoAppDraftFromDom(); addDependentRow()">+ Add dependent</button>
     <div class="field" style="margin-top:14px;">
       <label>Education plan for dependent(s) under 10 <span class="hint">(ask during Discovery — not shown at Lead stage)</span></label>
       <select id="f_educationPlanStatus">
@@ -1607,6 +1679,7 @@ async function saveForm(){
     dealCategory: document.getElementById('f_dealCategory').value,
     product: document.getElementById('f_product').value,
     mortgageType: document.getElementById('f_mortgageType').value,
+    mortgagePosition: document.getElementById('f_mortgagePosition').value,
     stage: document.getElementById('f_stage').value,
     propertyAddress: document.getElementById('f_address').value.trim(),
     propertyType: document.getElementById('f_propertyType').value,
@@ -1620,6 +1693,7 @@ async function saveForm(){
     insuranceStatus: document.getElementById('f_insuranceStatus').value,
     retirementStatus: document.getElementById('f_retirementStatus').value,
     dependents: dependentDraft.filter(d=> d.name),
+    coApplicants: (syncCoAppDraftFromDom(), coAppDraft.filter(a=> a.firstName || a.lastName)),
     additionalProperties: propertyDraft.filter(p=> p.address),
     educationPlanStatus: document.getElementById('f_educationPlanStatus').value,
     referralType: document.getElementById('f_referralType').value,
@@ -2645,6 +2719,7 @@ function openDetail(id){
       <dt>Deal category</dt><dd>${escapeHtml(c.dealCategory)||'—'}</dd>
       <dt>Product</dt><dd>${escapeHtml(c.product)||'—'}</dd>
       <dt>Mortgage type</dt><dd>${escapeHtml(c.mortgageType)||'—'}</dd>
+      <dt>Mortgage position</dt><dd>${c.mortgagePosition ? escapeHtml(c.mortgagePosition) + ' mortgage' : '—'}</dd>
       <dt>Stage</dt><dd><span class="badge ${c.stage}">${STAGE_LABELS[c.stage]}</span></dd>
       <dt>Property address</dt><dd>${escapeHtml(c.propertyAddress)||'—'}</dd>
       <dt>Property type</dt><dd>${escapeHtml(c.propertyType||'—')}${c.propertyType==='Other' && c.propertyTypeOther ? ': '+escapeHtml(c.propertyTypeOther) : ''}</dd>
@@ -2662,6 +2737,7 @@ function openDetail(id){
       <div class="sechead">Financial planning</div>
       <dt>Insurance status</dt><dd>${escapeHtml(c.insuranceStatus)||'—'}</dd>
       <dt>Retirement plan status</dt><dd>${escapeHtml(c.retirementStatus)||'—'}</dd>
+      <dt>Co-applicants</dt><dd>${(c.coApplicants||[]).length ? c.coApplicants.map(a=> escapeHtml(((a.firstName||'')+' '+(a.lastName||'')).trim()) + (a.relationship? ' ('+escapeHtml(a.relationship)+')':'') + (a.email? ' · '+escapeHtml(a.email):'') + (a.phone? ' · '+escapeHtml(a.phone):'') + (a.dob? ' · DOB '+a.dob:'')).join('<br>') : '—'}</dd>
       <dt>Dependents</dt><dd>${depHtml}</dd>
       ${under10 ? '<dt>Flag</dt><dd><span class="badge flag">Education plan conversation suggested</span></dd>' : ''}
 
@@ -3360,6 +3436,8 @@ function renderDcColumnMapping(){
   });
   html += '<label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-top:8px;">' +
     '<input type="checkbox" id="dcAlsoInsurance" checked> Also create an insurance lead for each client (for LLQP follow-up)</label>' +
+    '<label style="display:flex; align-items:center; gap:8px; font-size:13px; margin-top:6px;">' +
+    '<input type="checkbox" id="dcCoAppInsurance" checked> Also create an insurance lead for each co-applicant</label>' +
     '<div class="hint" style="margin-top:6px;">Rows whose Pineapple deal # is already in the dashboard are skipped, so you can re-import the same export safely.</div>' +
     '</div>';
   wrap.innerHTML = html;
@@ -3474,6 +3552,7 @@ function dcProductFor(purpose){
   if(p.startsWith('purchase')) return 'Purchase (Resale)';
   if(p.startsWith('refinance') || p === 'eto') return 'Refinance';
   if(p.startsWith('switch')) return 'Switch';
+  if(p.startsWith('renewal')) return 'Renewal';
   if(p.includes('heloc')) return 'HELOC';
   return '';
 }
@@ -3496,6 +3575,7 @@ async function importDcClients(){
   const mapPhone = document.getElementById('dcMap_phone').value;
   const mapEmail = document.getElementById('dcMap_email').value;
   const alsoInsurance = document.getElementById('dcAlsoInsurance') && document.getElementById('dcAlsoInsurance').checked;
+  const coAppInsurance = document.getElementById('dcCoAppInsurance') && document.getElementById('dcCoAppInsurance').checked;
   const importedAt = new Date().toISOString().slice(0,10);
 
   // 1. Start from the server's current list so nothing added elsewhere gets lost.
@@ -3571,7 +3651,8 @@ async function importDcClients(){
       insuranceSoldWithDeal: '', calledByVik: '', closingDate, mortgageTerm: term, renewalDate: maturityDate,
       insuranceStatus: '', retirementStatus: '', dependents: [], additionalProperties: [], educationPlanStatus: '',
       referralType: 'Other', referralOther: 'Pineapple One import', referralName: agent, referralEmail: '', referralPhone: '',
-      coApplicant: coName ? { name: coName, firstName: coFirst, lastName: coLast, email: coEmail, phone: coPhone } : null,
+      coApplicants: coName ? [{ firstName: coFirst, lastName: coLast, relationship: 'Spouse', email: coEmail, phone: coPhone, dob: '' }] : [],
+      mortgagePosition: '1st',
       lender, rate, rateType, mortgageAmount: volume, ltv, purpose,
       pineappleDealId: dealRef, pineappleAgent: agent, importedFrom: 'Pineapple One', importedAt
     });
@@ -3621,6 +3702,28 @@ async function importDcClients(){
           linkedMortgageDealCode: c.dealCode, pineappleDealId: c.pineappleDealId, importedFrom: 'Pineapple One', importedAt
         });
         insAdded++;
+        if(coAppInsurance){
+          (c.coApplicants||[]).forEach(a=>{
+            const coFull = ((a.firstName||'')+' '+(a.lastName||'')).trim();
+            if(!coFull) return;
+            insClients.push({
+              id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+              createdAt: Date.now(),
+              dealCode: 'vinc 1' + String(insClients.length + 1).padStart(4, '0'),
+              notesList: [],
+              name: coFull, firstName: a.firstName||'', lastName: a.lastName||'', phone: a.phone||'', email: a.email||'', dob: a.dob||'',
+              age: ageFromDob(a.dob), ageBand: ageBandFor(ageFromDob(a.dob)) || '',
+              leadCategory: 'Insurance', stage: 'Lead',
+              insuranceStatus: '', retirementStatus: '',
+              researchNotes: [], researchStatus: 'pending', sashaChat: [], sashaAutoSend: false,
+              sourceAgent: 'Pineapple import',
+              sourceNotes: 'Co-applicant (' + (a.relationship||'co-applicant') + ') on ' + c.name + "'s mortgage (" + c.dealCode + (c.pineappleDealId ? ', Pineapple ' + c.pineappleDealId : '') + '). ' +
+                (c.renewalDate ? 'Mortgage renews ' + c.renewalDate + '. ' : '') + 'Potential client for LLQP products — keep in touch.',
+              linkedMortgageDealCode: c.dealCode, pineappleDealId: c.pineappleDealId ? c.pineappleDealId + '#co' : '', importedFrom: 'Pineapple One', importedAt
+            });
+            insAdded++;
+          });
+        }
       });
       if(insAdded){
         await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value: JSON.stringify(insClients) }) });
