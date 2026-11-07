@@ -1,0 +1,18 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>carry</title>
+<script>
+// carry.html#file=<path>&i=<chunk index>&n=<chunk size>&target=<url>
+// Fetches the file, base64-encodes it, and navigates to target#vikchunk=<i>/<total>/<name>/<mime>:<base64 slice>
+(async () => {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const file = p.get('file'), i = +(p.get('i') || 0), n = +(p.get('n') || 600000), target = p.get('target');
+  const r = await fetch(file + '?v=' + Date.now());
+  const b = await r.blob();
+  const b64 = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result.split(',')[1]); fr.readAsDataURL(b); });
+  const total = Math.ceil(b64.length / n);
+  const name = file.split('/').pop();
+  document.body.textContent = `chunk ${i + 1}/${total} of ${name} (${b64.length} chars)`;
+  location.href = target + '#vikchunk=' + i + '/' + total + '/' + name + '/' + encodeURIComponent(b.type) + ':' + b64.slice(i * n, (i + 1) * n);
+})();
+</script>
