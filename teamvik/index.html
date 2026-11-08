@@ -45,6 +45,11 @@
   .cta{background:var(--orange);color:#14213D;text-align:center;padding:56px 0}
   .cta h2{font-size:34px} .cta p{font-size:18px;margin:10px 0 24px}
   .cta .btn{background:#14213D;color:var(--paper)}
+  .rform{max-width:640px;margin:0 auto;text-align:left}
+  .rform .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .rform input,.rform select,.rform textarea{width:100%;padding:13px 14px;border:1px solid rgba(20,33,61,.25);border-radius:10px;font-size:16px;background:#FFF8EE;color:#14213D;font-family:inherit}
+  .rform textarea{margin-bottom:12px}
+  @media (max-width:600px){.rform .row{grid-template-columns:1fr}}
   .cta .btn.alt{color:#14213D;border-color:#14213D}
   footer{padding:28px 0 40px;color:var(--muted);font-size:13px;text-align:center}
   footer a{color:var(--muted)}
@@ -156,12 +161,45 @@
 </div></section>
 
 <div class="cta" id="join"><div class="wrap">
-  <h2>Message me “TEAM VIK”</h2>
-  <p>One conversation, fifteen minutes. I will tell you plainly whether the 90 days fit you, what Week 1 looks like, and when the next cohort starts at Pineapple HQ.</p>
-  <a class="btn" href="https://wa.me/14168873861?text=TEAM%20VIK%20%E2%80%94%20I%20want%20to%20know%20more%20about%20the%2090%20days" target="_blank" rel="noopener">WhatsApp 416-887-3861</a>
-  <a class="btn alt" href="mailto:viksharma@gopineapple.com?subject=TEAM%20VIK">Email viksharma@gopineapple.com</a>
-  <p class="fine">Mentorship is offered to agents on Pineapple Financial’s platform. No income is promised; results depend on your activity. Commission structure is Pineapple’s and is unchanged by Team Vik. Any dollar values quoted for comparable coaching are market estimates.</p>
+  <h2>Tell me where you are. I will tell you if the 90 days fit.</h2>
+  <p>Thirty seconds. It lands on my desk, not in a queue, and I reply myself.</p>
+  <form id="recruitForm" class="rform">
+    <div class="row"><input id="rFirst" placeholder="First name" required autocomplete="given-name"><input id="rLast" placeholder="Last name" autocomplete="family-name"></div>
+    <div class="row"><input id="rPhone" placeholder="Mobile" type="tel" required autocomplete="tel"><input id="rEmail" placeholder="Email" type="email" required autocomplete="email"></div>
+    <div class="row"><select id="rLicence" required><option value="">Licence status…</option><option>Licensed — Level 1</option><option>Licensed — Level 2</option><option>Writing the exam</option><option>Not licensed yet</option></select><select id="rNow" required><option value="">Where are you now…</option><option>Already at Pineapple</option><option>Another brokerage</option><option>Bank mortgage specialist</option><option>Realtor</option><option>New to the industry</option></select></div>
+    <textarea id="rMsg" placeholder="One line: what do you want the next 90 days to produce?" rows="2"></textarea>
+    <button type="submit" class="btn" style="background:#14213D;color:#FBF8F2">Send to Vik</button>
+    <p class="status" style="margin:12px 0 0;font-weight:600;min-height:22px"></p>
+  </form>
+  <p style="margin-top:18px">Prefer to talk? <a href="https://wa.me/14168873861?text=TEAM%20VIK%20%E2%80%94%20I%20want%20to%20know%20more%20about%20the%2090%20days" target="_blank" rel="noopener" style="color:#14213D;font-weight:700">WhatsApp 416-887-3861</a> · <a href="mailto:viksharma@gopineapple.com?subject=TEAM%20VIK" style="color:#14213D;font-weight:700">viksharma@gopineapple.com</a></p>
+  <p class="fine">Mentorship is offered to agents on Pineapple Financial’s platform. No income is promised; results depend on your activity. Commission structure is Pineapple’s and is unchanged by Team Vik. Any dollar values quoted for comparable coaching are market estimates. Your details go only to Vikas Sharma.</p>
 </div></div>
+<script>
+(function(){
+  const f=document.getElementById('recruitForm'); if(!f) return;
+  const EP='https://fincop-backend.onrender.com/app-data/mortgage-recruits';
+  f.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const st=f.querySelector('.status'), btn=f.querySelector('button[type=submit]');
+    const v=id=>document.getElementById(id).value.trim();
+    const first=v('rFirst'), last=v('rLast'), phone=v('rPhone'), email=v('rEmail'), lic=v('rLicence'), now=v('rNow'), msg=v('rMsg');
+    if(!first||!phone||!email||!lic||!now){ st.textContent='Please fill the required fields.'; return; }
+    btn.disabled=true; st.textContent='Sending…';
+    const note='Via Join Team Vik page ('+new Date().toISOString().slice(0,10)+'). Licence: '+lic+'. Currently: '+now+(msg?'. Wants: '+msg:'');
+    try{
+      const res=await fetch(EP); const data=await res.json();
+      const list=data&&data.value?JSON.parse(data.value):[];
+      let max=0; list.forEach(r=>{ if(r.displayId){ const n=parseInt(String(r.displayId).split('-')[1],10); if(!isNaN(n)&&n>max) max=n; } });
+      list.push({ id:'r_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), displayId:'vikrecm-'+String(max+1).padStart(6,'0'), firstName:first, lastName:last, email, phone, birthday:'', guruAssigned:false, startDate:null, emailsSent:{}, callHistory:[], dailyReplies:{}, prospects:[], createdAt:Date.now(), source:'Join Team Vik page', licenceStatus:lic, currentRole:now, sourceNotes:note, stage:'Lead' });
+      await fetch(EP,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({value:JSON.stringify(list)})});
+      st.textContent='Received. I will message you myself — usually the same day.'; f.reset();
+    }catch(err){
+      st.textContent='Could not reach my system — your email app will open with the details filled in. Just hit send.';
+      location.href='mailto:viksharma@gopineapple.com?subject=TEAM%20VIK%20%E2%80%94%20'+encodeURIComponent(first+' '+last)+'&body='+encodeURIComponent(note+'\nPhone: '+phone+'\nEmail: '+email);
+    }finally{ btn.disabled=false; }
+  });
+})();
+</script>
 
 <footer><div class="wrap">
   Vikas Sharma, Mortgage Broker, FSRA Licence #M09001351 · Pineapple Financial Inc., FSRA Brokerage Licence #12830 · Life &amp; Health Insurance Agent (LLQP), Ontario, FSRA Licence #25243352<br>
